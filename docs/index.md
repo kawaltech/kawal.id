@@ -104,6 +104,8 @@ interface Category {
 
 ### Phase 2: Core Data Structure
 
+**Detailed Plan:** [docs/plans/phase-2.md](plans/phase-2.md)
+
 - [ ] Design report data model
 - [ ] Create category system
 - [ ] Set up data fetching utilities

@@ -100,7 +100,7 @@ interface Category {
 - [x] Create feature documentation
 - [x] Update README.md
 - [x] Set up TypeScript interfaces
-- [ ] Create dummy JSON data
+- [x] Create dummy JSON data
 
 ### Phase 2: Core Data Structure
 

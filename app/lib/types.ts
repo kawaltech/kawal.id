@@ -1,5 +1,5 @@
 export interface Report {
-  readonly id: string
+  readonly id: number
   readonly title: string
   readonly description: string
   readonly categorySlug: string

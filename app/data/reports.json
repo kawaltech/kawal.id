@@ -1,0 +1,134 @@
+[
+  {
+    "id": 1,
+    "title": "Jalan Berlubang di Jalan Sudirman",
+    "description": "Jalan Sudirman depan Mall X terdapat lubang besar yang berbahaya bagi pengendara motor. Sudah beberapa kali terjadi kecelakaan minor.",
+    "categorySlug": "infrastruktur",
+    "url": "https://twitter.com/user/status/123456789",
+    "location": {
+      "lat": -6.2088,
+      "lng": 106.8456,
+      "address": "Jl. Sudirman No. 123",
+      "desa": "Kelurahan Sudirman",
+      "kecamatan": "Tanah Abang",
+      "kabupaten": "Jakarta Pusat",
+      "provinsi": "DKI Jakarta",
+      "negara": "Indonesia",
+      "benua": "Asia"
+    },
+    "timestamp": "2024-01-15T10:30:00Z",
+    "status": "pending",
+    "tags": ["jalan", "lubang", "berbahaya"],
+    "source": "form",
+    "image": "/images/reports/jalan-berlubang.jpg"
+  },
+  {
+    "id": 2,
+    "title": "Pencemaran Air Sungai Ciliwung",
+    "description": "Sungai Ciliwung di sekitar Kampung Melayu tercemar limbah industri. Air berwarna kehitaman dan berbau menyengat.",
+    "categorySlug": "lingkungan",
+    "url": "https://www.instagram.com/p/ABC123456/",
+    "location": {
+      "lat": -6.2297,
+      "lng": 106.8576,
+      "address": "Kampung Melayu",
+      "desa": "Kelurahan Kampung Melayu",
+      "kecamatan": "Jatinegara",
+      "kabupaten": "Jakarta Timur",
+      "provinsi": "DKI Jakarta",
+      "negara": "Indonesia",
+      "benua": "Asia"
+    },
+    "timestamp": "2024-01-14T08:15:00Z",
+    "status": "verified",
+    "tags": ["pencemaran", "air", "sungai", "limbah"],
+    "source": "form"
+  },
+  {
+    "id": 3,
+    "title": "Pelayanan Lambat di Kantor Kelurahan",
+    "description": "Proses pengurusan KTP di Kelurahan Menteng sangat lambat. Warga harus menunggu hingga 3 jam untuk mendapat pelayanan.",
+    "categorySlug": "pelayanan-publik",
+    "location": {
+      "lat": -6.1944,
+      "lng": 106.8294,
+      "address": "Jl. HOS Cokroaminoto No. 41",
+      "desa": "Kelurahan Menteng",
+      "kecamatan": "Menteng",
+      "kabupaten": "Jakarta Pusat",
+      "provinsi": "DKI Jakarta",
+      "negara": "Indonesia",
+      "benua": "Asia"
+    },
+    "timestamp": "2024-01-13T14:20:00Z",
+    "status": "resolved",
+    "tags": ["pelayanan", "ktp", "lambat"],
+    "source": "manual"
+  },
+  {
+    "id": 4,
+    "title": "Dugaan Korupsi Dana Bantuan COVID-19",
+    "description": "Terdapat indikasi penyalahgunaan dana bantuan COVID-19 di tingkat RT. Dana yang seharusnya Rp 10 juta hanya tersalurkan Rp 6 juta.",
+    "categorySlug": "korupsi",
+    "url": "https://www.facebook.com/user/posts/123456789",
+    "location": {
+      "lat": -6.2615,
+      "lng": 106.7837,
+      "address": "RT 05/RW 03",
+      "desa": "Kelurahan Kebayoran Lama",
+      "kecamatan": "Kebayoran Lama",
+      "kabupaten": "Jakarta Selatan",
+      "provinsi": "DKI Jakarta",
+      "negara": "Indonesia",
+      "benua": "Asia"
+    },
+    "timestamp": "2024-01-12T16:45:00Z",
+    "status": "pending",
+    "tags": ["korupsi", "covid", "bantuan", "dana"],
+    "source": "form"
+  },
+  {
+    "id": 5,
+    "title": "Fasilitas Puskesmas Rusak",
+    "description": "AC di Puskesmas Cempaka Putih rusak sejak 2 bulan lalu. Pasien dan tenaga medis kepanasan saat pelayanan.",
+    "categorySlug": "kesehatan",
+    "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "location": {
+      "lat": -6.1707,
+      "lng": 106.8671,
+      "address": "Jl. Cempaka Putih Tengah",
+      "desa": "Kelurahan Cempaka Putih Timur",
+      "kecamatan": "Cempaka Putih",
+      "kabupaten": "Jakarta Pusat",
+      "provinsi": "DKI Jakarta",
+      "negara": "Indonesia",
+      "benua": "Asia"
+    },
+    "timestamp": "2024-01-11T09:00:00Z",
+    "status": "verified",
+    "tags": ["puskesmas", "ac", "rusak", "kesehatan"],
+    "source": "form",
+    "image": "/images/reports/puskesmas-rusak.jpg"
+  },
+  {
+    "id": 6,
+    "title": "Atap Sekolah Bocor Saat Hujan",
+    "description": "Atap SDN 01 Petojo bocor di beberapa titik. Saat hujan, air masuk ke ruang kelas dan mengganggu proses belajar mengajar.",
+    "categorySlug": "pendidikan",
+    "location": {
+      "lat": -6.1598,
+      "lng": 106.8142,
+      "address": "Jl. Petojo Utara II No. 15",
+      "desa": "Kelurahan Petojo Utara",
+      "kecamatan": "Gambir",
+      "kabupaten": "Jakarta Pusat",
+      "provinsi": "DKI Jakarta",
+      "negara": "Indonesia",
+      "benua": "Asia"
+    },
+    "timestamp": "2024-01-10T11:30:00Z",
+    "status": "pending",
+    "tags": ["sekolah", "atap", "bocor", "hujan"],
+    "source": "api"
+  }
+]

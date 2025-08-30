@@ -1,18 +1,19 @@
-# Welcome to React Router!
+# Kawal.id - Public Reporting Website
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A public reporting platform for collecting and displaying incident reports with categorization, URL embedding, and location mapping. Built with React Router v7 Framework Mode.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+**Inspired by:** [senar.ai](https://senar.ai) | **Reference:** <https://github.com/senar-ai/web>
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
+- 📝 Public incident reporting system
+- 🏷️ Category-based organization (`Kategori`)
+- 🔗 Social media URL embedding (Twitter, Instagram, Facebook, YouTube)
+- 📍 Location mapping with coordinates
+- 🚀 Static site generation for performance
+- ⚡️ React Router v7 Framework Mode
+- 🎨 TailwindCSS styling
 - 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
 
 ## Getting Started
 
@@ -70,7 +71,7 @@ If you're familiar with deploying Node applications, the built-in app server is 
 
 Make sure to deploy the output of `npm run build`
 
-```
+```tree
 ├── package.json
 ├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
 ├── build/
@@ -78,10 +79,34 @@ Make sure to deploy the output of `npm run build`
 │   └── server/    # Server-side code
 ```
 
-## Styling
+## Project Structure
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+```tree
+├── docs/           # Project documentation and progress tracking
+├── app/
+│   ├── components/ # Reusable UI components
+│   ├── data/       # JSON data files for development
+│   ├── lib/        # Utility functions and types
+│   ├── routes/     # React Router pages
+│   └── root.tsx    # Root layout
+├── build/          # Production build output
+└── public/         # Static assets
+```
+
+## Data Models
+
+### Report Structure
+
+Reports contain incident information with categorization, social media URLs, and location coordinates.
+
+### Category System (`Kategori`)
+
+Organized categorization system for filtering and organizing reports by type or severity.
+
+## Development Roadmap
+
+See [`docs/index.md`](docs/index.md) for detailed feature requirements and implementation progress.
 
 ---
 
-Built with ❤️ using React Router.
+Built with ❤️ using React Router v7 Framework Mode.

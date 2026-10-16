@@ -21,7 +21,7 @@ export const FEED_LABELS: Record<FeedState, string> = {
   "tidak-tersedia": "Data tidak tersedia",
 };
 
-export function useDesignState(fixture: DesignFixture) {
+export function useDesignState(fixture: Pick<DesignFixture, "feeds" | "detections">) {
   const [state, setState] = useState<FeedState>("segar");
   const [windowHours, setWindowHours] = useState<number>(24);
   const [confidences, setConfidences] = useState<string[]>([...CONFIDENCES]);

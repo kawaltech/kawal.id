@@ -33,8 +33,8 @@ removed reviewer role or remove an account disablement.
 `react-router.config.ts` lists public routes to prerender. Never include editorial
 or authentication routes. The public Caddy process has no database dependency and
 does not forward missing routes to the application. The current page is only an
-unstyled placeholder. Data-bearing public routes must use loaders and export
-their navigation payloads when those routes are added.
+unstyled placeholder; the `/rancangan` routes are synthetic design reviews.
+Data-bearing public routes must use loaders and export their navigation payloads.
 
 `public:init` copies `build/client` to a new release directory, then creates the
 `current` symlink only if it does not exist. The command does not replace an
@@ -45,9 +45,14 @@ state, and CDN purge workflow must be built in the report implementation.
 The default response policy is the strict report policy from ADR 0002:
 `public, max-age=60, s-maxage=60, must-revalidate`. Only hash-named code under
 `/assets/` has an immutable one-year cache period. Keep report data and media out
-of that directory. Add five-minute freshness and stale-on-error only to a route
-that contains guidance or detections and no reports. Authentication, editorial,
-preview, and private paths return 404 from the public origin.
+of that directory. Option B's page (`/rancangan/b`, with or without a trailing
+slash) and navigation data (`/rancangan/b.data`) use
+`public, max-age=300, stale-if-error=86400`. Its loader exports only detections,
+feed status, guidance, and the generation time, not field reports. Options A and
+C retain the strict report policy. Update the exact route allowlist and HTTP
+checks when B moves to a production route; do not extend this policy to all review
+pages. Authentication, editorial, preview, and private paths return 404 from the
+public origin.
 
 Cloudflare is not part of local development. Before production, configure an
 explicit public HTML/JSON/navigation cache allowlist and an editorial/auth bypass.
@@ -108,7 +113,8 @@ relative symlink works at both mount points.
 
 CI starts both container targets with temporary local storage, stops the
 editorial container, and checks public reads with `scripts/check-public.mjs`.
-The checks cover page and code cache headers, private paths, and missing routes.
+The checks cover each cache class, report isolation in B, private paths, and
+missing routes. They verify origin headers, not Cloudflare stale delivery.
 To repeat the HTTP checks against a running static server, run
 `node scripts/check-public.mjs <public-server-url>`.
 

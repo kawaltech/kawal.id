@@ -34,7 +34,8 @@ export function meta() {
 }
 
 export function loader() {
-  return designFixture();
+  const { generatedAt, feeds, detections, guidance } = designFixture();
+  return { generatedAt, feeds, detections, guidance };
 }
 
 export default function OptionB({ loaderData }: Route.ComponentProps) {

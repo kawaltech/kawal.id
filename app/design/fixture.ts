@@ -136,7 +136,7 @@ export const CONFIDENCES = ["tinggi", "nominal", "rendah"] as const;
 
 /** Detections known at the last successful update, inside the selected window. */
 export function visibleDetections(
-  fixture: DesignFixture,
+  fixture: Pick<DesignFixture, "feeds" | "detections">,
   state: FeedState,
   windowHours: number,
   confidences: readonly string[],

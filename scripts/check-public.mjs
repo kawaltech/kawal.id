@@ -14,6 +14,30 @@ assert.equal(code.status, 200, "The referenced code asset must exist");
 assert.equal(code.headers.get("cache-control"), "public, max-age=31536000, immutable");
 await code.arrayBuffer();
 
+for (const path of ["/rancangan/b", "/rancangan/b/", "/rancangan/b.data"]) {
+  const response = await fetch(new URL(path, base));
+  assert.equal(response.status, 200, path);
+  assert.equal(
+    response.headers.get("cache-control"),
+    "public, max-age=300, stale-if-error=86400",
+    path,
+  );
+  const body = await response.text();
+  assert.doesNotMatch(body, /laporan-contoh-/, `${path} must not export field reports`);
+  if (path.endsWith(".data")) assert.doesNotMatch(body, /"reports"/, path);
+}
+
+for (const path of ["/rancangan/a", "/rancangan/a.data", "/rancangan/c", "/rancangan/c.data"]) {
+  const response = await fetch(new URL(path, base));
+  assert.equal(response.status, 200, path);
+  assert.equal(
+    response.headers.get("cache-control"),
+    "public, max-age=60, s-maxage=60, must-revalidate",
+    path,
+  );
+  assert.match(await response.text(), /laporan-contoh-/, `${path} must retain its report fixtures`);
+}
+
 for (const path of [
   "/editor/healthz",
   "/auth/callback",
@@ -27,7 +51,16 @@ for (const path of [
   await response.text();
 }
 
-const missing = await fetch(new URL("/missing-public-route", base));
-assert.equal(missing.status, 404, "A missing route must not return the application shell");
-await missing.text();
-console.log("Public HTTP checks passed: page, immutable code, private paths, and no SPA fallback");
+for (const path of ["/missing-public-route", "/rancangan/b-unlisted"]) {
+  const missing = await fetch(new URL(path, base));
+  assert.equal(missing.status, 404, "A missing route must not return the application shell");
+  assert.equal(
+    missing.headers.get("cache-control"),
+    "public, max-age=60, s-maxage=60, must-revalidate",
+    path,
+  );
+  await missing.text();
+}
+console.log(
+  "Public HTTP checks passed: cache classes, report isolation, private paths, and no SPA fallback",
+);

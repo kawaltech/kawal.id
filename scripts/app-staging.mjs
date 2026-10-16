@@ -15,10 +15,10 @@ const usage = [
 
 const staging = {
   account: "1d60533bd63392b6dc25160f907c4f76",
-  worker: "kawal-asap-app",
+  worker: "kawal-app",
   host: "app.kawal.id",
-  database: "kawal-asap-app-db",
-  bucket: "kawal-asap-app-storage",
+  database: "kawal-app-db",
+  bucket: "kawal-app-storage",
   migrationsDir: "./db/migrations",
 };
 // Void's own real-ID test for D1 (provision-BuifYvLc.mjs:62, :67).

@@ -291,7 +291,7 @@ describe("Google-only configuration", () => {
     const { app } = await createApp();
     // Start on another host: the callback must still be the configured app origin.
     const response = await app.fetch(
-      "https://kawal-asap-app.example.workers.dev/api/auth/sign-in/social",
+      "https://kawal-app.example.workers.dev/api/auth/sign-in/social",
       {
         method: "POST",
         origin: APP_ORIGIN,

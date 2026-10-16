@@ -18,7 +18,7 @@ export default defineConfig({
   },
   worker: { compatibility_date: "2026-10-16" },
   cloudflare: {
-    name: "kawal-asap-app",
+    name: "kawal-app",
     account_id: "1d60533bd63392b6dc25160f907c4f76",
     routes: [{ pattern: "app.kawal.id", custom_domain: true }],
     workers_dev: false,

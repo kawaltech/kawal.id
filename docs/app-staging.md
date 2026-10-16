@@ -22,7 +22,7 @@ Do the steps in this order. Stop at the first failure.
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
 | 1    | Integrated auth, reviewer access, and tests are on one reviewed commit.                                                                    | Code                |
 | 2    | `pnpm check` and the app tests pass on that commit.                                                                                        | Local               |
-| 3    | Approval: create D1 `kawal-asap-app-db` with read replication off, and R2 bucket `kawal-asap-app-storage`.                                 | Cloudflare write    |
+| 3    | Approval: create D1 `kawal-app-db` with read replication off, and R2 bucket `kawal-app-storage`.                                 | Cloudflare write    |
 | 4    | Read the new D1 settings and confirm that read replication is off. Record both resource IDs.                                               | Read-only           |
 | 5    | Pin the D1 ID and the R2 bucket in `void.config.ts` in a reviewed commit. Repeat gate 2.                                                   | Code                |
 | 6    | `node scripts/app-staging.mjs preflight <commit>` passes on that final commit.                                                             | Local, no network   |
@@ -45,9 +45,9 @@ deployment at the same time as another deployment.
 
 | Host                              | Expected state                                                 |
 | --------------------------------- | -------------------------------------------------------------- |
-| `https://app.kawal.id`            | App staging Worker `kawal-asap-app`, through Custom Domain.    |
+| `https://app.kawal.id`            | App staging Worker `kawal-app`, through Custom Domain.    |
 | `https://kawal.id`                | Public static Worker. It must not serve app routes.            |
-| `kawal-asap-app.zain.workers.dev` | Disabled (`workers_dev: false`). It must not serve the Worker. |
+| `kawal-app.zain.workers.dev` | Disabled (`workers_dev: false`). It must not serve the Worker. |
 | Version preview URLs              | Disabled (`preview_urls: false`).                              |
 | `editor.kawal.id`                 | Not used.                                                      |
 
@@ -61,7 +61,7 @@ enable replication without tests that prove immediate logout and revocation.
 ## Required configuration
 
 `apps/app/void.config.ts` pins account
-`1d60533bd63392b6dc25160f907c4f76` and Worker `kawal-asap-app`.
+`1d60533bd63392b6dc25160f907c4f76` and Worker `kawal-app`.
 Its only route is `{ pattern: "app.kawal.id", custom_domain: true }`.
 Keep `workers_dev` and `preview_urls` false. Application responses use
 `Cache-Control: private, no-store` and `X-Robots-Tag: noindex`. The local
@@ -85,12 +85,12 @@ After gate 4, the config owner adds the real resources. Use the ID from gate 4:
     d1_databases: [
       {
         binding: "DB",
-        database_name: "kawal-asap-app-db",
+        database_name: "kawal-app-db",
         database_id: "<D1 UUID from gate 4>",
         migrations_dir: "./db/migrations",
       },
     ],
-    r2_buckets: [{ binding: "STORAGE", bucket_name: "kawal-asap-app-storage" }],
+    r2_buckets: [{ binding: "STORAGE", bucket_name: "kawal-app-storage" }],
   },
 ```
 
@@ -145,6 +145,10 @@ setting to stop this. Native session reads are not pinned to the primary
 database, so replication must stay off. Thus an approved operator creates D1
 and R2 before the deployment, and the deployment must not provision.
 
+A future product that stores data in `kawal-app-db` shares its backups,
+restores, and access boundary. Its tables must have a clear product prefix or
+an identified owner.
+
 Source facts (read-only, `void/dist` 1.1.11):
 
 - `reconcileD1` (`provision-BuifYvLc.mjs:1337`) always calls the replication
@@ -175,10 +179,10 @@ Source facts (read-only, `void/dist` 1.1.11):
 
 Procedure for gates 3 to 5:
 
-1. After approval, create D1 `kawal-asap-app-db` in account
+1. After approval, create D1 `kawal-app-db` in account
    `1d60533bd63392b6dc25160f907c4f76` in the Cloudflare dashboard. Record the
    approved location choice. Do not turn on read replication.
-2. Create R2 bucket `kawal-asap-app-storage` in the same account. Keep
+2. Create R2 bucket `kawal-app-storage` in the same account. Keep
    public access and custom domains for the bucket off.
 3. Read the D1 settings. Confirm that read replication is off. Record the
    database UUID.
@@ -302,9 +306,9 @@ The preflight makes no network request. It stops if one of these is false:
 - The config has the Worker name, the account, the `app.kawal.id` Custom Domain,
   `workers_dev: false`, `preview_urls: false`, no ISR, staged activation, the
   `private, no-store` and `noindex` headers, and the `noindex` meta.
-- The config pins exactly one D1 database (`DB`, `kawal-asap-app-db`, a
+- The config pins exactly one D1 database (`DB`, `kawal-app-db`, a
   real UUID, `migrations_dir: "./db/migrations"`) and exactly one R2 bucket
-  (`STORAGE`, `kawal-asap-app-storage`).
+  (`STORAGE`, `kawal-app-storage`).
 - `auth.providers`, if present, is `["google"]`, and `auth.ts` exists.
 - `db/migrations` has SQL files, one journal entry for each file, and tables for
   `user`, `session`, `account`, `verification`, `reviewer_invitations`,
@@ -333,7 +337,7 @@ version="$(node scripts/app-staging.mjs version "$started")"
 
 # Gate 10: read-only.
 node scripts/check-app-staging.mjs https://app.kawal.id "$version" \
-  https://kawal-asap-app.zain.workers.dev
+  https://kawal-app.zain.workers.dev
 node scripts/check-public.mjs https://kawal.id <active-public-version-id>
 ```
 

@@ -1,5 +1,15 @@
 # Kawal.id - Public Reporting Website
 
+> Historical plan. For the new Kawal Asap direction, use
+> [ADR 0001](adr/0001-self-contained-kawal-asap.md). The tasks below are not the
+> current implementation scope.
+
+## Current decisions
+
+- [Domain terms](../CONTEXT.md)
+- [Accepted stack and Google sign-in](adr/0001-self-contained-kawal-asap.md)
+- [Accepted static public reads and cache rules](adr/0002-static-publication.md)
+
 ## Overview
 
 A public reporting website inspired by [senar.ai](https://senar.ai) for

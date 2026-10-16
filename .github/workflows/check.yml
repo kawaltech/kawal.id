@@ -52,9 +52,9 @@ jobs:
           sudo chown 1000:1000 "$RUNNER_TEMP/kawal-data"
           docker run -d --name kawal-editorial-check -p 3000:3000 \
             -v "$RUNNER_TEMP/kawal-data:/data" kawal-asap-editorial:check
-          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:3000/editor/healthz
+          curl --fail --retry 30 --retry-delay 1 --retry-all-errors --retry-max-time 45 --max-time 5 http://127.0.0.1:3000/editor/healthz
           docker stop kawal-editorial-check
           docker run -d --name kawal-public-check -p 8080:8080 \
             -v "$RUNNER_TEMP/kawal-data/public:/data/public:ro" kawal-asap-public:check
-          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:8080/
+          curl --fail --retry 30 --retry-delay 1 --retry-all-errors --retry-max-time 45 --max-time 5 http://127.0.0.1:8080/
           node scripts/check-public.mjs http://127.0.0.1:8080

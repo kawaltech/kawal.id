@@ -1,16 +1,19 @@
-import { Welcome } from "../welcome/welcome";
-import type { Route } from "./+types/home";
-
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
-    { title: "Kawal Indonesia 🇮🇩" },
+    { title: "Kawal Asap" },
     {
       name: "description",
-      content: "Portal pelaporan publik berbasis lokasi & media",
+      content: "Kawal Asap application infrastructure.",
     },
   ];
 }
 
 export default function Home() {
-  return <Welcome />;
+  return (
+    <main>
+      <h1>Kawal Asap</h1>
+      <p>The application infrastructure is ready for development.</p>
+      <p>This is a static placeholder, not a live fire information service.</p>
+    </main>
+  );
 }

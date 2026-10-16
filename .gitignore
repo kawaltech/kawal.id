@@ -7,6 +7,13 @@
 
 # Local configuration files
 *.local.json
+/.data/
+/.env
+/.env.*
+!/.env.example
+/.vite-plus/
+/.kamal/secrets
+*.sqlite*
 
 # Orb portal metadata
 /.amp/portals/*

@@ -1,66 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
+Use ASD-STE100 Simplified Technical English for English prose.
 
 ## Commands
 
-- `npm run dev` - Start development server with HMR at <http://localhost:5173>
-- `npm run build` - Create production build
-- `npm run start` - Start production server from built files
-- `npm run typecheck` - Run React Router type generation and TypeScript checking
+- `vp run check`: type generation, TypeScript, lint, tests, and framework build.
+- `vp run dev`: React Router development server.
+- `vp run build`: React Router server build and public prerendering.
+- `vp run db:migrate`: locked SQL migrations.
+- `vp run db:seed`: local test identities; forbidden in production.
+- `amp orb services ensure`: supervised dev and static public services.
 
-## Architecture
+Use `vp run dev` and `vp run build`, not the bare Vite+ framework commands.
+The project uses Node.js from `.node-version` and pnpm from `package.json`.
 
-This is a React Router v7 application using **Framework Mode** - the most
-comprehensive routing strategy offering type-safe routing, intelligent code
-splitting, and support for multiple rendering strategies (SPA, SSR, static
-rendering).
+## Boundaries
 
-### Key Framework Mode Features
+- Read `CONTEXT.md` and both accepted ADRs in `docs/adr/` first.
+- The old generic reporting plans in `docs/index.md` are historical.
+- Use one React Router Framework Mode codebase with SQLite and local files.
+- Public routes must work as prerendered files without Node.js or SQLite.
+- Caddy serves only `.data/public/current`. Never expose the whole data directory.
+- Keep server-only storage code in `app/lib/*.server.ts`.
+- `migrations/*.sql` are immutable after application. Add a new migration.
+- Keep migrations compatible with overlapping old and new containers.
+- Store private originals, the database, backups, and public copies separately.
+- Ordinary development must not require external service credentials.
+- Do not add hosted database or authentication services, Redis, or a queue.
+- Do not publish test identities, unreviewed reports, or private media.
+- Tests use temporary directories. Never use production data in tests or snapshots.
 
-- Type-safe routing with generated types
-- Route Module API for data loading, actions, and meta
-- Intelligent code splitting
-- Vite plugin integration for optimal build performance
-- Support for prerendering (configured for root path `/`)
+## Current scope
 
-### Project Structure
+The repository contains infrastructure and an unstyled placeholder, not the
+product. Sign-in, sessions, reports, ingestion, publication, and CDN purges are
+not implemented. Do not claim that their production checks have passed.
 
-- **Framework**: React Router v7 Framework Mode with TypeScript and TailwindCSS
-- **Build System**: Vite with React Router dev plugin
-- **Styling**: TailwindCSS v4 with Vite plugin
-- **Routing**: File-based routing configured in `app/routes.ts`
-- **Configuration**:
-  - `react-router.config.ts` - Defines prerendering strategy
-  - `vite.config.ts` - Vite configuration with React Router, TailwindCSS, and
-    TypeScript path plugins
+Visual design belongs to a separate Claude Code Opus 5.5 thread after the
+infrastructure is ready. Do not treat the placeholder as a design reference.
 
-### Key Files
+## Operations
 
-- `app/root.tsx` - Root layout with HTML structure, error boundary, and font
-  loading
-- `app/routes.ts` - Route configuration using React Router's route helpers
-- `app/routes/home.tsx` - Home page route with meta function
-- `app/welcome/welcome.tsx` - Welcome component
-- `app/app.css` - Global styles
-
-### TypeScript Configuration
-
-- Path alias `~/*` maps to `./app/*` for clean imports
-- React Router generates types in `.react-router/types/`
-- Route modules get typed `Route` imports for type-safe meta, loaders, and
-  actions
-- Strict TypeScript settings enabled
-
-### Build Output
-
-Production builds generate:
-
-- `build/client/` - Static assets optimized for browser
-- `build/server/` - Server-side code for SSR/prerendering
-
-### Docker Support
-
-Multi-stage Dockerfile included for containerized deployment using Node.js 20
-Alpine.
+Read `docs/operations.md` for storage, backups, container targets, and Kamal.
+Use supervised orb services. Do not deploy, push images, or change Cloudflare
+without approval. `public:init` is a bootstrap command, not a publication or
+withdrawal command. It must never replace an active export on app startup.

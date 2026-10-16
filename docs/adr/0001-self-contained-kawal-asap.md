@@ -20,16 +20,16 @@ credentials, or a hosted authentication service.
 
 ## Decision
 
-| Part | Choice |
-| --- | --- |
-| Application | React Router Framework Mode, React, and TypeScript |
-| Runtime | Node.js |
-| Development tools | Vite+ with pinned Node.js and pnpm versions |
-| Database | SQLite with SQL migrations and write-ahead logging (WAL) |
-| Production sign-in | Google OpenID Connect; local sessions and roles in SQLite |
-| Media | Local files; separate private originals from published copies |
-| Deployment | Docker and Kamal on one server |
-| Persistent storage | A local host directory mounted at `/data` |
+| Part               | Choice                                                        |
+| ------------------ | ------------------------------------------------------------- |
+| Application        | React Router Framework Mode, React, and TypeScript            |
+| Runtime            | Node.js                                                       |
+| Development tools  | Vite+ with pinned Node.js and pnpm versions                   |
+| Database           | SQLite with SQL migrations and write-ahead logging (WAL)      |
+| Production sign-in | Google OpenID Connect; local sessions and roles in SQLite     |
+| Media              | Local files; separate private originals from published copies |
+| Deployment         | Docker and Kamal on one server                                |
+| Persistent storage | A local host directory mounted at `/data`                     |
 
 Keep pages, form actions, sessions, and server logic in one application. Do not
 add a separate API service, Redis, a queue, or a hosted database initially.
@@ -160,8 +160,8 @@ and media restore. Also test a compatible migration, duplicate ingestion
 prevention, and a failed deployment that leaves the old version available.
 
 This decision does not authorize a deployment, purchase, or remote issue cleanup.
-The current orb scripts still serve the old scaffold. They need replacement or
-revision during implementation. No new application has been built yet.
+The [operations guide](../operations.md) records the implemented foundation and
+the checks that are still required before release.
 
 ## References
 

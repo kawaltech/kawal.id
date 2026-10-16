@@ -1,0 +1,14 @@
+services:
+  dev:
+    command: pnpm dev --host 0.0.0.0 --port "$PORT"
+    health: /editor/healthz
+    portal:
+      title: Kawal Asap development
+      description: Neutral application shell. No sign-in or live data is enabled.
+  public:
+    command: pnpm build && pnpm public:init && pnpm public:serve
+    health: /
+    review: false
+    portal:
+      title: Kawal Asap static export
+      description: Static public files. No editorial process or database is required for reads.

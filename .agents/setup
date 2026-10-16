@@ -5,40 +5,87 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 SECONDS=0
-node_version="$(cat .node-version)"
-pnpm_version="$(node -p "require('./package.json').packageManager.split('@')[1]")"
-tool_root="$HOME/.local/share/kawal-orb-tools"
-tool_bin="$tool_root/node_modules/.bin"
+export VP_HOME="$HOME/.local/share/kawal-vite-plus"
+export PATH="$VP_HOME/bin:$HOME/.local/share/kawal-orb-tools/bin:$PATH"
+vp_version="$(cat .vite-plus-version)"
+caddy_version="$(cat .caddy-version)"
+scratch="$(mktemp -d)"
+trap 'rm -rf "$scratch"' EXIT
 
-echo "[setup] Check Node.js $node_version and pnpm $pnpm_version"
-if [[ ! -x "$tool_bin/node" || "$("$tool_bin/node" --version)" != "v$node_version" ]] ||
-   [[ ! -x "$tool_bin/pnpm" || "$(PATH="$tool_bin:$PATH" "$tool_bin/pnpm" --version)" != "$pnpm_version" ]]; then
-  npm install --prefix "$tool_root" --no-audit --no-fund --package-lock=false --save=false \
-    "node@$node_version" "pnpm@$pnpm_version"
+# SQLite can need a native build. Do not depend on the orb template's tools.
+if ! command -v g++ >/dev/null || ! command -v make >/dev/null || ! command -v python3 >/dev/null; then
+  sudo apt-get update
+  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential python3
 fi
-export PATH="$tool_bin:$PATH"
+
+# Install Docker tools, but start the daemon only as a supervised orb service.
+docker_packages=()
+command -v docker >/dev/null || docker_packages+=(docker-ce-cli)
+command -v dockerd >/dev/null || docker_packages+=(docker-ce containerd.io)
+docker buildx version >/dev/null 2>&1 || docker_packages+=(docker-buildx-plugin)
+if (( ${#docker_packages[@]} )); then
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/debian/gpg -o "$scratch/docker.asc"
+  sudo install -m 0644 "$scratch/docker.asc" /etc/apt/keyrings/docker.asc
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" |
+    sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+  sudo apt-get update
+  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${docker_packages[@]}"
+fi
+
+echo "[setup] Prepare Vite+ $vp_version and the pinned runtime"
+if [[ ! -x "$VP_HOME/bin/vp" ]] || ! "$VP_HOME/bin/vp" --version | head -1 | grep -Fqx "vp v$vp_version"; then
+  curl --fail --silent --show-error --location https://vite.plus -o "$scratch/vp-install.sh"
+  VP_VERSION="$vp_version" VP_NODE_MANAGER=yes VP_PM_MANAGER=yes CI=true bash "$scratch/vp-install.sh"
+fi
+vp env install
+
+echo "[setup] Prepare Caddy $caddy_version"
+if ! command -v caddy >/dev/null || [[ "$(caddy version | cut -d' ' -f1)" != "v$caddy_version" ]]; then
+  case "$(uname -m)" in
+    x86_64) arch=amd64 ;;
+    aarch64) arch=arm64 ;;
+    *) echo "Unsupported Caddy architecture" >&2; exit 1 ;;
+  esac
+  archive="caddy_${caddy_version}_linux_${arch}.tar.gz"
+  release="https://github.com/caddyserver/caddy/releases/download/v$caddy_version"
+  curl -fsSL "$release/$archive" -o "$scratch/$archive"
+  curl -fsSL "$release/caddy_${caddy_version}_checksums.txt" -o "$scratch/checksums"
+  (cd "$scratch"; grep "  $archive\$" checksums | sha512sum --check -)
+  tar -xzf "$scratch/$archive" -C "$scratch" caddy
+  install -Dm755 "$scratch/caddy" "$HOME/.local/share/kawal-orb-tools/bin/caddy"
+fi
 echo "[setup] Toolchain ready after ${SECONDS}s"
 
 # Amp and supervised services use separate login shells. Keep the toolchain
 # active for this repository without changing the orb's system Node.js.
-profile_marker="# kawal.id orb toolchain"
+profile_marker="# kawal.id Vite+ toolchain"
 if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
   cat >> "$HOME/.bash_profile" <<EOF
 
 $profile_marker
 if [[ "\$PWD" == "$repo_root" || "\$PWD" == "$repo_root/"* ]]; then
-  export PATH="$tool_bin:\$PATH"
+  export VP_HOME="\$HOME/.local/share/kawal-vite-plus"
+  export PATH="\$VP_HOME/bin:\$HOME/.local/share/kawal-orb-tools/bin:\$PATH"
 fi
 EOF
 fi
 
 echo "[setup] Install locked dependencies"
 step_start=$SECONDS
-pnpm install --frozen-lockfile
+vp install --frozen-lockfile
 echo "[setup] Dependencies ready after $((SECONDS - step_start))s"
 
 echo "[setup] Generate React Router types"
 step_start=$SECONDS
 pnpm exec react-router typegen
 echo "[setup] Types ready after $((SECONDS - step_start))s"
+
+echo "[setup] Prepare independent local storage and test identities"
+if [[ "${NODE_ENV:-}" == "production" ]]; then
+  echo "Do not run orb setup against production storage." >&2
+  exit 1
+fi
+# Do not use project DATA_DIR or credentials when preparing a shared snapshot.
+DATA_DIR="$repo_root/.data" pnpm db:seed
 echo "[setup] Complete in ${SECONDS}s"

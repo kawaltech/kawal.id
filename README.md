@@ -1,135 +1,76 @@
-# Kawal.id - Public Reporting Website
+# Kawal Asap
 
-A public reporting platform for collecting and displaying incident reports with categorization, URL embedding, and location mapping. Built with React Router v7 Framework Mode.
+A self-contained application for reviewed fire and smoke information.
+This repository currently contains infrastructure and a neutral static page.
+It does not yet provide reports, live detections, sign-in, or a publication workflow.
 
-**Inspired by:** [senar.ai](https://senar.ai) | **Reference:** <https://github.com/senar-ai/web>
+Read [ADR 0001](docs/adr/0001-self-contained-kawal-asap.md),
+[ADR 0002](docs/adr/0002-static-publication.md), and the
+[operations guide](docs/operations.md) before adding features.
 
-## Features
+## Tools
 
-- 📝 Public incident reporting system
-- 🏷️ Category-based organization (`Kategori`)
-- 🔗 Social media URL embedding (Twitter, Instagram, Facebook, YouTube)
-- 📍 Location mapping with coordinates
-- 🚀 Static site generation for performance
-- ⚡️ React Router v7 Framework Mode
-- 🎨 TailwindCSS styling
-- 🔒 TypeScript by default
+- Node.js 24 LTS, pinned in `.node-version`.
+- React Router Framework Mode, React, and TypeScript.
+- Vite+ for Vite, tests, lint, formatting, and tool management.
+- pnpm, pinned in `package.json`, with a committed lockfile.
+- SQLite with WAL, SQL migrations, and local files.
+- Caddy for a separate static public server.
+- Docker targets and Kamal templates for one persistent host.
 
-## Getting Started
+## Start in an Amp orb
 
-### Installation
+Amp runs `.agents/setup` when no exact project snapshot is available. Setup
+installs the pinned tools and locked dependencies, generates route types, and
+prepares an independent `.data` directory with synthetic test identities.
+It does not need Google, NASA, Cloudflare, or production credentials.
+Resume checks tools without installing dependencies.
 
-Install the dependencies:
-
-```bash
-pnpm install --frozen-lockfile
+```sh
+.agents/setup
+pnpm check
+amp orb services ensure
 ```
 
-Use the Node.js version in `.node-version` and the pnpm version in
-`package.json`.
+Use the returned portal URLs. The `dev` service runs React Router. The `public`
+service builds and serves a static export with Caddy. Stop `dev` to check that
+public reads still work. Neither service enables sign-in.
 
-### Amp Orbs
+Use `a1.small` (2 CPUs, 4 GB RAM) as the initial development size. Use `a1.medium`
+(4 CPUs, 8 GB RAM) for container builds or browser tests that run with the app.
+These are starting recommendations, not measured production requirements.
 
-Amp runs `.agents/setup` for a fresh orb when no exact snapshot is available.
-The script installs the pinned tools, installs locked dependencies, and
-generates React Router types. Amp can reuse this state from a project snapshot.
-The setup script is safe to run again after repository updates.
+## Start on another machine
 
-The tools are available in new login shells in this repository and its
-subdirectories. `.agents/resume` checks the tool versions without reinstalling
-dependencies. No database, API key, or user authentication is required yet.
+Install the Vite+ version in `.vite-plus-version` with its
+[official installer](https://viteplus.dev/guide/global-cli). Then run:
 
-Run `pnpm typecheck` and `pnpm build` to check the application. Start a supervised
-development server with:
-
-```bash
-amp orb service start dev --command 'pnpm dev --host 0.0.0.0 --port "$PORT"' --portal
+```sh
+vp env install
+vp install --frozen-lockfile
+vp run db:seed
+vp run dev
 ```
 
-Use the portal URL returned by the command to open the application.
+The database commands use Node.js type stripping. Do not run them with an older
+Node.js version. To run the static server, also install the Caddy version in
+`.caddy-version`, then run `vp run build`, `vp run public:init`, and
+`vp run public:serve`.
 
-### Development
+## Commands
 
-Start the development server with HMR:
+| Command                             | Purpose                                                   |
+| ----------------------------------- | --------------------------------------------------------- |
+| `vp run dev`                        | Run React Router with live reload                         |
+| `vp run check`                      | Check types, lint, tests, and production build            |
+| `vp run format`                     | Format supported source files                             |
+| `vp run build`                      | Build the server and prerender public routes              |
+| `vp run start`                      | Run the built editorial server; migrate first             |
+| `vp run db:migrate`                 | Apply SQL migrations under a database write lock          |
+| `vp run db:seed`                    | Add local test identities without changing existing roles |
+| `vp run db:backup /path/new.sqlite` | Create a consistent database backup                       |
+| `vp run public:init`                | Create the initial public export if none exists           |
+| `vp run public:serve`               | Serve only the current static export                      |
 
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```tree
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Project Structure
-
-```tree
-├── docs/           # Project documentation and progress tracking
-├── app/
-│   ├── components/ # Reusable UI components
-│   ├── data/       # JSON data files for development
-│   ├── lib/        # Utility functions and types
-│   ├── routes/     # React Router pages
-│   └── root.tsx    # Root layout
-├── build/          # Production build output
-└── public/         # Static assets
-```
-
-## Data Models
-
-### Report Structure
-
-Reports contain incident information with categorization, social media URLs, and location coordinates.
-
-### Category System (`Kategori`)
-
-Organized categorization system for filtering and organizing reports by type or severity.
-
-## Development Roadmap
-
-See [`docs/index.md`](docs/index.md) for detailed feature requirements and implementation progress.
-
----
-
-Built with ❤️ using React Router v7 Framework Mode.
+Use `vp run build`, not `vp build`: React Router owns the framework build.
+The same rule applies to `dev`. No visual design has been selected yet.

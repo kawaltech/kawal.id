@@ -1,6 +1,6 @@
-# Editorial staging preparation
+# App staging preparation
 
-This document prepares a manual staging deployment of `apps/editorial` to
+This document prepares a manual staging deployment of `apps/app` to
 `https://app.kawal.id`. It is preparation only. Nobody has approved the
 deployment, the Google OAuth client, the new D1/R2 resources, the secrets, or
 the DNS change. Do not run the remote commands in this document before you get
@@ -21,15 +21,15 @@ Do the steps in this order. Stop at the first failure.
 | Gate | Condition                                                                                                                                  | Type                |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
 | 1    | Integrated auth, reviewer access, and tests are on one reviewed commit.                                                                    | Code                |
-| 2    | `pnpm check` and the editorial tests pass on that commit.                                                                                  | Local               |
-| 3    | Approval: create D1 `kawal-asap-editorial-db` with read replication off, and R2 bucket `kawal-asap-editorial-storage`.                     | Cloudflare write    |
+| 2    | `pnpm check` and the app tests pass on that commit.                                                                                        | Local               |
+| 3    | Approval: create D1 `kawal-asap-app-db` with read replication off, and R2 bucket `kawal-asap-app-storage`.                                 | Cloudflare write    |
 | 4    | Read the new D1 settings and confirm that read replication is off. Record both resource IDs.                                               | Read-only           |
 | 5    | Pin the D1 ID and the R2 bucket in `void.config.ts` in a reviewed commit. Repeat gate 2.                                                   | Code                |
-| 6    | `node scripts/editorial-staging.mjs preflight <commit>` passes on that final commit.                                                       | Local, no network   |
+| 6    | `node scripts/app-staging.mjs preflight <commit>` passes on that final commit.                                                             | Local, no network   |
 | 7    | Approval: register the Google OAuth client for the staging callback.                                                                       | External (Google)   |
 | 8    | Approval: create the Worker secrets.                                                                                                       | Cloudflare write    |
 | 9    | Approval: apply migrations, attach `app.kawal.id`, and deploy. Accept that the first version is live before readiness and has no rollback. | Cloudflare and DNS  |
-| 10   | `node scripts/check-editorial-staging.mjs` passes with the new version ID.                                                                 | Read-only HTTP      |
+| 10   | `node scripts/check-app-staging.mjs` passes with the new version ID.                                                                       | Read-only HTTP      |
 | 11   | Approval: write the first reviewer invitation to remote D1.                                                                                | Cloudflare D1 write |
 
 The preflight fails on purpose until gates 3-5 are complete. It requires the
@@ -43,13 +43,13 @@ deployment at the same time as another deployment.
 
 ## Hosts
 
-| Host                                    | Expected state                                                          |
-| --------------------------------------- | ----------------------------------------------------------------------- |
-| `https://app.kawal.id`                  | Editorial staging Worker `kawal-asap-editorial`, through Custom Domain. |
-| `https://kawal.id`                      | Public static Worker. It must not serve editorial routes.               |
-| `kawal-asap-editorial.zain.workers.dev` | Disabled (`workers_dev: false`). It must not serve the Worker.          |
-| Version preview URLs                    | Disabled (`preview_urls: false`).                                       |
-| `editor.kawal.id`                       | Not used.                                                               |
+| Host                              | Expected state                                                 |
+| --------------------------------- | -------------------------------------------------------------- |
+| `https://app.kawal.id`            | App staging Worker `kawal-asap-app`, through Custom Domain.    |
+| `https://kawal.id`                | Public static Worker. It must not serve app routes.            |
+| `kawal-asap-app.zain.workers.dev` | Disabled (`workers_dev: false`). It must not serve the Worker. |
+| Version preview URLs              | Disabled (`preview_urls: false`).                              |
+| `editor.kawal.id`                 | Not used.                                                      |
 
 On 16 October 2026, a public resolver (`1.1.1.1`) returned `NXDOMAIN` for
 `app.kawal.id`. This is not proof that no record or wildcard exists in the zone.
@@ -60,8 +60,8 @@ enable replication without tests that prove immediate logout and revocation.
 
 ## Required configuration
 
-`apps/editorial/void.config.ts` pins account
-`1d60533bd63392b6dc25160f907c4f76` and Worker `kawal-asap-editorial`.
+`apps/app/void.config.ts` pins account
+`1d60533bd63392b6dc25160f907c4f76` and Worker `kawal-asap-app`.
 Its only route is `{ pattern: "app.kawal.id", custom_domain: true }`.
 Keep `workers_dev` and `preview_urls` false. Application responses use
 `Cache-Control: private, no-store` and `X-Robots-Tag: noindex`. The local
@@ -85,12 +85,12 @@ After gate 4, the config owner adds the real resources. Use the ID from gate 4:
     d1_databases: [
       {
         binding: "DB",
-        database_name: "kawal-asap-editorial-db",
+        database_name: "kawal-asap-app-db",
         database_id: "<D1 UUID from gate 4>",
         migrations_dir: "./db/migrations",
       },
     ],
-    r2_buckets: [{ binding: "STORAGE", bucket_name: "kawal-asap-editorial-storage" }],
+    r2_buckets: [{ binding: "STORAGE", bucket_name: "kawal-asap-app-storage" }],
   },
 ```
 
@@ -99,12 +99,12 @@ The D1 ID and the bucket name are resource identifiers, not secrets. The
 
 ## What `void deploy --platform cloudflare` does
 
-Run the deployment from `apps/editorial`. In `dist/deploy-DsW-PrRQ.mjs`, the
+Run the deployment from `apps/app`. In `dist/deploy-DsW-PrRQ.mjs`, the
 command does these steps in this order. Each step marked "write" changes shared
 state.
 
 1. Reads the config and the project paths. Migrations come from
-   `apps/editorial/db/migrations/` (`dist/project-paths-DGu_QZ_Q.mjs:102`).
+   `apps/app/db/migrations/` (`dist/project-paths-DGu_QZ_Q.mjs:102`).
    Void collects every `*.sql` file except `seed.sql`, in filename order
    (`dist/collect-Dew86qce.mjs:8`). The root `migrations/0001-users.sql` is not
    used.
@@ -132,7 +132,7 @@ state.
    Custom Domain, and checks readiness. See the next section.
 8. Writes `cloudflare_deploy_end` with `worker` and `versionId` to the JSONL log
    in `~/.void/logs/` (`:3318`).
-9. Local write: Void writes `apps/editorial/void.lock.json`
+9. Local write: Void writes `apps/app/void.lock.json`
    (`dist/cloudflare-config-rdFOys4X.mjs:11`, `:88`, `:140`). This file records
    the authored `cloudflare` block, the resolved config with the D1 ID, the R2
    bucket name, and `migrations_dir`. The coordinator must review and commit it
@@ -170,15 +170,15 @@ Source facts (read-only, `void/dist` 1.1.11):
   the stored bucket name (`:782`).
 - The deploy log records `cloudflare_deploy_start` with `provision: true` for
   `--provision` (`:4987`), and `cloudflare_provisioned` when provisioning ran
-  (`:4760`). `node scripts/editorial-staging.mjs version` fails if it finds
+  (`:4760`). `node scripts/app-staging.mjs version` fails if it finds
   either record for the deployment.
 
 Procedure for gates 3 to 5:
 
-1. After approval, create D1 `kawal-asap-editorial-db` in account
+1. After approval, create D1 `kawal-asap-app-db` in account
    `1d60533bd63392b6dc25160f907c4f76` in the Cloudflare dashboard. Record the
    approved location choice. Do not turn on read replication.
-2. Create R2 bucket `kawal-asap-editorial-storage` in the same account. Keep
+2. Create R2 bucket `kawal-asap-app-storage` in the same account. Keep
    public access and custom domains for the bucket off.
 3. Read the D1 settings. Confirm that read replication is off. Record the
    database UUID.
@@ -207,7 +207,7 @@ this configuration:
   failure keeps the old version active.
 
 Because the first version is active before its check, the integrated code must
-be safe at publication. Anonymous requests must not get editorial data.
+be safe at publication. Anonymous requests must not get app data.
 
 ## Google OAuth client
 
@@ -222,7 +222,7 @@ Source: Void sets `basePath: "/api/auth"`
 URI from `${baseURL}${basePath}/callback/${provider.id}`
 (`better-auth/dist/oauth2/utils.mjs:29`, `dist/api/routes/sign-in.mjs:229`).
 The default `baseURL` is the request origin (`:235`). The auth owner pins
-`baseURL` and `trustedOrigins` to `AUTH_BASE_URL` in `apps/editorial/auth.ts`.
+`baseURL` and `trustedOrigins` to `AUTH_BASE_URL` in `apps/app/auth.ts`.
 Without `AUTH_BASE_URL`, a production build keeps Google disabled.
 
 Do not register `localhost`, `workers.dev`, or `kawal.id` callbacks for this
@@ -251,7 +251,7 @@ Secure entry:
 - Do not extract connected or MCP credentials for this procedure.
 
 `void secret` and `void db execute --remote` need `platform: "cloudflare"` in
-`apps/editorial/.void/project.json` (`dist/secret-CClHaFxm.mjs:56`). This file
+`apps/app/.void/project.json` (`dist/secret-CClHaFxm.mjs:56`). This file
 is local and Git ignores it. `void connect --platform cloudflare` writes it and
 signs in through the browser.
 
@@ -273,7 +273,7 @@ workstation, or a scoped API token in a secret store. If you use a token,
 restrict it to account `1d60533bd63392b6dc25160f907c4f76` and zone `kawal.id`.
 The public deployment passed with Account Workers Scripts Edit, Account Settings
 Read, Zone Workers Routes Edit, User Details Read, and Memberships Read. That set
-attached the `kawal.id` Custom Domain. The editorial deployment also needs D1 Edit
+attached the `kawal.id` Custom Domain. The app deployment also needs D1 Edit
 for migrations and access to the bound R2 bucket. Gate 3 needs D1 Edit and
 Workers R2 Storage Edit. This list is not a
 proven minimum. Use a token that is separate from the public CI token.
@@ -293,7 +293,7 @@ git checkout --detach <approved-commit>
 pnpm install --frozen-lockfile
 pnpm check
 # Gate 6: local, no network.
-node scripts/editorial-staging.mjs preflight <approved-commit>
+node scripts/app-staging.mjs preflight <approved-commit>
 ```
 
 The preflight makes no network request. It stops if one of these is false:
@@ -302,9 +302,9 @@ The preflight makes no network request. It stops if one of these is false:
 - The config has the Worker name, the account, the `app.kawal.id` Custom Domain,
   `workers_dev: false`, `preview_urls: false`, no ISR, staged activation, the
   `private, no-store` and `noindex` headers, and the `noindex` meta.
-- The config pins exactly one D1 database (`DB`, `kawal-asap-editorial-db`, a
+- The config pins exactly one D1 database (`DB`, `kawal-asap-app-db`, a
   real UUID, `migrations_dir: "./db/migrations"`) and exactly one R2 bucket
-  (`STORAGE`, `kawal-asap-editorial-storage`).
+  (`STORAGE`, `kawal-asap-app-storage`).
 - `auth.providers`, if present, is `["google"]`, and `auth.ts` exists.
 - `db/migrations` has SQL files, one journal entry for each file, and tables for
   `user`, `session`, `account`, `verification`, `reviewer_invitations`,
@@ -318,7 +318,7 @@ A passed preflight is not deployment approval.
 
 ```sh
 # Gate 8, after approval. Interactive, masked prompts.
-cd apps/editorial
+cd apps/app
 pnpm exec void connect --platform cloudflare
 pnpm exec void secret put AUTH_GOOGLE_CLIENT_ID
 pnpm exec void secret put AUTH_GOOGLE_CLIENT_SECRET
@@ -329,21 +329,21 @@ pnpm exec void secret list
 started="$(node -p Date.now())"
 pnpm exec void deploy --platform cloudflare
 cd ../..
-version="$(node scripts/editorial-staging.mjs version "$started")"
+version="$(node scripts/app-staging.mjs version "$started")"
 
 # Gate 10: read-only.
-node scripts/check-editorial-staging.mjs https://app.kawal.id "$version" \
-  https://kawal-asap-editorial.zain.workers.dev
+node scripts/check-app-staging.mjs https://app.kawal.id "$version" \
+  https://kawal-asap-app.zain.workers.dev
 node scripts/check-public.mjs https://kawal.id <active-public-version-id>
 ```
 
 After gate 9, read the D1 settings again and confirm that read replication is
-still off. Give `apps/editorial/void.lock.json` to the coordinator for review
+still off. Give `apps/app/void.lock.json` to the coordinator for review
 and commit. Do not commit it from the deployment workstation without review.
 
 ## Post-deployment checks
 
-`scripts/check-editorial-staging.mjs` sends only anonymous `GET` requests, with
+`scripts/check-app-staging.mjs` sends only anonymous `GET` requests, with
 no cookies and no credentials. It does not follow redirects.
 
 | Request                                   | Expected result                                           |
@@ -360,18 +360,18 @@ no cookies and no credentials. It does not follow redirects.
 
 For an absent host, a network failure does not prove that the host is disabled.
 The check fails in that case. Any successful native ready response fails, also
-for an older editorial version. A passed check is HTTP evidence only. Also read
+for an older app version. A passed check is HTTP evidence only. Also read
 the Worker settings in Cloudflare to confirm that `workers_dev` and preview
 URLs are off.
 
-Each editorial HTML, data, and auth response must have the `no-store` directive.
+Each app HTML, data, and auth response must have the `no-store` directive.
 It must not have `public`, `immutable`, `stale-*`, or a positive `max-age` or `s-maxage`.
 Application responses must also have `private`. Better Auth responses can use
 its own `no-store` policy. Each application response must have
 `X-Robots-Tag: noindex`, and each HTML page must have the `noindex` meta.
 Native hash-named code assets are an exception: Void's asset fallback runs
 outside this header middleware and uses the asset cache policy. Those assets
-must contain no editorial records or private data.
+must contain no app records or private data.
 
 The script does not prove sign-in, reviewer approval, 403 responses, or
 revocation. After gate 11, do these checks manually with a real Google account:
@@ -384,13 +384,13 @@ revocation. After gate 11, do these checks manually with a real Google account:
 ## Reviewer bootstrap
 
 Do this at gate 11, after approval. The reviewer owner provides
-`apps/editorial/scripts/reviewer-admin.ts` (run it with Node.js 24). Its
-migration is `apps/editorial/db/migrations/<timestamp>_reviewer_access.sql`, after
+`apps/app/scripts/reviewer-admin.ts` (run it with Node.js 24). Its
+migration is `apps/app/db/migrations/<timestamp>_reviewer_access.sql`, after
 the auth migration. It uses only the `DB` binding and no secrets. The bootstrap uses an email
 invitation, not a secret.
 
 ```sh
-cd apps/editorial
+cd apps/app
 private="$(mktemp -d)"
 node scripts/reviewer-admin.ts bootstrap --email <person> --print-sql > "$private/bootstrap.sql"
 pnpm exec void db execute --remote --file "$private/bootstrap.sql"
@@ -431,5 +431,5 @@ procedure.
 ## Out of scope
 
 - Real reports, ingestion, publication, withdrawal, media, and backups.
-- An automatic or GitHub Actions editorial deployment.
+- An automatic or GitHub Actions app deployment.
 - Changes to the public Worker, `kawal.id`, `www`, or option B.

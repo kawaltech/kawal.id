@@ -3,9 +3,9 @@ import { getSession } from "void/auth";
 
 /**
  * A signed-in person, as proved by the native Void session and one Google account.
- * It gives no editorial rights. Reviewer guards check authorization separately.
+ * It gives no app access. Reviewer guards check authorization separately.
  */
-export interface EditorialIdentity {
+export interface AppIdentity {
   /** Better Auth "user".id. Bound one-to-one to `googleSubject`. */
   userId: string;
   /** Google's stable `sub` claim, stored as "account".accountId. */
@@ -27,7 +27,7 @@ interface AccountRow {
  * the native session (already read from D1 by Void) and the account row from the
  * D1 primary. Any unexpected state gives null.
  */
-export async function getEditorialIdentity(c: CloudContext): Promise<EditorialIdentity | null> {
+export async function getAppIdentity(c: CloudContext): Promise<AppIdentity | null> {
   const state = getSession();
   if (!state) return null;
   const { user, session } = state;
@@ -54,7 +54,7 @@ export async function getEditorialIdentity(c: CloudContext): Promise<EditorialId
 }
 
 /** An access failure. Hono sends `getResponse()` when a handler throws it. */
-export class EditorialAccessError extends Error {
+export class AppAccessError extends Error {
   readonly status: 401 | 403;
 
   constructor(status: 401 | 403) {
@@ -70,9 +70,9 @@ export class EditorialAccessError extends Error {
   }
 }
 
-/** Returns the identity, or throws a 401 EditorialAccessError. */
-export async function requireEditorialIdentity(c: CloudContext): Promise<EditorialIdentity> {
-  const identity = await getEditorialIdentity(c);
-  if (!identity) throw new EditorialAccessError(401);
+/** Returns the identity, or throws a 401 AppAccessError. */
+export async function requireAppIdentity(c: CloudContext): Promise<AppIdentity> {
+  const identity = await getAppIdentity(c);
+  if (!identity) throw new AppAccessError(401);
   return identity;
 }

@@ -5,20 +5,20 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-// Local, read-only gates for a manually approved editorial staging deployment.
+// Local, read-only gates for a manually approved app staging deployment.
 // This script makes no network requests and never runs a deployment.
 const usage = [
   "Usage:",
-  "  node scripts/editorial-staging.mjs preflight <approved-commit> [repository-root]",
-  "  node scripts/editorial-staging.mjs version <deploy-started-at-ms>",
+  "  node scripts/app-staging.mjs preflight <approved-commit> [repository-root]",
+  "  node scripts/app-staging.mjs version <deploy-started-at-ms>",
 ].join("\n");
 
 const staging = {
   account: "1d60533bd63392b6dc25160f907c4f76",
-  worker: "kawal-asap-editorial",
+  worker: "kawal-asap-app",
   host: "app.kawal.id",
-  database: "kawal-asap-editorial-db",
-  bucket: "kawal-asap-editorial-storage",
+  database: "kawal-asap-app-db",
+  bucket: "kawal-asap-app-storage",
   migrationsDir: "./db/migrations",
 };
 // Void's own real-ID test for D1 (provision-BuifYvLc.mjs:62, :67).
@@ -31,7 +31,7 @@ else assert.fail(usage);
 
 async function preflight(commit, root) {
   assert.match(commit ?? "", /^[0-9a-f]{40}$/, `Give the full approved commit SHA.\n${usage}`);
-  const app = join(root, "apps/editorial");
+  const app = join(root, "apps/app");
   const git = (...gitArgs) => execFileSync("git", ["-C", root, ...gitArgs], { encoding: "utf8" });
   assert.equal(git("rev-parse", "HEAD").trim(), commit, "HEAD must be the approved commit");
   assert.equal(
@@ -42,7 +42,7 @@ async function preflight(commit, root) {
 
   const config = (await import(pathToFileURL(join(app, "void.config.ts")).href)).default;
   const cloudflare = config.cloudflare ?? {};
-  assert.equal(config.output, "server", "editorial output");
+  assert.equal(config.output, "server", "app output");
   assert.equal(cloudflare.name, staging.worker, "Worker name");
   assert.equal(cloudflare.account_id, staging.account, "Pin the Cloudflare account");
   assert.deepEqual(cloudflare.routes, [{ pattern: staging.host, custom_domain: true }], "routes");
@@ -75,10 +75,7 @@ async function preflight(commit, root) {
   if (config.auth?.providers) {
     assert.deepEqual(config.auth.providers, ["google"], "Google must be the only provider");
   }
-  assert.ok(
-    existsSync(join(app, "auth.ts")),
-    "apps/editorial/auth.ts must define Google-only sign-in",
-  );
+  assert.ok(existsSync(join(app, "auth.ts")), "apps/app/auth.ts must define Google-only sign-in");
 
   // Void 1.1.11 applies db/migrations/*.sql (except seed.sql) in filename order.
   const migrations = join(app, "db/migrations");
@@ -139,7 +136,7 @@ async function preflight(commit, root) {
     `Pinned D1 ${d1.database_id} and R2 ${staging.bucket}: deploy must skip provisioning. ` +
       "Never pass --provision.",
   );
-  console.log(`Editorial staging preflight passed for ${commit}. This is not deployment approval.`);
+  console.log(`App staging preflight passed for ${commit}. This is not deployment approval.`);
 }
 
 function deployedVersion(startedAt) {

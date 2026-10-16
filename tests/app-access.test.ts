@@ -1,41 +1,37 @@
-// Editorial sign-in, session, and reviewer access checks on the built Worker.
+// App sign-in, session, and reviewer access checks on the built Worker.
 // Every identity is synthetic. Google is replaced only by the test-only token
 // stub in tests/support; outbound network access is denied otherwise.
 import { spawnSync } from "node:child_process";
 import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "vite-plus/test";
-import {
-  claimInvitation,
-  createInvitation,
-  revokeGrant,
-} from "../apps/editorial/lib/reviewer-store.ts";
-import { ReviewerAccessError, authorizeReviewer } from "../apps/editorial/lib/reviewer-guard.ts";
+import { claimInvitation, createInvitation, revokeGrant } from "../apps/app/lib/reviewer-store.ts";
+import { ReviewerAccessError, authorizeReviewer } from "../apps/app/lib/reviewer-guard.ts";
 import {
   APP_ORIGIN,
   CookieJar,
   GOOGLE_CALLBACK,
   GOOGLE_TOKEN_ENDPOINT,
   TEST_GOOGLE_CLIENT_ID,
-  buildEditorial,
+  buildApp,
   completeGoogleSignIn,
   signInWithGoogle,
-  startEditorial,
+  startApp,
   startGoogleSignIn,
   type D1Like,
-  type EditorialBuild,
-  type EditorialRuntime,
+  type AppBuild,
+  type AppRuntime,
   type SyntheticGoogleProfile,
-} from "./support/editorial-runtime.ts";
+} from "./support/app-runtime.ts";
 
 const SESSION_COOKIE = "__Secure-better-auth.session_token";
 const EVIL_ORIGIN = "https://evil.example";
 
-let build: EditorialBuild;
-const runtimes: EditorialRuntime[] = [];
+let build: AppBuild;
+const runtimes: AppRuntime[] = [];
 
 beforeAll(async () => {
-  build = await buildEditorial();
+  build = await buildApp();
 }, 180_000);
 
 afterEach(async () => {
@@ -47,8 +43,8 @@ afterAll(async () => {
 });
 
 /** A new Worker with empty temporary D1/R2 state and native migrations applied. */
-async function editorial(bindings?: Record<string, string | undefined>) {
-  const runtime = await startEditorial(build, { bindings });
+async function createApp(bindings?: Record<string, string | undefined>) {
+  const runtime = await startApp(build, { bindings });
   runtimes.push(runtime);
   await runtime.migrate();
   return { app: runtime, db: await runtime.database() };
@@ -67,7 +63,7 @@ function profile(overrides: Partial<SyntheticGoogleProfile> = {}): SyntheticGoog
 }
 
 /** A browser navigation to a protected page. */
-function page(app: EditorialRuntime, path: string, jar?: CookieJar) {
+function page(app: AppRuntime, path: string, jar?: CookieJar) {
   return app.fetch(path, {
     jar,
     headers: {
@@ -79,7 +75,7 @@ function page(app: EditorialRuntime, path: string, jar?: CookieJar) {
 }
 
 /** A native client-navigation data request for a protected page. */
-function pageData(app: EditorialRuntime, path: string, jar?: CookieJar) {
+function pageData(app: AppRuntime, path: string, jar?: CookieJar) {
   return app.fetch(path, { jar, headers: { "x-voidpages": "true", accept: "application/json" } });
 }
 
@@ -146,7 +142,7 @@ async function expectJsonError(response: Response, status: 401 | 403) {
 }
 
 /** Anonymous: page GET goes to sign-in; data and other requests get 401. */
-async function expectAnonymous(app: EditorialRuntime, jar?: CookieJar) {
+async function expectAnonymous(app: AppRuntime, jar?: CookieJar) {
   const navigation = await page(app, "/", jar);
   expectRedirect(navigation, "/sign-in");
   expectNoStore(navigation);
@@ -154,14 +150,14 @@ async function expectAnonymous(app: EditorialRuntime, jar?: CookieJar) {
 }
 
 /** Signed in without an active grant: page GET goes to access-pending; data gets 403. */
-async function expectNoAccess(app: EditorialRuntime, jar: CookieJar) {
+async function expectNoAccess(app: AppRuntime, jar: CookieJar) {
   const navigation = await page(app, "/", jar);
   expectRedirect(navigation, "/access-pending");
   expectNoStore(navigation);
   await expectJsonError(await pageData(app, "/", jar), 403);
 }
 
-async function expectReviewer(app: EditorialRuntime, jar: CookieJar) {
+async function expectReviewer(app: AppRuntime, jar: CookieJar) {
   const navigation = await page(app, "/", jar);
   expect(navigation.status).toBe(200);
   expectNoStore(navigation);
@@ -194,7 +190,7 @@ function invite(db: D1Like, email: string, role: "reviewer" | "admin" = "reviewe
 
 /** Invite a synthetic reviewer, sign in through Google, and claim on first request. */
 async function reviewer(
-  app: EditorialRuntime,
+  app: AppRuntime,
   db: D1Like,
   identity = profile(),
   role: "reviewer" | "admin" = "reviewer",
@@ -221,7 +217,7 @@ async function setSessionExpiry(db: D1Like, user: string, offset: number) {
 
 describe("test harness controls", () => {
   test("native migration routes reject a missing or wrong internal token", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const before = await count(db, "_void_migrations");
     for (const headers of [{}, { "x-void-internal": "wrong-token" }] as HeadersInit[]) {
       for (const [method, path] of [
@@ -241,15 +237,15 @@ describe("test harness controls", () => {
   });
 
   test("the Worker under test is a production build", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     // A development build lets source modules through the access middleware.
-    for (const path of ["/pages/index.tsx", "/middleware/01.editorial-access.ts", "/auth.ts"]) {
+    for (const path of ["/pages/index.tsx", "/middleware/01.app-access.ts", "/auth.ts"]) {
       await expectJsonError(await app.fetch(path), 401);
     }
   });
 
   test("other internal paths do not expose data or bypass access", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     const ready = await app.fetch("/__void/ready");
     expect(ready.status).toBe(200);
     const readiness = (await ready.json()) as Record<string, unknown>;
@@ -267,7 +263,7 @@ describe("test harness controls", () => {
   });
 
   test("with default outbound denial, no token response can create a session", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const authorization = await startGoogleSignIn(app);
     expectCallbackError(await completeGoogleSignIn(app, authorization), "invalid_code");
     expect(await count(db, "session")).toBe(0);
@@ -278,7 +274,7 @@ describe("test harness controls", () => {
   });
 
   test("the token stub rejects an exchange with the wrong PKCE challenge", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const authorization = await startGoogleSignIn(app);
     const callback = await completeGoogleSignIn(
       app,
@@ -292,10 +288,10 @@ describe("test harness controls", () => {
 
 describe("Google-only configuration", () => {
   test("the authorization request uses the fixed app callback, state, and S256 PKCE", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     // Start on another host: the callback must still be the configured app origin.
     const response = await app.fetch(
-      "https://kawal-asap-editorial.example.workers.dev/api/auth/sign-in/social",
+      "https://kawal-asap-app.example.workers.dev/api/auth/sign-in/social",
       {
         method: "POST",
         origin: APP_ORIGIN,
@@ -322,7 +318,7 @@ describe("Google-only configuration", () => {
   });
 
   test("password, linking, ID-token, and test identity paths are unavailable", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar } = await reviewer(app, db);
     const body = JSON.stringify({
       email: "synthetic@example.test",
@@ -370,7 +366,7 @@ describe("Google-only configuration", () => {
   });
 
   test("other providers are not configured", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     for (const provider of ["github", "apple", "microsoft", "credential"]) {
       const response = await app.fetch("/api/auth/sign-in/social", {
         method: "POST",
@@ -391,7 +387,7 @@ describe("Google-only configuration", () => {
     ["no app origin", { AUTH_BASE_URL: undefined }],
     ["an http app origin", { AUTH_BASE_URL: "http://app.kawal.id" }],
   ])("Google sign-in fails closed with %s, and health stays available", async (_, bindings) => {
-    const { app } = await editorial(bindings);
+    const { app } = await createApp(bindings);
     const response = await app.fetch("/api/auth/sign-in/social", {
       method: "POST",
       origin: APP_ORIGIN,
@@ -408,7 +404,7 @@ describe("Google-only configuration", () => {
   });
 
   test("a build without the auth secret serves no protected content", async () => {
-    const app = await startEditorial(build, { bindings: { BETTER_AUTH_SECRET: undefined } });
+    const app = await startApp(build, { bindings: { BETTER_AUTH_SECRET: undefined } });
     runtimes.push(app);
     for (const response of [await page(app, "/"), await pageData(app, "/")]) {
       expect(response.status).not.toBe(200);
@@ -417,7 +413,7 @@ describe("Google-only configuration", () => {
   });
 
   test("health is anonymous, minimal, no-store, and noindex", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     const health = await app.fetch("/healthz");
     expect(health.status).toBe(200);
     expect(await health.json()).toEqual({ status: "ok" });
@@ -428,7 +424,7 @@ describe("Google-only configuration", () => {
   });
 
   test("the session cookie is host-only, secure, HTTP-only, and lax", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     await invite(db, "cookie@example.test");
     const { callback } = await signInWithGoogle(app, profile({ email: "cookie@example.test" }));
     const [cookie] = setCookies(callback, SESSION_COOKIE);
@@ -448,7 +444,7 @@ describe("Google-only configuration", () => {
 
 describe("callback protections", () => {
   test("a callback without the issued state cookie creates no session", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const authorization = await startGoogleSignIn(app);
     // Another browser presents a valid state value but not its cookie.
     expectCallbackError(
@@ -472,7 +468,7 @@ describe("callback protections", () => {
   });
 
   test("a state is single use", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const identity = profile();
     await invite(db, identity.email);
     const authorization = await startGoogleSignIn(app);
@@ -484,7 +480,7 @@ describe("callback protections", () => {
   });
 
   test("sign-in rejects a callback URL on another origin", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     for (const callbackURL of [
       `${EVIL_ORIGIN}/`,
       "//evil.example/",
@@ -504,7 +500,7 @@ describe("callback protections", () => {
 
 describe("verified invitation claims", () => {
   test("an unverified Google email is rejected on the first sign-in", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const identity = profile({ email_verified: false });
     await invite(db, identity.email);
     const { callback, jar } = await signInWithGoogle(app, identity);
@@ -521,7 +517,7 @@ describe("verified invitation claims", () => {
   });
 
   test("an unverified Google email is rejected on a returning sign-in", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { identity, jar, id } = await reviewer(app, db);
     // Positive control above: the verified sign-in worked. Sign out, then return unverified.
     await app.fetch("/api/auth/sign-out", {
@@ -541,7 +537,7 @@ describe("verified invitation claims", () => {
   });
 
   test("a verified Google user without an invitation is signed in but has no access", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const identity = profile();
     const { callback, jar } = await signInWithGoogle(app, identity);
     expectRedirect(callback, "/");
@@ -561,7 +557,7 @@ describe("verified invitation claims", () => {
   });
 
   test("an invited reviewer claims once, bound to the native user and Google subject", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const identity = profile({ email: "Invited.Reviewer@Example.test" });
     await invite(db, identity.email);
     // Google returns the same address in another case; the claim still matches.
@@ -593,7 +589,7 @@ describe("verified invitation claims", () => {
   });
 
   test("concurrent first requests claim an invitation exactly once", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const identity = profile();
     await invite(db, identity.email);
     const { jar } = await signInWithGoogle(app, identity);
@@ -604,7 +600,7 @@ describe("verified invitation claims", () => {
   });
 
   test("different identities racing for one invitation produce one grant", async () => {
-    const { db } = await editorial();
+    const { db } = await createApp();
     const email = "race@example.test";
     const invitation = await invite(db, email);
     // Linking is off, so only the store can see several subjects for one email.
@@ -626,7 +622,7 @@ describe("verified invitation claims", () => {
   });
 
   test("a reviewer grant does not satisfy the admin role", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { identity, id } = await reviewer(app, db);
     const session = await db
       .prepare(`SELECT id FROM "session" WHERE userId = ?`)
@@ -649,7 +645,7 @@ describe("verified invitation claims", () => {
   });
 
   test("bootstrap creates at most one open admin invitation, also under concurrency", async () => {
-    const { db } = await editorial();
+    const { db } = await createApp();
     const bootstrap = (index: number) =>
       createInvitation(db as never, {
         email: `bootstrap-${index}@example.test`,
@@ -666,7 +662,7 @@ describe("verified invitation claims", () => {
   });
 
   test("a bootstrap invitation cannot be claimed while an active admin exists", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const pending = profile();
     const created = await createInvitation(db as never, {
       email: pending.email,
@@ -685,7 +681,7 @@ describe("verified invitation claims", () => {
   });
 
   test("a changed verified Google email keeps the subject's grant and claims nothing new", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { identity, jar, id } = await reviewer(app, db);
     await app.fetch("/api/auth/sign-out", {
       method: "POST",
@@ -710,7 +706,7 @@ describe("verified invitation claims", () => {
   });
 
   test("a returning sign-in with another user's email is rejected", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const first = await reviewer(app, db);
     const second = await reviewer(app, db);
     await app.fetch("/api/auth/sign-out", {
@@ -734,7 +730,7 @@ describe("verified invitation claims", () => {
   });
 
   test("a second Google subject with the invited email cannot sign in or claim", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { identity } = await reviewer(app, db);
     const other = await signInWithGoogle(app, { ...identity, sub: `${identity.sub}-other` });
     expectCallbackError(other.callback, "account_not_linked");
@@ -744,7 +740,7 @@ describe("verified invitation claims", () => {
   });
 
   test("expired and revoked invitations give no access", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const expired = profile();
     const revoked = profile();
     await invite(db, expired.email);
@@ -768,7 +764,7 @@ describe("verified invitation claims", () => {
 
 describe("sessions and access removal", () => {
   test("anonymous requests are denied", async () => {
-    const { app } = await editorial();
+    const { app } = await createApp();
     await expectAnonymous(app);
     for (const [method, path] of [
       ["POST", "/"],
@@ -788,7 +784,7 @@ describe("sessions and access removal", () => {
   });
 
   test("logout ends the session, and the old cookie stays signed out", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar, id } = await reviewer(app, db);
     const stolen = jar.clone();
     // A cross-origin logout is refused and the session stays valid.
@@ -817,7 +813,7 @@ describe("sessions and access removal", () => {
   });
 
   test("a session has an absolute lifetime and is anonymous after expiry", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar, id } = await reviewer(app, db);
     // Ten hours into a 12-hour session: a sliding session would extend it here.
     await setSessionExpiry(db, id, 2 * 60 * 60 * 1000);
@@ -832,14 +828,14 @@ describe("sessions and access removal", () => {
   });
 
   test("a deleted session row takes effect on the next request", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar, id } = await reviewer(app, db);
     await db.prepare(`DELETE FROM "session" WHERE userId = ?`).bind(id).run();
     await expectAnonymous(app, jar);
   });
 
   test("a grant revoked during a valid session is denied on the next request", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar, id } = await reviewer(app, db);
     await db
       .prepare(`UPDATE reviewer_grants SET revoked_at = ? WHERE user_id = ?`)
@@ -852,7 +848,7 @@ describe("sessions and access removal", () => {
   });
 
   test("an admin revocation ends the reviewer's sessions; a reviewer cannot revoke", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar, id } = await reviewer(app, db);
     const peer = await reviewer(app, db);
     const admin = await reviewer(app, db, profile(), "admin");
@@ -874,7 +870,7 @@ describe("sessions and access removal", () => {
   });
 
   test("a new invitation after revocation creates a new grant and keeps the old one revoked", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { identity, jar, id } = await reviewer(app, db);
     const admin = await reviewer(app, db, profile(), "admin");
     const before = await db
@@ -915,14 +911,14 @@ describe("sessions and access removal", () => {
       `UPDATE "account" SET accountId = 'synthetic-other-subject' WHERE userId = ?`,
     ],
   ])("a grant with a mismatched %s gives no access", async (_, statement) => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar, id } = await reviewer(app, db);
     await db.prepare(statement).bind(id).run();
     await expectNoAccess(app, jar);
   });
 
   test("a cross-origin POST does not use the session cookie", async () => {
-    const { app, db } = await editorial();
+    const { app, db } = await createApp();
     const { jar } = await reviewer(app, db);
     const sameOrigin = await app.fetch("/api/kawal-probe", {
       method: "POST",
@@ -938,8 +934,8 @@ describe("sessions and access removal", () => {
 });
 
 describe("response policy", () => {
-  test("every editorial response is no-store and noindex", async () => {
-    const { app, db } = await editorial();
+  test("every app response is no-store and noindex", async () => {
+    const { app, db } = await createApp();
     const { jar } = await reviewer(app, db);
     const uninvited = await signInWithGoogle(app, profile());
     const responses = [
@@ -977,14 +973,14 @@ describe("response policy", () => {
 });
 
 describe("production build boundary", () => {
-  test("reject a non-production editorial build before it can expose dev behavior", () => {
+  test("reject a non-production app build before it can expose dev behavior", () => {
     const result = spawnSync("bash", ["-lc", "vp build"], {
-      cwd: join(build.directory, "apps/editorial"),
+      cwd: join(build.directory, "apps/app"),
       env: { ...process.env, NODE_ENV: "test" },
       encoding: "utf8",
     });
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Editorial builds require NODE_ENV=production.");
+    expect(result.stderr).toContain("App builds require NODE_ENV=production.");
   });
 
   const forbidden = [
@@ -1023,7 +1019,7 @@ describe("production build boundary", () => {
 
   test("application source does not import test code or substitutes", async () => {
     const root = resolve(import.meta.dirname, "..");
-    const sources = (await files(join(root, "apps/editorial"))).filter(
+    const sources = (await files(join(root, "apps/app"))).filter(
       (file) =>
         !/\/(node_modules|dist|\.void|\.wrangler)\//.test(file) &&
         /\.(ts|tsx|js|mjs|json)$/.test(file),

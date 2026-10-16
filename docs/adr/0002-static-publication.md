@@ -5,7 +5,7 @@ date: 2026-10-16
 
 # Serve public information from static publication files
 
-Keep public reads independent of editorial requests, sessions, and database
+Keep public reads independent of app requests, sessions, and database
 access. Generate a complete approved-public export before activation. This
 decision was amended for the full native Void stack in
 [ADR 0004](0004-void-static-deployment.md). The earlier React Router, same-host
@@ -16,9 +16,9 @@ origin, export-symlink, and edge stale-on-error clauses no longer apply.
 - Use a separate static-only Void public target. Native prerendering must produce
   HTML and `_void/pages/*.json` for every public page. Validate completeness and
   loader success because Void 1.1.11 can exit successfully after a prerender error.
-- Keep Workers, D1, R2, sessions, and write endpoints in the separate editorial
+- Keep Workers, D1, R2, sessions, and write endpoints in the separate app
   target. A public visit or native client navigation must not call it. Prove
-  direct visits, navigation, and assets with editorial stopped.
+  direct visits, navigation, and assets with the app stopped.
 - Generate only from an approved-public export. Direct Cloudflare SSG uses local
   Miniflare state, not production D1. Use synthetic fixtures in normal orbs. Never
   export session data, private originals, or unreviewed reports.
@@ -26,7 +26,7 @@ origin, export-symlink, and edge stale-on-error clauses no longer apply.
   usable without the map. Missing data must not appear as zero detections.
 - Keep private originals, approved public copies, backups, and public build
   files separate. Caddy's local document root is only `apps/public/dist/client`.
-  There is no fallback or proxy to editorial.
+  There is no fallback or proxy to the app.
 
 ## Publication and failure
 
@@ -41,9 +41,9 @@ release. This foundation does not implement the publication workflow.
 
 The local origin sends `public, max-age=60, must-revalidate` for pages and data.
 Only hash-named code under `/assets/` gets a one-year immutable policy. Do not
-include report content or private data in code assets. Editorial responses use
+include report content or private data in code assets. App responses use
 no-store and must not enter shared caches; application-owned responses also
-use `private`. Native hash-named editorial code assets can use Void's cache
+use `private`. Native hash-named app code assets can use Void's cache
 policy, but must contain no records or private data.
 
 Void's routing Worker runs for public requests, including code assets. It has
@@ -55,7 +55,7 @@ cache guarantee exists yet. Test actual headers, hits, expiry, and failure
 behavior before selecting a release policy. Do not enable Always Online or a
 service worker that bypasses withdrawal rules.
 
-Static files remove editorial and D1 from public reads. They do not remove the
+Static files remove the app and D1 from public reads. They do not remove the
 asset host, routing Worker quota, network, or deployment system as failure
 points. A cache is not a backup.
 

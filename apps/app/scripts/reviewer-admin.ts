@@ -1,4 +1,4 @@
-// Local reviewer administration. Run from apps/editorial with Node.js 24:
+// Local reviewer administration. Run from apps/app with Node.js 24:
 //
 //   node scripts/reviewer-admin.ts bootstrap --email person@example.org
 //   node scripts/reviewer-admin.ts invite --email person@example.org [--role admin]
@@ -61,7 +61,8 @@ function parseArgs(argv: string[]) {
     const arg = rest[i];
     if (!arg.startsWith("--")) fail(`Unexpected argument '${arg}'.`);
     const name = arg.slice(2);
-    if (name === "remote") fail("--remote is not supported. Use --print-sql and an approved procedure.");
+    if (name === "remote")
+      fail("--remote is not supported. Use --print-sql and an approved procedure.");
     if (name === "print-sql") {
       options.set(name, true);
       continue;
@@ -133,7 +134,9 @@ function executeLocal(sql: string) {
   try {
     const file = join(dir, "change.sql");
     writeFileSync(file, sql);
-    const result = spawnSync("npx", ["void", "db", "execute", "--file", file], { stdio: "inherit" });
+    const result = spawnSync("npx", ["void", "db", "execute", "--file", file], {
+      stdio: "inherit",
+    });
     if (result.status !== 0) process.exit(result.status ?? 1);
   } finally {
     rmSync(dir, { recursive: true, force: true });

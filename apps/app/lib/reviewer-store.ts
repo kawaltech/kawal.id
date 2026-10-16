@@ -6,7 +6,7 @@
 
 export type ReviewerRole = "reviewer" | "admin";
 
-/** The validated native identity from the auth owner's getEditorialIdentity(). */
+/** The validated native identity from getAppIdentity(c). */
 export type ReviewerIdentity = {
   userId: string;
   googleSubject: string;
@@ -102,7 +102,8 @@ export function invitationStatements(input: InvitationInput & { id: string; audi
   const at = timestamp(now);
   const expiresAt = expiry(now, input.hours ?? INVITATION_HOURS);
   const { source } = input;
-  if (input.role !== "reviewer" && input.role !== "admin") throw new Error("The role is not valid.");
+  if (input.role !== "reviewer" && input.role !== "admin")
+    throw new Error("The role is not valid.");
   if (source.via === "bootstrap" && input.role !== "admin") {
     throw new Error("A bootstrap invitation is for an admin.");
   }
@@ -311,7 +312,11 @@ export async function hasOpenInvitation(db: ReviewerDb, email: string, now: Date
 }
 
 /** Claim an open invitation for this identity. Returns true when this call made the grant. */
-export async function claimInvitation(db: ReviewerDb, identity: ReviewerIdentity, now = new Date()) {
+export async function claimInvitation(
+  db: ReviewerDb,
+  identity: ReviewerIdentity,
+  now = new Date(),
+) {
   const [inserted] = await runBatch(
     db,
     claimStatements({ identity, grantId: newId(), auditId: newId(), now }),
@@ -321,7 +326,10 @@ export async function claimInvitation(db: ReviewerDb, identity: ReviewerIdentity
 
 export type InvitationResult = { created: true; id: string } | { created: false; id: null };
 
-export async function createInvitation(db: ReviewerDb, input: InvitationInput): Promise<InvitationResult> {
+export async function createInvitation(
+  db: ReviewerDb,
+  input: InvitationInput,
+): Promise<InvitationResult> {
   const id = newId();
   const [, inserted] = await runBatch(db, invitationStatements({ ...input, id, auditId: newId() }));
   return inserted === 1 ? { created: true, id } : { created: false, id: null };

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
-// Read-only HTTP checks for the deployed editorial staging Worker.
-// Usage: node scripts/check-editorial-staging.mjs <origin> <version-id> [absent-origin...]
+// Read-only HTTP checks for the deployed app staging Worker.
+// Usage: node scripts/check-app-staging.mjs <origin> <version-id> [absent-origin...]
 const usage =
-  "Usage: node scripts/check-editorial-staging.mjs <editorial-origin> <version-id> [absent-origin...]";
+  "Usage: node scripts/check-app-staging.mjs <app-origin> <version-id> [absent-origin...]";
 const [base, expectedVersion, ...absentOrigins] = process.argv.slice(2);
 assert.ok(base && expectedVersion, usage);
 assert.match(expectedVersion, /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i, usage);
@@ -47,7 +47,7 @@ function noStore(path, response, { requirePrivate }) {
   }
 }
 
-async function editorialResponse(path, response, { requirePrivate = true } = {}) {
+async function appResponse(path, response, { requirePrivate = true } = {}) {
   noStore(path, response, { requirePrivate });
   assert.match(
     response.headers.get("x-robots-tag") ?? "",
@@ -85,22 +85,22 @@ const signIn = new URL(home.headers.get("location") ?? "", origin);
 assert.equal(signIn.origin, origin, "/: sign-in redirect must stay on this origin");
 assert.equal(signIn.pathname, "/sign-in", "/: anonymous page requests must go to /sign-in");
 noSessionCookie("/", home);
-await editorialResponse("/", home);
+await appResponse("/", home);
 
 const data = await get("/_void/pages/index.json");
 assert.equal(data.status, 401, "/_void/pages/index.json: anonymous data requests must get 401");
 noSessionCookie("/_void/pages/index.json", data);
-await editorialResponse("/_void/pages/index.json", data);
+await appResponse("/_void/pages/index.json", data);
 
 const signInPage = await get("/sign-in", { page: true });
 assert.equal(signInPage.status, 200, "/sign-in: anonymous sign-in page");
 noSessionCookie("/sign-in", signInPage);
-await editorialResponse("/sign-in", signInPage);
+await appResponse("/sign-in", signInPage);
 
 // Better Auth responses may use its own no-store policy.
 const session = await get("/api/auth/get-session");
 assert.equal(session.status, 200, "/api/auth/get-session: status");
-const sessionBody = await editorialResponse("/api/auth/get-session", session, {
+const sessionBody = await appResponse("/api/auth/get-session", session, {
   requirePrivate: false,
 });
 assert.equal(
@@ -115,18 +115,18 @@ assert.ok([302, 303].includes(callback.status), "/api/auth/callback/google: redi
 const location = new URL(callback.headers.get("location") ?? "", origin);
 assert.equal(location.origin, origin, "/api/auth/callback/google: same origin");
 noSessionCookie("/api/auth/callback/google", callback);
-await editorialResponse("/api/auth/callback/google", callback, { requirePrivate: false });
+await appResponse("/api/auth/callback/google", callback, { requirePrivate: false });
 
 // The health route stays anonymous, with minimal status only.
 const health = await get("/healthz");
 assert.equal(health.status, 200, "/healthz: status");
 noSessionCookie("/healthz", health);
-const healthBody = await editorialResponse("/healthz", health);
+const healthBody = await appResponse("/healthz", health);
 assert.deepEqual(JSON.parse(healthBody), { status: "ok" }, "/healthz: minimal status only");
 
 const missing = await get("/__kawal-missing-route");
 assert.ok([401, 404].includes(missing.status), "/__kawal-missing-route: no application fallback");
-await editorialResponse("/__kawal-missing-route", missing);
+await appResponse("/__kawal-missing-route", missing);
 
 // A network failure cannot prove that a host is disabled.
 for (const host of absent) {
@@ -144,13 +144,10 @@ for (const host of absent) {
     const value = JSON.parse(body);
     ready = value !== null && typeof value === "object" && "ready" in value;
   } catch {}
-  assert.ok(
-    !(response.ok && ready),
-    `${host}: this host must not serve any editorial Worker version`,
-  );
+  assert.ok(!(response.ok && ready), `${host}: this host must not serve any app Worker version`);
 }
 
 console.log(
-  `Editorial staging checks passed: version ${expectedVersion}, sign-in redirect, data 401, ` +
+  `App staging checks passed: version ${expectedVersion}, sign-in redirect, data 401, ` +
     `null session, rejected OAuth callback, minimal health, no-store, noindex, and ${absent.length} absent host(s)`,
 );

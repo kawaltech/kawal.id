@@ -1,5 +1,5 @@
 import { defineMiddleware } from "void";
-import { EditorialAccessError, getEditorialIdentity } from "../editorial/identity.ts";
+import { AppAccessError, getAppIdentity } from "../lib/identity.ts";
 import { requireReviewer } from "../lib/reviewer-guard.ts";
 
 // Deny by default. Only these paths work without a reviewer grant.
@@ -41,13 +41,13 @@ export default defineMiddleware(async (c, next) => {
   if (isOpen(method, path)) return next();
 
   const page = isPageDocumentRequest(method, path, c.req.raw.headers);
-  const identity = await getEditorialIdentity(c);
-  if (!identity) return page ? seeOther("/sign-in") : new EditorialAccessError(401).getResponse();
+  const identity = await getAppIdentity(c);
+  if (!identity) return page ? seeOther("/sign-in") : new AppAccessError(401).getResponse();
 
   try {
     await requireReviewer(identity);
   } catch (error) {
-    // EditorialAccessError and the reviewer guard's error both carry a status.
+    // AppAccessError and the reviewer guard's error both carry a status.
     const status = (error as { status?: unknown }).status;
     if (page && status === 401) return seeOther("/sign-in");
     if (page && status === 403) return seeOther("/access-pending");

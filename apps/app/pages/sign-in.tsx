@@ -28,8 +28,8 @@ export default function SignIn({ signedIn, error }: InferProps<typeof loader>) {
 
   return (
     <main>
-      <h1>Kawal Asap · Editorial</h1>
-      <p>Sign in with Google. A sign-in does not give editorial access. A reviewer must approve it.</p>
+      <h1>Kawal Asap · App</h1>
+      <p>Sign in with Google. A sign-in does not give app access. A reviewer must approve it.</p>
       {message ? <p role="alert">{message}</p> : null}
       {signedIn ? (
         <p>

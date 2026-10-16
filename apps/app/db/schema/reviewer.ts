@@ -1,7 +1,7 @@
 import { sql } from "void/db";
 import { check, index, sqliteTable, text, uniqueIndex } from "void/schema-d1";
 
-// Reviewer access belongs to the editorial target only. A native sign-in gives
+// Reviewer access belongs to the app target only. A native sign-in gives
 // no rights: access needs an active grant. Grants are keyed on the Better Auth
 // user id and the Google subject from the native "account" row. The email
 // address only matches an invitation once. These tables have no foreign keys

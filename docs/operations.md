@@ -1,18 +1,18 @@
 # Foundation operations
 
 This is a native Void development foundation and synthetic design review.
-Editorial sign-in and reviewer access have local implementations. Live Google
-and editorial deployment checks are not complete. Reports, ingestion,
+App sign-in and reviewer access have local implementations. Live Google
+and app deployment checks are not complete. Reports, ingestion,
 publication, withdrawal, and media workflows are not implemented.
 The user approved automatic public-preview deployment from main.
-Editorial deployment and unrelated shared infrastructure changes need approval.
+App deployment and unrelated shared infrastructure changes need approval.
 
 ## Tools and local state
 
 Use the pinned Node.js, pnpm, Vite+, and Caddy versions. `pnpm build` runs native
 `vp build` for both workspaces. Each workspace explicitly uses the Vite+ core
 alias so Void plugins do not load a second Vite installation.
-Editorial builds reject a non-production `NODE_ENV`: Vite would otherwise
+App builds reject a non-production `NODE_ENV`: Vite would otherwise
 include development auth and source-module behavior in the Worker.
 
 Two exact optional Vitest peer exceptions cover Cloudflare `workers-auth` 0.14.0
@@ -21,7 +21,7 @@ exports. The utils test-helper entry does import Vitest; this project does not
 use it. These exceptions do not claim Cloudflare test-helper compatibility with
 Vitest 5. Recheck them when those packages change.
 
-`apps/editorial/.void` holds local Miniflare D1/R2 state. Generated `.void`,
+`apps/app/.void` holds local Miniflare D1/R2 state. Generated `.void`,
 `.wrangler`, and `dist` trees are ignored. No production records or credentials
 belong in these trees or orb snapshots. Separate checkouts use separate state.
 Do not copy or remove non-disposable local state without approval.
@@ -29,7 +29,7 @@ Do not copy or remove non-disposable local state without approval.
 D1 is managed SQLite through async bindings, not a `better-sqlite3` file with
 application-managed WAL and backup locks. R2 replaces local production media
 files. The root migration is historical and is not applied. Future product
-migrations belong to `apps/editorial/db/migrations/`. There is no
+migrations belong to `apps/app/db/migrations/`. There is no
 `db:seed`, `db:backup`, `public:init`, Docker target, or Kamal deployment now.
 
 ## Orb lifecycle and services
@@ -47,21 +47,21 @@ amp orb services ensure
 
 Use the returned portal URLs, not sandbox-local addresses.
 
-| Service     | Purpose                                                            |
-| ----------- | ------------------------------------------------------------------ |
-| `dev`       | Public native Void development with live reload                    |
-| `editorial` | Separate local Workers runtime; `/healthz` queries D1 and lists R2 |
-| `public`    | Build public output and serve it with Caddy; no app runtime        |
+| Service  | Purpose                                                            |
+| -------- | ------------------------------------------------------------------ |
+| `dev`    | Public native Void development with live reload                    |
+| `app`    | Separate local Workers runtime; `/healthz` queries D1 and lists R2 |
+| `public` | Build public output and serve it with Caddy; no app runtime        |
 
 Use `amp orb service status <name>`, `logs <name>`, `stop <name>`, and
-`restart <name>`. The public service has no editorial proxy. Stop both `dev` and
-`editorial`, confirm the editorial port is closed, then run
+`restart <name>`. The public service has no app proxy. Stop both `dev` and
+`app`, confirm the app port is closed, then run
 `node scripts/check-public.mjs <static-origin-url>`. Restart the services when
 you need development again. The health check proves local binding access only,
 not durable reports, R2 uploads, backup recovery, or production readiness.
 
 CI installs the same toolchain and runs `pnpm check`. It then starts local
-editorial, checks D1/R2 health, stops its process group, and checks static Caddy
+app development, checks D1/R2 health, stops its process group, and checks static Caddy
 reads. These checks need no credentials. A separate step in the same job deploys
 only the public preview on a main push, after all checks pass.
 
@@ -84,20 +84,20 @@ Options A/C contain synthetic reports; `/` and B do not.
 Pages and data use `public, max-age=60, must-revalidate`. Only hash-named code
 assets use an immutable one-year policy. These are local origin headers, not
 proof of Cloudflare cache behavior. Native client navigation uses static JSON.
-Verify both direct requests and native `Link` clicks with editorial stopped.
+Verify both direct requests and native `Link` clicks with the app stopped.
 
 ## Public preview deployment
 
 The configured public target is `kawal-asap-design-review` in account
-`1d60533bd63392b6dc25160f907c4f76`, with the `kawal.id` custom domain. The editorial
-target is not deployed. Use separate hosts for public and future editorial work.
+`1d60533bd63392b6dc25160f907c4f76`, with the `kawal.id` custom domain. The app
+target is not deployed. Use separate hosts for the public site and the app.
 
 The first native deployment passed on 16 October 2026:
 [workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
 It replaced the old React Router preview and renders B directly at `/`.
 Local builds do not deploy. The approved GitHub Actions workflow deploys the
 synthetic public preview after a main push passes checks. It does not deploy
-editorial, change `www`, or implement report publication.
+the app, change `www`, or implement report publication.
 
 Set `CLOUDFLARE_API_TOKEN` in the repository's **Settings → Secrets and variables
 → Actions**. Use a scoped token for account `1d60533bd63392b6dc25160f907c4f76`
@@ -137,7 +137,7 @@ not extract MCP credentials or put tokens in commands, config, logs, or Git.
 local validation. Review any generated resource lock before use on another
 machine. Manual deployments must not overlap CI. They need separate approval.
 
-Editorial can deploy to a separate staging host after native Google-only sign-in
+The app can deploy to a separate staging host after native Google-only sign-in
 and reviewer controls pass tests and the owner approves the named remote writes.
 Staging need not wait for real reports, but real reports remain blocked by the
 withdrawal and recovery gates below.
@@ -148,10 +148,10 @@ DNS-only `www` records still use Netlify to redirect to `https://kawal.id/`.
 Keep that site until a replacement redirect exists. Do not claim worldwide DNS
 propagation from resolver-override checks.
 
-## Editorial sign-in and access
+## App sign-in and access
 
 The staging host is `app.kawal.id`. Its deployment is separate from the public
-workflow. See [editorial staging preparation](editorial-staging.md) for the
+workflow. See [app staging preparation](app-staging.md) for the
 approval gates, exact Google callback, secrets, and first-deployment limits.
 Do not run the deployment or remote database commands as local checks.
 
@@ -165,17 +165,17 @@ claim uses the last sign-in's verified email, which can be up to 12 hours old.
 Sign-out deletes the native session. Administrative revocation also deletes
 the user's sessions in the same D1 batch as the grant change.
 
-Keep D1 read replication off for editorial. Native session reads use Void's
+Keep D1 read replication off for the app. Native session reads use Void's
 unconstrained D1 session, although the account and grant reads use primary D1.
 Do not enable replicas without tests that prove immediate logout and revocation.
 Void 1.1.11 enables replication when it provisions resources. Before an approved
 deployment, create D1 with replication off and create R2, then pin both resources
 in a reviewed config. The staging preflight deliberately fails until those pins
-exist. Never use `--provision` for editorial.
+exist. Never use `--provision` for the app.
 HTML, data, and auth responses use no-store. Native hash-named code assets can
-use Void's cache policy; do not put editorial records in those assets.
+use Void's cache policy; do not put app records in those assets.
 
-`apps/editorial/scripts/reviewer-admin.ts` changes local D1 only. It refuses
+`apps/app/scripts/reviewer-admin.ts` changes local D1 only. It refuses
 `--remote`. Use `--print-sql` to review SQL without applying it. Do not put a
 real email address or printed invitation SQL in Git. Remote application of
 that SQL needs approval. A bootstrap invitation is possible only when no active
@@ -190,14 +190,14 @@ not live Google service behavior. There is no application test sign-in route.
 
 If an older local dev state has auth tables but no Void migration history, dev
 can refuse startup. Do not delete that state automatically. First confirm that
-it is disposable and contains no work to keep. Only then, from `apps/editorial`,
+it is disposable and contains no work to keep. Only then, from `apps/app`,
 run `pnpm exec void db reset` to rebuild local D1 from the committed migrations.
 Never use this recovery step with remote or non-disposable data. A fresh local
 state applies both migrations without a reset.
 
 ## Release gates
 
-- Keep public generation on an approved-public export, not live editorial D1.
+- Keep public generation on an approved-public export, not live app D1.
   Direct-deploy SSG reads local Miniflare state. Normal orbs use fixtures.
 - Serialize publication. A late older export must not replace a newer one.
   Each update is a deployment; measure timing and publication frequency.

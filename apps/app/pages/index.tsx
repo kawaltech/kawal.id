@@ -1,8 +1,8 @@
-export default function Editorial() {
+export default function App() {
   return (
     <main>
-      <h1>Kawal Asap · Editorial</h1>
-      <p>This is a local foundation, not an editorial service.</p>
+      <h1>Kawal Asap · App</h1>
+      <p>This is a local foundation, not a reporting service.</p>
       <p>Reports, ingestion, and publication are not implemented.</p>
       <p>
         <a href="/sign-out">Sign out</a>

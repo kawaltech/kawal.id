@@ -63,6 +63,6 @@ echo "[setup] Build the independent Void targets"
 step_start=$SECONDS
 pnpm build
 echo "[setup] Builds ready after $((SECONDS - step_start))s"
-# D1 and R2 use local Miniflare state when the editorial service starts.
+# D1 and R2 use local Miniflare state when the app service starts.
 # Setup must not authenticate Cloudflare or run a remote database command.
 echo "[setup] Complete in ${SECONDS}s"

@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter @kawal/public build && pnpm --filter @kawal/editorial build",
+    "build": "pnpm --filter @kawal/public build && pnpm --filter @kawal/app build",
     "dev": "pnpm --filter @kawal/public dev",
-    "dev:editorial": "pnpm --filter @kawal/editorial dev",
+    "dev:app": "pnpm --filter @kawal/app dev",
     "public:serve": "caddy run --config config/Caddyfile --adapter caddyfile",
     "deploy:preview": "pnpm --filter @kawal/public deploy",
     "typecheck": "tsc",

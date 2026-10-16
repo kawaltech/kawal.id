@@ -5,12 +5,12 @@ services:
     portal:
       title: Kawal Asap development
       description: Native Void public pages with synthetic data. Option B is selected.
-  editorial:
-    command: pnpm --filter @kawal/editorial exec vp dev --host 0.0.0.0 --port "$PORT"
+  app:
+    command: pnpm --filter @kawal/app exec vp dev --host 0.0.0.0 --port "$PORT"
     health: /healthz
     review: false
     portal:
-      title: Kawal Asap editorial foundation
+      title: Kawal Asap app foundation
       description: Local Workers, D1 and R2. Google sign-in needs credentials; reviewer access needs an invitation.
   public:
     command: pnpm --filter @kawal/public build && pnpm public:serve

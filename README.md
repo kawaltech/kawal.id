@@ -2,7 +2,7 @@
 
 A native Void foundation for reviewed fire and smoke information. The public
 preview preserves the selected map-and-table design, option B. All data is
-synthetic. Editorial has Google-only sign-in and invitation-based reviewer
+synthetic. The app has Google-only sign-in and invitation-based reviewer
 access for local checks. It is not deployed. Reports, live ingestion,
 publication, withdrawal, and media workflows are not implemented.
 
@@ -16,12 +16,12 @@ Read [ADR 0004](docs/adr/0004-void-static-deployment.md) for the full Void decis
 | Path                             | Purpose                                                                |
 | -------------------------------- | ---------------------------------------------------------------------- |
 | `apps/public`                    | Native Void React, static HTML and navigation JSON; no backend         |
-| `apps/editorial`                 | Native Void Workers, Google-only sign-in, reviewer access, local D1/R2 |
+| `apps/app`                       | Native Void Workers, Google-only sign-in, reviewer access, local D1/R2 |
 | `app/design`                     | Shared option B and review-page design code                            |
 | `scripts/check-public-build.mjs` | Reject incomplete prerenders and report data in B                      |
 | `config/Caddyfile`               | Serve only the public export for local checks                          |
 
-Public reads do not call editorial or a database. D1 is managed SQLite through
+Public reads do not call the app or a database. D1 is managed SQLite through
 async bindings, not a local `better-sqlite3`/WAL database. R2 provides object
 storage. Each checkout has its own ignored Miniflare state. Normal development
 needs no Google, NASA, or Cloudflare credentials.
@@ -37,9 +37,9 @@ pnpm check
 amp orb services ensure
 ```
 
-Use the returned portal URLs. `dev` runs public development. `editorial` runs the
+Use the returned portal URLs. `dev` runs public development. `app` runs the
 local Workers runtime. `public` serves static files with Caddy. Stop `dev` and
-`editorial` to test public independence. The project default is `a1.small`
+`app` to test public independence. The project default is `a1.small`
 (2 CPUs, 4 GB RAM). The combined build, services, and browser checks have passed
 on `a1.medium`, not yet on small. This is not a production sizing claim. Run
 toolchain commands with `bash -lc` in the orb.
@@ -61,7 +61,7 @@ Install the pinned Caddy version separately if you need local static checks.
 | Command                               | Purpose                                                                    |
 | ------------------------------------- | -------------------------------------------------------------------------- |
 | `pnpm dev`                            | Public native Void development server                                      |
-| `pnpm dev:editorial`                  | Editorial native Void development with local D1/R2                         |
+| `pnpm dev:app`                        | App native Void development with local D1/R2                               |
 | `pnpm check`                          | Types, lint, tests, and both builds                                        |
 | `pnpm build`                          | Native `vp build` in both targets; validate the public export              |
 | `pnpm format`                         | Format source files                                                        |
@@ -75,7 +75,7 @@ The root `migrations/0001-users.sql` is historical and is not applied.
 ## Public preview deployment
 
 The user approved public-only deployment after checks pass on a push to `main`.
-GitHub Actions checks both targets, tests static reads with editorial stopped,
+GitHub Actions checks both targets, tests static reads with the app stopped,
 then deploys only the checked public output. Pull requests do not deploy.
 Main deployments cannot overlap; a superseded revision is skipped. Post-deploy
 checks require the exact active Worker version on `kawal.id` and Workers.dev.
@@ -85,10 +85,10 @@ Enter it in GitHub's masked secret field, not in chat or source. See the
 [operations guide](docs/operations.md#public-preview-deployment) for access and
 failure handling. The first native deployment passed on 16 October 2026:
 [workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
-Editorial is not deployed by this workflow.
+The app is not deployed by this workflow.
 
-Editorial staging uses `app.kawal.id`. See the
-[staging preparation guide](docs/editorial-staging.md) before any remote work.
+App staging uses `app.kawal.id`. See the
+[staging preparation guide](docs/app-staging.md) before any remote work.
 Normal orbs need no Google client. Runtime tests use temporary D1/R2 and a
 test-only Google substitute; there is no application test sign-in route.
 Live Google, secrets, provisioning, deployment, and real invitations still need

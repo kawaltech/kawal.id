@@ -3,7 +3,7 @@ status: accepted
 date: 2026-10-16
 ---
 
-# Use the full native Void stack with separate public and editorial targets
+# Use the full native Void stack with separate public and app targets
 
 The user chose the full Void stack, not React Router with the Void deploy CLI.
 There are no product features or real records to migrate. Use native Void React
@@ -17,20 +17,20 @@ earlier deployment-only version of this decision. It closes ADR 0005.
   HTML plus `_void/pages/*.json` for every page. No API routes, authentication,
   middleware, crons, or queues. Do not add routing redirects, rewrites, or
   fallbacks that disable static navigation. Use native `Link` navigation.
-- `apps/editorial`: native Void server output with Workers, D1, and R2. Use a
-  separate host for editorial requests. Keep editorial HTML, data, and auth
+- `apps/app`: native Void server output with Workers, D1, and R2. Use a
+  separate host for app requests. Keep app HTML, data, and auth
   responses no-store; application-owned responses also use `private`. Native
   hash-named code assets may use Void's cache policy, but must contain no
-  editorial records. Public reads must not call this target.
+  app records. Public reads must not call this target.
 - Share design code in `app/design`. Keep option B at `/`, without field reports.
   Retain the review pages and their synthetic-data warnings until release work
   removes them. [ADR 0003](0003-map-and-table-public-design.md) still governs design.
 - Pin Void and `@void/react` together. Each workspace must resolve the Vite+ core
   alias, not a second Vite installation. Node.js is the build and local tool
-  runtime; the deployed editorial runtime is Workers.
+  runtime; the deployed app runtime is Workers.
 - Local D1/R2 use separate Miniflare state per checkout. Normal setup, tests, and
   builds need no Google, NASA, or Cloudflare credentials. The user approved the
-  public-only main deployment workflow and its first deployment. Editorial and
+  public-only main deployment workflow and its first deployment. App and
   unrelated remote changes need separate approval.
 
 ## Storage and future authentication
@@ -42,8 +42,8 @@ in separate storage boundaries. Future migrations must support overlapping
 application versions. Review D1 batch/transaction behavior, backup retention,
 Time Travel, and full database-plus-media restoration before accepting reports.
 The root `migrations/0001-users.sql` is an immutable historical file, not an
-editorial D1 migration. Native auth and reviewer migrations are in
-`apps/editorial/db/migrations/`; no report schema exists yet.
+app D1 migration. Native auth and reviewer migrations are in
+`apps/app/db/migrations/`; no report schema exists yet.
 
 Use native Void authentication. Explicitly allow only
 Google; disable email/password and account linking. Require an invitation or
@@ -62,7 +62,7 @@ can execute loaders and query D1 even when navigation uses static JSON.
 
 Direct-deploy SSG reads local Miniflare state, not production D1. Future public
 generation must consume an approved-public export, with fixtures in orbs. Do not
-point public loaders at the editorial database. [ADR 0002](0002-static-publication.md)
+point public loaders at the app database. [ADR 0002](0002-static-publication.md)
 defines activation and withdrawal requirements.
 
 Each public update is a deployment. Measure build and deployment time before
@@ -85,7 +85,7 @@ rollback procedure exists. ISR does not meet report withdrawal requirements.
 ## Current delivery boundary
 
 This foundation has local Google-only sign-in, database sessions, and reviewer
-invitations and grants. Editorial staging is planned for `app.kawal.id`, but is
+invitations and grants. App staging is planned for `app.kawal.id`, but is
 not deployed. The Google substitute stays in tests, not application code.
 Live Google checks still need separate credentials and approval. Reports,
 ingestion, publication, withdrawal, and media processing are not implemented.
@@ -95,7 +95,7 @@ session limits, D1 replication restrictions, and staging gates.
 
 The user approved automatic public-preview deployment after checks pass on main.
 It reuses the checked static output and verifies the active version and HTTP
-content on both public hosts. Editorial is excluded. The first native deployment
+content on both public hosts. The app is excluded. The first native deployment
 passed on 16 October 2026:
 [workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
 Do not treat a local build as a verified Worker handoff. The synthetic preview

@@ -13,7 +13,7 @@ import {
 export type ReviewerDenial = "unauthenticated" | "no_grant" | "identity_mismatch" | "role";
 
 /**
- * Void's error handler returns getResponse() for a thrown error. The editorial
+ * Void's error handler returns getResponse() for a thrown error. The app
  * middleware changes this to a redirect for protected page GET requests.
  */
 export class ReviewerAccessError extends Error {
@@ -42,7 +42,7 @@ export type ReviewerGuardOptions = { role?: ReviewerRole; now?: Date };
 
 /**
  * Deny by default. The identity must come from the native session through
- * getEditorialIdentity(), never from request data. Each call reads the current
+ * getAppIdentity(c), never from request data. Each call reads the current
  * grant, so a revoked grant fails on the next request even with a valid
  * session. A first request after sign-in can claim one open invitation.
  */
@@ -85,7 +85,7 @@ export function primaryReviewerDb(): ReviewerDb {
   return typeof binding.withSession === "function" ? binding.withSession("first-primary") : binding;
 }
 
-/** Call with `await getEditorialIdentity()` at the authorization boundary. */
+/** Call with `await getAppIdentity(c)` at the authorization boundary. */
 export function requireReviewer(
   identity: ReviewerIdentity | null,
   options?: ReviewerGuardOptions,

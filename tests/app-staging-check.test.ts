@@ -7,7 +7,7 @@ import { expect, test } from "vite-plus/test";
 
 const version = "33333333-3333-4333-8333-333333333333";
 const run = promisify(execFile);
-const check = resolve("scripts/check-editorial-staging.mjs");
+const check = resolve("scripts/check-app-staging.mjs");
 
 /** Run the check and return its stderr. The command line is not part of it. */
 async function failure(...args: string[]) {
@@ -34,8 +34,8 @@ type Fault =
   | "health-public"
   | "missing-route-allowed";
 
-/** A synthetic editorial origin that follows the agreed contract unless a fault is set. */
-async function editorialOrigin(fault?: Fault, servedVersion: string | null = version) {
+/** A synthetic app origin that follows the agreed contract unless a fault is set. */
+async function appOrigin(fault?: Fault, servedVersion: string | null = version) {
   const server = createServer((request, response) => {
     const path = new URL(request.url!, "http://local").pathname;
     const app = (status: number, headers: Record<string, string> = {}) => {
@@ -147,17 +147,17 @@ async function editorialOrigin(fault?: Fault, servedVersion: string | null = ver
   };
 }
 
-test("accept an editorial origin that follows the access and response contract", async () => {
-  const editorial = await editorialOrigin();
-  const absent = await editorialOrigin(undefined, null);
+test("accept an app origin that follows the access and response contract", async () => {
+  const app = await appOrigin();
+  const absent = await appOrigin(undefined, null);
   try {
     await expect(
-      run(process.execPath, [check, editorial.origin, version, absent.origin]),
+      run(process.execPath, [check, app.origin, version, absent.origin]),
     ).resolves.toMatchObject({
-      stdout: expect.stringContaining("Editorial staging checks passed"),
+      stdout: expect.stringContaining("App staging checks passed"),
     });
   } finally {
-    await Promise.all([editorial.close(), absent.close()]);
+    await Promise.all([app.close(), absent.close()]);
   }
 });
 
@@ -174,41 +174,41 @@ test.each<[Fault, RegExp]>([
   ["health-diagnostics", /\/healthz: minimal status only/],
   ["health-public", /\/healthz: private/],
   ["missing-route-allowed", /__kawal-missing-route/],
-])("reject an editorial origin with fault %s", async (fault, message) => {
-  const editorial = await editorialOrigin(fault);
+])("reject an app origin with fault %s", async (fault, message) => {
+  const app = await appOrigin(fault);
   try {
-    expect(await failure(editorial.origin, version)).toMatch(message);
+    expect(await failure(app.origin, version)).toMatch(message);
   } finally {
-    await editorial.close();
+    await app.close();
   }
 });
 
-// The positive case above passes with the same editorial fixture, so each
+// The positive case above passes with the same app fixture, so each
 // rejection below comes from the prohibited origin alone.
 test.each([
   ["the expected version", version],
   ["an older version", "66666666-6666-4666-8666-666666666666"],
   ["a ready response without a version", ""],
 ])("reject a prohibited origin that still serves %s", async (_, served) => {
-  const editorial = await editorialOrigin();
-  const stale = await editorialOrigin(undefined, served);
+  const app = await appOrigin();
+  const stale = await appOrigin(undefined, served);
   try {
-    expect(await failure(editorial.origin, version, stale.origin)).toContain(
+    expect(await failure(app.origin, version, stale.origin)).toContain(
       stale.origin.replace("http://", ""),
     );
   } finally {
-    await Promise.all([editorial.close(), stale.close()]);
+    await Promise.all([app.close(), stale.close()]);
   }
 });
 
 test("treat a network failure on a prohibited origin as inconclusive", async () => {
-  const editorial = await editorialOrigin();
-  const closed = await editorialOrigin();
+  const app = await appOrigin();
+  const closed = await appOrigin();
   await closed.close();
   try {
-    expect(await failure(editorial.origin, version, closed.origin)).toMatch(/inconclusive/i);
+    expect(await failure(app.origin, version, closed.origin)).toMatch(/inconclusive/i);
   } finally {
-    await editorial.close();
+    await app.close();
   }
 });
 

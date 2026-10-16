@@ -1,4 +1,4 @@
-// Test-only harness for the editorial Worker. It builds a copy of the editorial
+// Test-only harness for the app Worker. It builds a copy of the app
 // source in a temporary directory and runs the built Worker in Miniflare with
 // temporary D1 and R2 state. Nothing here is imported by application code.
 import { execFile } from "node:child_process";
@@ -19,33 +19,27 @@ export const TEST_GOOGLE_CLIENT_SECRET = "kawal-test-client-secret";
 const repository = resolve(import.meta.dirname, "../..");
 const run = promisify(execFile);
 
-export interface EditorialBuild {
+export interface AppBuild {
   directory: string;
   dist: string;
   dispose(): Promise<void>;
 }
 
 /**
- * Build the checked-out editorial source into a temporary copy. Void writes its
+ * Build the checked-out app source into a temporary copy. Void writes its
  * generated `.void` files and `dist` below the working directory, so building a
  * copy keeps the checkout and any running dev server unchanged.
  */
-export async function buildEditorial(
-  source = join(repository, "apps/editorial"),
-): Promise<EditorialBuild> {
-  const directory = await mkdtemp(join(tmpdir(), "kawal-editorial-build-"));
-  const target = join(directory, "apps/editorial");
+export async function buildApp(source = join(repository, "apps/app")): Promise<AppBuild> {
+  const directory = await mkdtemp(join(tmpdir(), "kawal-app-build-"));
+  const target = join(directory, "apps/app");
   const skipped = new Set(["node_modules", "dist", ".void", ".wrangler", ".void-wrangler.jsonc"]);
   await cp(source, target, {
     recursive: true,
     filter: (path) => !skipped.has(relative(source, path).split("/")[0]!),
   });
   await cp(join(repository, "app"), join(directory, "app"), { recursive: true });
-  await symlink(
-    join(repository, "apps/editorial/node_modules"),
-    join(target, "node_modules"),
-    "dir",
-  );
+  await symlink(join(repository, "apps/app/node_modules"), join(target, "node_modules"), "dir");
   await symlink(join(repository, "node_modules"), join(directory, "node_modules"), "dir");
   await run("bash", ["-lc", "vp build"], {
     cwd: target,
@@ -204,7 +198,7 @@ export interface RequestOptions extends RequestInit {
   origin?: string;
 }
 
-export interface EditorialRuntime {
+export interface AppRuntime {
   outbound: OutboundLog;
   /** The random internal token of this runtime, for native migration controls. */
   proxyToken: string;
@@ -233,11 +227,11 @@ export interface D1Like {
  * Start the built Worker with temporary D1/R2 state and synthetic bindings.
  * Outbound network access is denied unless a test supplies a handler.
  */
-export async function startEditorial(
-  build: EditorialBuild,
+export async function startApp(
+  build: AppBuild,
   options: { bindings?: Record<string, string | undefined> } = {},
-): Promise<EditorialRuntime> {
-  const state = await mkdtemp(join(tmpdir(), "kawal-editorial-state-"));
+): Promise<AppRuntime> {
+  const state = await mkdtemp(join(tmpdir(), "kawal-app-state-"));
   const ssr = join(build.dist, "ssr");
   const files = (await readdir(ssr, { recursive: true })).filter(
     (file) => file.endsWith(".js") && file !== "index.js",
@@ -274,7 +268,7 @@ export async function startEditorial(
     }),
   );
 
-  const runtime: EditorialRuntime = {
+  const runtime: AppRuntime = {
     outbound,
     proxyToken,
     async fetch(path, { jar, origin, headers, ...init } = {}) {
@@ -328,7 +322,7 @@ export interface GoogleAuthorization {
 
 /** Start the native social sign-in and return Google's authorization URL. */
 export async function startGoogleSignIn(
-  runtime: EditorialRuntime,
+  runtime: AppRuntime,
   { jar = new CookieJar(), callbackURL = "/" } = {},
 ): Promise<GoogleAuthorization> {
   const start = await runtime.fetch("/api/auth/sign-in/social", {
@@ -354,7 +348,7 @@ export async function startGoogleSignIn(
  * stay denied.
  */
 export async function completeGoogleSignIn(
-  runtime: EditorialRuntime,
+  runtime: AppRuntime,
   authorization: GoogleAuthorization,
   profile?: SyntheticGoogleProfile,
   { state = authorization.state, jar = authorization.jar } = {},
@@ -377,7 +371,7 @@ export async function completeGoogleSignIn(
 
 /** Complete the native Google code flow for one synthetic profile. */
 export async function signInWithGoogle(
-  runtime: EditorialRuntime,
+  runtime: AppRuntime,
   profile: SyntheticGoogleProfile,
   options: { jar?: CookieJar; callbackURL?: string } = {},
 ): Promise<{ authorization: GoogleAuthorization; callback: Response; jar: CookieJar }> {

@@ -1,5 +1,5 @@
 {
-  "name": "@kawal/editorial",
+  "name": "@kawal/app",
   "private": true,
   "type": "module",
   "scripts": {

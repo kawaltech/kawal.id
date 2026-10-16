@@ -4,7 +4,7 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig(({ command }) => {
   if (command === "build" && process.env.NODE_ENV !== "production") {
-    throw new Error("Editorial builds require NODE_ENV=production.");
+    throw new Error("App builds require NODE_ENV=production.");
   }
   return {
     plugins: [voidPlugin(), voidReact()],

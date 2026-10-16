@@ -43,5 +43,5 @@ for (const directory of ["routes", "middleware", "crons", "queues"]) {
   );
 }
 console.log(
-  `Public build checks passed: ${pages.length} complete HTML/JSON pairs; no editorial routes or B reports`,
+  `Public build checks passed: ${pages.length} complete HTML/JSON pairs; no app backend routes or B reports`,
 );

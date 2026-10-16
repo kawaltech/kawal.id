@@ -3,7 +3,7 @@ import { defineConfig } from "void/config";
 export default defineConfig({
   output: "server",
   head: {
-    title: "Kawal Asap · Editorial",
+    title: "Kawal Asap · App",
     htmlAttrs: { lang: "en" },
     meta: [
       { charset: "utf-8" },
@@ -18,7 +18,7 @@ export default defineConfig({
   },
   worker: { compatibility_date: "2026-10-16" },
   cloudflare: {
-    name: "kawal-asap-editorial",
+    name: "kawal-asap-app",
     account_id: "1d60533bd63392b6dc25160f907c4f76",
     routes: [{ pattern: "app.kawal.id", custom_domain: true }],
     workers_dev: false,

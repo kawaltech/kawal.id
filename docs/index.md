@@ -9,6 +9,7 @@
 - [Domain terms](../CONTEXT.md)
 - [Accepted stack and Google sign-in](adr/0001-self-contained-kawal-asap.md)
 - [Accepted static public reads and cache rules](adr/0002-static-publication.md)
+- [Accepted public page design: map and table](adr/0003-map-and-table-public-design.md)
 - [Infrastructure operations and release limits](operations.md)
 
 ## Overview

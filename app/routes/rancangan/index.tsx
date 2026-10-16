@@ -59,6 +59,10 @@ export default function DesignIndex() {
         <section className="hero">
           <p className="eyebrow">Initial visual options · 16 October 2026</p>
           <h1>Three directions for the public page</h1>
+          <p className="panel-notice usang">
+            <strong>Decision:</strong> The user selected option B, map and table. Options A and C
+            stay here for reference.
+          </p>
           <p className="lead">
             Each option shows the same synthetic data in a different order and layout. The product
             text is in Bahasa Indonesia. Use the review bar on each page to show fresh, stale, and
@@ -78,7 +82,10 @@ export default function DesignIndex() {
                   <h3>
                     <Link to={option.path}>
                       Option {option.letter}: {option.name}
-                    </Link>
+                    </Link>{" "}
+                    <span className="draft-badge">
+                      {option.letter === "B" ? "Selected" : "Not selected"}
+                    </span>
                   </h3>
                   <p>{option.summary}</p>
                   <p className="muted">{option.fit}</p>

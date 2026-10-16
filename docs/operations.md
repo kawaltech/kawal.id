@@ -88,10 +88,9 @@ The configured public target is `kawal-asap-design-review` in account
 `1d60533bd63392b6dc25160f907c4f76`, with the `kawal.id` custom domain. The editorial
 target is not deployed. Use separate hosts for public and future editorial work.
 
-Before the first successful native deployment, the live preview uses the earlier
-assets-only React Router export from
-[the approved build](https://github.com/kawaltech/kawal.id/commit/810db964be60017101c5c984ad0c4b854654e499).
-Its root redirects to `/rancangan/b`. The native source instead renders B at `/`.
+The first native deployment passed on 16 October 2026:
+[workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
+It replaced the old React Router preview and renders B directly at `/`.
 Local builds do not deploy. The approved GitHub Actions workflow deploys the
 synthetic public preview after a main push passes checks. It does not deploy
 editorial, change `www`, or implement report publication.
@@ -99,11 +98,13 @@ editorial, change `www`, or implement report publication.
 Set `CLOUDFLARE_API_TOKEN` in the repository's **Settings → Secrets and variables
 → Actions**. Use a scoped token for account `1d60533bd63392b6dc25160f907c4f76`
 and zone `kawal.id`. Void documents Account Workers Scripts Edit plus access to
-resources it provisions. This target has no D1/R2 bindings. The custom-domain
-trigger operation also needs zone access; do not assume Workers Scripts Edit
-alone is sufficient. Use Cloudflare's Workers token template, restricted to this
-account and zone, and check the permissions before saving it. Never enter the
-token in chat. The workflow fails explicitly if the secret is absent.
+resources it provisions. This target has no D1/R2 bindings. The first deployment
+passed with Account Workers Scripts Edit and Account Settings Read, Zone Workers
+Routes Edit for `kawal.id`, and User Details Read and Memberships Read. It did not
+need KV, R2, Pages, Tail, Builds, Agents, Observability, or Containers access.
+This tested permission set is not a claim of the exact minimum. Restrict the
+token to this account and zone. Never enter the token in chat. The workflow
+fails explicitly if the secret is absent.
 
 Main runs share one concurrency group and are not cancelled in progress. Before
 deployment, each run checks that its commit is still main's head. This skips

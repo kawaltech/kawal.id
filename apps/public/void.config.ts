@@ -5,7 +5,11 @@ export default defineConfig({
   head: {
     title: "Kawal Asap · Tinjauan desain",
     htmlAttrs: { lang: "id" },
-    meta: [{ name: "robots", content: "noindex" }],
+    meta: [
+      { charset: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "robots", content: "noindex" },
+    ],
   },
   routing: {
     isr: false,

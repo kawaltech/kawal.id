@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, expect, test } from "vite-plus/test";
@@ -17,7 +17,10 @@ function publicProject() {
   for (const name of ["index", "rancangan/b"]) {
     writeFileSync(join(root, `pages/${name}.tsx`), "export default function Page() {}");
     mkdirSync(join(root, "dist/client/rancangan"), { recursive: true });
-    writeFileSync(join(root, `dist/client/${name}.html`), "<html><body>Fixture</body></html>");
+    writeFileSync(
+      join(root, `dist/client/${name}.html`),
+      '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>Fixture</body></html>',
+    );
     writeFileSync(
       join(root, `dist/client/_void/pages/${name}.json`),
       JSON.stringify({ props: {}, errors: null }),
@@ -31,6 +34,16 @@ test("accept a complete static export without backend routes", () => {
   expect(execFileSync(process.execPath, [check, publicProject()], { encoding: "utf8" })).toContain(
     "2 complete HTML/JSON pairs",
   );
+});
+
+test.each([
+  '<meta charset="utf-8">',
+  '<meta name="viewport" content="width=device-width, initial-scale=1">',
+])("reject an export without required browser metadata: %s", (tag) => {
+  const root = publicProject();
+  const path = join(root, "dist/client/index.html");
+  writeFileSync(path, readFileSync(path, "utf8").replace(tag, ""));
+  expect(spawnSync(process.execPath, [check, root]).status).not.toBe(0);
 });
 
 test.each(["index.html", "_void/pages/rancangan/b.json"])(

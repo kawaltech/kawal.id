@@ -18,6 +18,16 @@ for (const page of pages) {
   const html = readFileSync(join(output, `${name}.html`), "utf8");
   const data = JSON.parse(readFileSync(join(output, "_void/pages", `${name}.json`), "utf8"));
   assert.match(html, /<html[\s>]/, `${name} must have generated HTML`);
+  assert.match(
+    Buffer.from(html).subarray(0, 1024).toString("utf8"),
+    /<meta\s+charset=["']utf-8["']\s*\/?\s*>/i,
+    `${name} must declare UTF-8 within the first 1024 bytes`,
+  );
+  assert.match(
+    html,
+    /<meta\s+name=["']viewport["']\s+content=["']width=device-width,\s*initial-scale=1["']\s*\/?\s*>/i,
+    `${name} must use the device viewport`,
+  );
   assert.equal(data.errors, null, `${name} must have successful navigation data`);
   assert.ok(data.props && typeof data.props === "object", `${name} must have page props`);
   if (name === "index" || name === "rancangan/b") {

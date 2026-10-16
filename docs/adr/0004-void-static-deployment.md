@@ -88,7 +88,8 @@ local checks. Docker and Kamal are no longer the deployment plan.
 The user approved automatic public-preview deployment after checks pass on main.
 It reuses the checked static output and verifies the active version and HTTP
 content on both public hosts. Editorial is excluded. The first native deployment
-remains pending until the Actions secret is set and the workflow passes.
+passed on 16 October 2026:
+[workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
 Do not treat a local build as a verified Worker handoff. The synthetic preview
 exception does not lift the real report release gates in ADR 0002.
 

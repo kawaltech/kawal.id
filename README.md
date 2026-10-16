@@ -82,8 +82,9 @@ checks require the exact active Worker version on `kawal.id` and Workers.dev.
 The workflow needs the repository Actions secret `CLOUDFLARE_API_TOKEN`.
 Enter it in GitHub's masked secret field, not in chat or source. See the
 [operations guide](docs/operations.md#public-preview-deployment) for access and
-failure handling. Until the secret is set and the workflow passes, the first
-native deployment is pending. Editorial is not deployed by this workflow.
+failure handling. The first native deployment passed on 16 October 2026:
+[workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
+Editorial is not deployed by this workflow.
 
 This is a synthetic preview, not report publication. The foundation does not
 provide edge stale-on-error guarantees or a safe report rollback workflow.

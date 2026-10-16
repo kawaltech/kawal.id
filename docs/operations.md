@@ -1,8 +1,10 @@
 # Foundation operations
 
 This is a native Void development foundation and synthetic design review.
-No sign-in, reports, ingestion, publication, withdrawal, or media workflow is
-implemented. The user approved automatic public-preview deployment from main.
+Editorial sign-in and reviewer access have local implementations. Live Google
+and editorial deployment checks are not complete. Reports, ingestion,
+publication, withdrawal, and media workflows are not implemented.
+The user approved automatic public-preview deployment from main.
 Editorial deployment and unrelated shared infrastructure changes need approval.
 
 ## Tools and local state
@@ -10,6 +12,8 @@ Editorial deployment and unrelated shared infrastructure changes need approval.
 Use the pinned Node.js, pnpm, Vite+, and Caddy versions. `pnpm build` runs native
 `vp build` for both workspaces. Each workspace explicitly uses the Vite+ core
 alias so Void plugins do not load a second Vite installation.
+Editorial builds reject a non-production `NODE_ENV`: Vite would otherwise
+include development auth and source-module behavior in the Worker.
 
 Two exact optional Vitest peer exceptions cover Cloudflare `workers-auth` 0.14.0
 and `workers-utils` 0.47.2. They do not use Vitest through Wrangler's runtime
@@ -25,7 +29,7 @@ Do not copy or remove non-disposable local state without approval.
 D1 is managed SQLite through async bindings, not a `better-sqlite3` file with
 application-managed WAL and backup locks. R2 replaces local production media
 files. The root migration is historical and is not applied. Future product
-migrations belong to `apps/editorial/migrations/`; none exist yet. There is no
+migrations belong to `apps/editorial/db/migrations/`. There is no
 `db:seed`, `db:backup`, `public:init`, Docker target, or Kamal deployment now.
 
 ## Orb lifecycle and services
@@ -134,15 +138,62 @@ local validation. Review any generated resource lock before use on another
 machine. Manual deployments must not overlap CI. They need separate approval.
 
 Editorial can deploy to a separate staging host after native Google-only sign-in
-and reviewer controls pass tests. The current placeholder and health route are
-not a protected editorial product. Staging need not wait for real reports, but
-real reports remain blocked by the withdrawal and recovery gates below.
+and reviewer controls pass tests and the owner approves the named remote writes.
+Staging need not wait for real reports, but real reports remain blocked by the
+withdrawal and recovery gates below.
 
 The zone uses `jasmine.ns.cloudflare.com` and `simon.ns.cloudflare.com`.
 The apex is bound to the preview Worker, with HTTPS redirection enabled. The
 DNS-only `www` records still use Netlify to redirect to `https://kawal.id/`.
 Keep that site until a replacement redirect exists. Do not claim worldwide DNS
 propagation from resolver-override checks.
+
+## Editorial sign-in and access
+
+The staging host is `app.kawal.id`. Its deployment is separate from the public
+workflow. See [editorial staging preparation](editorial-staging.md) for the
+approval gates, exact Google callback, secrets, and first-deployment limits.
+Do not run the deployment or remote database commands as local checks.
+
+Google sign-in alone gives no reviewer rights. A verified Google email can
+claim an invitation once. The grant then requires both the native user ID and
+the Google subject. The guard reads D1 primary on each protected request.
+Protected page visits redirect to `/sign-in` or `/access-pending`; data and API
+requests get 401 or 403. Sessions expire 12 hours after sign-in, with no sliding
+refresh or cookie cache. Each sign-in refreshes the Google email. An invitation
+claim uses the last sign-in's verified email, which can be up to 12 hours old.
+Sign-out deletes the native session. Administrative revocation also deletes
+the user's sessions in the same D1 batch as the grant change.
+
+Keep D1 read replication off for editorial. Native session reads use Void's
+unconstrained D1 session, although the account and grant reads use primary D1.
+Do not enable replicas without tests that prove immediate logout and revocation.
+Void 1.1.11 enables replication when it provisions resources. Before an approved
+deployment, create D1 with replication off and create R2, then pin both resources
+in a reviewed config. The staging preflight deliberately fails until those pins
+exist. Never use `--provision` for editorial.
+HTML, data, and auth responses use no-store. Native hash-named code assets can
+use Void's cache policy; do not put editorial records in those assets.
+
+`apps/editorial/scripts/reviewer-admin.ts` changes local D1 only. It refuses
+`--remote`. Use `--print-sql` to review SQL without applying it. Do not put a
+real email address or printed invitation SQL in Git. Remote application of
+that SQL needs approval. A bootstrap invitation is possible only when no active
+admin exists. It expires after 72 hours. No admin HTTP routes or UI exist in
+this slice.
+
+Normal orbs need no Google client. Without Google settings, sign-in fails
+closed and local health remains available. Tests build a fresh Worker, apply
+the native migrations to temporary D1, and use a test-only Google token
+substitute with all other outbound requests denied. This checks the code flow,
+not live Google service behavior. There is no application test sign-in route.
+
+If an older local dev state has auth tables but no Void migration history, dev
+can refuse startup. Do not delete that state automatically. First confirm that
+it is disposable and contains no work to keep. Only then, from `apps/editorial`,
+run `pnpm exec void db reset` to rebuild local D1 from the committed migrations.
+Never use this recovery step with remote or non-disposable data. A fresh local
+state applies both migrations without a reset.
 
 ## Release gates
 

@@ -42,7 +42,9 @@ release. This foundation does not implement the publication workflow.
 The local origin sends `public, max-age=60, must-revalidate` for pages and data.
 Only hash-named code under `/assets/` gets a one-year immutable policy. Do not
 include report content or private data in code assets. Editorial responses use
-`private, no-store` and must not enter shared caches.
+no-store and must not enter shared caches; application-owned responses also
+use `private`. Native hash-named editorial code assets can use Void's cache
+policy, but must contain no records or private data.
 
 Void's routing Worker runs for public requests, including code assets. It has
 compute limits and does not use the Cache API by default. Zone Cache Rules,

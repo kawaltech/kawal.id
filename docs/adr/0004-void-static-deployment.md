@@ -18,8 +18,10 @@ earlier deployment-only version of this decision. It closes ADR 0005.
   middleware, crons, or queues. Do not add routing redirects, rewrites, or
   fallbacks that disable static navigation. Use native `Link` navigation.
 - `apps/editorial`: native Void server output with Workers, D1, and R2. Use a
-  separate host for future editorial requests. Keep all editorial responses
-  `private, no-store`. Public reads must not call this target.
+  separate host for editorial requests. Keep editorial HTML, data, and auth
+  responses no-store; application-owned responses also use `private`. Native
+  hash-named code assets may use Void's cache policy, but must contain no
+  editorial records. Public reads must not call this target.
 - Share design code in `app/design`. Keep option B at `/`, without field reports.
   Retain the review pages and their synthetic-data warnings until release work
   removes them. [ADR 0003](0003-map-and-table-public-design.md) still governs design.
@@ -40,9 +42,10 @@ in separate storage boundaries. Future migrations must support overlapping
 application versions. Review D1 batch/transaction behavior, backup retention,
 Time Travel, and full database-plus-media restoration before accepting reports.
 The root `migrations/0001-users.sql` is an immutable historical file, not an
-editorial D1 migration. No replacement product schema exists yet.
+editorial D1 migration. Native auth and reviewer migrations are in
+`apps/editorial/db/migrations/`; no report schema exists yet.
 
-Use native Void authentication when sign-in is built. Explicitly allow only
+Use native Void authentication. Explicitly allow only
 Google; disable email/password and account linking. Require an invitation or
 reviewer approval. A Google sign-in alone must not grant reviewer rights. Keep
 identity tied to the provider's stable subject, not just an email address. Test
@@ -81,9 +84,14 @@ rollback procedure exists. ISR does not meet report withdrawal requirements.
 
 ## Current delivery boundary
 
-This foundation implements neither sign-in nor reports, ingestion, publication,
-withdrawal, or media processing. Caddy serves only the public static output for
-local checks. Docker and Kamal are no longer the deployment plan.
+This foundation has local Google-only sign-in, database sessions, and reviewer
+invitations and grants. Editorial staging is planned for `app.kawal.id`, but is
+not deployed. The Google substitute stays in tests, not application code.
+Live Google checks still need separate credentials and approval. Reports,
+ingestion, publication, withdrawal, and media processing are not implemented.
+Caddy serves only public static output for local checks. Docker and Kamal are
+no longer the deployment plan. See the [operations guide](../operations.md) for
+session limits, D1 replication restrictions, and staging gates.
 
 The user approved automatic public-preview deployment after checks pass on main.
 It reuses the checked static output and verifies the active version and HTTP

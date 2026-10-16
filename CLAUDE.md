@@ -36,15 +36,23 @@ login shell (`bash -lc`) in orbs.
 - Tests use temporary directories. Never use production records or private media
   in tests or snapshots. Normal development needs no Google, NASA, or Cloudflare
   credentials.
-- Future native Void sign-in must allow only Google, disable email/password and
-  account linking, require invitation/reviewer approval, and exclude any test
-  sign-in from production.
+- Native Void sign-in allows only Google, disables email/password and account
+  linking, and requires invitation/reviewer approval for access. Do not add an
+  application test sign-in route. Keep test substitutes under `tests/`.
+- Editorial migrations are in `apps/editorial/db/migrations/`. Keep D1 read
+  replication off until session revocation is proved with replicas. Never put
+  editorial records in cacheable code assets.
+- Editorial builds require production `NODE_ENV`. Before deployment, pin
+  approved pre-created D1/R2 resources. Never use editorial `--provision`:
+  Void 1.1.11 turns on D1 read replication during provisioning.
 
 ## Current scope
 
 This is a native foundation and synthetic design review, not a reporting product.
-Sign-in, sessions, reports, ingestion, publication, withdrawal, and media workflows
-are not implemented. Do not claim their production checks passed.
+Editorial sign-in, sessions, and reviewer access have local implementations.
+Editorial is not deployed; live Google checks are not complete. Reports,
+ingestion, publication, withdrawal, and media workflows are not implemented.
+Do not claim their production checks passed.
 
 Preserve option B and its Cukup-inspired appearance. Shared design code is in
 `app/design`. `/` and `/rancangan/b` must export no reports. Keep synthetic-data

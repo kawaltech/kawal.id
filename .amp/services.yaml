@@ -11,7 +11,7 @@ services:
     review: false
     portal:
       title: Kawal Asap editorial foundation
-      description: Local Workers runtime with independent D1 and R2. Sign-in is not implemented.
+      description: Local Workers, D1 and R2. Google sign-in needs credentials; reviewer access needs an invitation.
   public:
     command: pnpm --filter @kawal/public build && pnpm public:serve
     health: /

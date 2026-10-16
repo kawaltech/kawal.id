@@ -2,8 +2,9 @@
 
 A native Void foundation for reviewed fire and smoke information. The public
 preview preserves the selected map-and-table design, option B. All data is
-synthetic. Sign-in, reports, live ingestion, publication, withdrawal, and media
-workflows are not implemented.
+synthetic. Editorial has Google-only sign-in and invitation-based reviewer
+access for local checks. It is not deployed. Reports, live ingestion,
+publication, withdrawal, and media workflows are not implemented.
 
 Read [ADR 0004](docs/adr/0004-void-static-deployment.md) for the full Void decision,
 [ADR 0002](docs/adr/0002-static-publication.md) for static publication and withdrawal,
@@ -12,13 +13,13 @@ Read [ADR 0004](docs/adr/0004-void-static-deployment.md) for the full Void decis
 
 ## Structure
 
-| Path                             | Purpose                                                           |
-| -------------------------------- | ----------------------------------------------------------------- |
-| `apps/public`                    | Native Void React, static HTML and navigation JSON; no backend    |
-| `apps/editorial`                 | Separate native Void Workers target with local D1/R2 health check |
-| `app/design`                     | Shared option B and review-page design code                       |
-| `scripts/check-public-build.mjs` | Reject incomplete prerenders and report data in B                 |
-| `config/Caddyfile`               | Serve only the public export for local checks                     |
+| Path                             | Purpose                                                                |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `apps/public`                    | Native Void React, static HTML and navigation JSON; no backend         |
+| `apps/editorial`                 | Native Void Workers, Google-only sign-in, reviewer access, local D1/R2 |
+| `app/design`                     | Shared option B and review-page design code                            |
+| `scripts/check-public-build.mjs` | Reject incomplete prerenders and report data in B                      |
+| `config/Caddyfile`               | Serve only the public export for local checks                          |
 
 Public reads do not call editorial or a database. D1 is managed SQLite through
 async bindings, not a local `better-sqlite3`/WAL database. R2 provides object
@@ -85,6 +86,13 @@ Enter it in GitHub's masked secret field, not in chat or source. See the
 failure handling. The first native deployment passed on 16 October 2026:
 [workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).
 Editorial is not deployed by this workflow.
+
+Editorial staging uses `app.kawal.id`. See the
+[staging preparation guide](docs/editorial-staging.md) before any remote work.
+Normal orbs need no Google client. Runtime tests use temporary D1/R2 and a
+test-only Google substitute; there is no application test sign-in route.
+Live Google, secrets, provisioning, deployment, and real invitations still need
+approval and live checks.
 
 This is a synthetic preview, not report publication. The foundation does not
 provide edge stale-on-error guarantees or a safe report rollback workflow.

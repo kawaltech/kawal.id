@@ -410,7 +410,8 @@ body {
   border: 0;
 }
 
-.segmented legend,
+/* A visually hidden legend must keep the .sr-only box, or it widens the page. */
+.segmented legend:not(.sr-only),
 .control-label {
   display: block;
   width: 100%;

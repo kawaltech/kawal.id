@@ -54,9 +54,10 @@ separate user request and the agreed Claude Code Opus 5.5 route.
 ## Operations
 
 Read `docs/operations.md`. Use supervised orb services. Do not push, deploy,
-authenticate a shared service, or change Cloudflare without approval. No native
-Void deployment has been made. Keep the existing `www` Netlify redirect until a
-replacement exists.
+authenticate a shared service, or change Cloudflare without approval. The user
+approved the public-only main deployment workflow and its first deployment.
+That approval does not include editorial deployment or unrelated infrastructure.
+Keep the existing `www` Netlify redirect until a replacement exists.
 
 Do not promise 24-hour edge stale-on-error from headers. The fallback is the last
 valid export with its timestamp. Measure publication frequency and cache behavior

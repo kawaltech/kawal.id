@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 
 const base = process.argv[2];
-assert.ok(base, "Specify the public server URL: node scripts/check-public.mjs <url>");
+const expectedVersion = process.argv[3];
+assert.ok(base, "Specify the public server URL: node scripts/check-public.mjs <url> [version-id]");
+
+if (expectedVersion) {
+  const ready = await fetch(new URL("/__void/ready", base), { cache: "no-store" });
+  assert.equal(ready.status, 200, "The public Worker must be ready");
+  assert.equal(ready.headers.get("cache-control"), "no-store");
+  assert.deepEqual(await ready.json(), { ready: true, versionId: expectedVersion });
+}
 
 const policy = "public, max-age=60, must-revalidate";
 for (const path of ["/", "/rancangan", "/rancangan/a", "/rancangan/b", "/rancangan/c"]) {
@@ -52,7 +60,7 @@ for (const path of [
   // /healthz is absent, rather than a private-path rule in the static server.
   assert.equal(
     response.headers.get("cache-control"),
-    path === "/healthz" ? policy : "private, no-store",
+    expectedVersion || path === "/healthz" ? policy : "private, no-store",
     path,
   );
   await response.text();

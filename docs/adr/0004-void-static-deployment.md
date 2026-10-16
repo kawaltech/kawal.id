@@ -27,8 +27,9 @@ earlier deployment-only version of this decision. It closes ADR 0005.
   alias, not a second Vite installation. Node.js is the build and local tool
   runtime; the deployed editorial runtime is Workers.
 - Local D1/R2 use separate Miniflare state per checkout. Normal setup, tests, and
-  builds need no Google, NASA, or Cloudflare credentials. No automatic deployment
-  is enabled. Remote changes need separate approval.
+  builds need no Google, NASA, or Cloudflare credentials. The user approved the
+  public-only main deployment workflow and its first deployment. Editorial and
+  unrelated remote changes need separate approval.
 
 ## Storage and future authentication
 
@@ -63,7 +64,9 @@ defines activation and withdrawal requirements.
 
 Each public update is a deployment. Measure build and deployment time before
 selecting a publication frequency. Serialize activation and prevent an older
-export from replacing a newer export. These controls are not implemented yet.
+export from replacing a newer export. The preview workflow serializes main runs
+and skips superseded commits. This does not implement editorial publication,
+approval, or withdrawal ordering.
 
 Void's routing Worker runs before asset delivery, including code assets. It uses
 compute quota and does not use the Cache API by default. Zone Cache Rules and
@@ -82,8 +85,12 @@ This foundation implements neither sign-in nor reports, ingestion, publication,
 withdrawal, or media processing. Caddy serves only the public static output for
 local checks. Docker and Kamal are no longer the deployment plan.
 
-The live assets-only design Worker predates this migration. No native Void
-deployment has been made. Do not treat a local build as a verified Worker handoff.
+The user approved automatic public-preview deployment after checks pass on main.
+It reuses the checked static output and verifies the active version and HTTP
+content on both public hosts. Editorial is excluded. The first native deployment
+remains pending until the Actions secret is set and the workflow passes.
+Do not treat a local build as a verified Worker handoff. The synthetic preview
+exception does not lift the real report release gates in ADR 0002.
 
 ## References
 

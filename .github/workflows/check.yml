@@ -7,6 +7,10 @@ permissions:
 jobs:
   application:
     runs-on: ubuntu-latest
+    # Do not interrupt a deployment or let two main deployments overlap.
+    concurrency:
+      group: kawal-public-${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main' || github.run_id }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,3 +48,53 @@ jobs:
           trap 'kill "$public" 2>/dev/null || true; cat "$RUNNER_TEMP/editorial.log"; cat "$RUNNER_TEMP/caddy.log"' EXIT
           curl --fail --retry 15 --retry-delay 1 --retry-all-errors --max-time 5 http://127.0.0.1:8080/ > /dev/null
           node scripts/check-public.mjs http://127.0.0.1:8080
+      - name: Check that this is still the latest main revision
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: latest
+        run: |
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$latest" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Skip deployment of a superseded main revision."
+          fi
+      - name: Deploy the checked public preview
+        if: steps.latest.outputs.current == 'true'
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_WORKERS_SUBDOMAIN: zain
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Set the repository Actions secret CLOUDFLARE_API_TOKEN before deployment."
+            exit 1
+          fi
+          node scripts/check-public-build.mjs
+          export DEPLOY_STARTED_AT="$(date +%s%3N)"
+          pnpm --filter @kawal/public exec void deploy --platform cloudflare --skip-build
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { appendFileSync, readFileSync, readdirSync } from 'node:fs';
+          import { homedir } from 'node:os';
+          import { join } from 'node:path';
+          const dir = join(homedir(), '.void/logs');
+          const results = readdirSync(dir)
+            .filter(name => name.startsWith('deploy-') && name.endsWith('.jsonl'))
+            .flatMap(name => readFileSync(join(dir, name), 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)))
+            .filter(record => record.ts >= Number(process.env.DEPLOY_STARTED_AT)
+              && record.msg === 'cloudflare_deploy_end' && record.ok === true
+              && record.worker === 'kawal-asap-design-review');
+          assert.equal(results.length, 1, 'Require one success record from this deployment');
+          const version = results[0].versionId;
+          assert.match(version, /^[0-9a-f-]{36}$/i, 'Require the deployed Worker version ID');
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          console.log(`Public Worker version: ${version}`);
+          NODE
+      - name: Check the deployed version and public files on both hosts
+        if: steps.latest.outputs.current == 'true'
+        env:
+          EXPECTED_VERSION: ${{ steps.deploy.outputs.version }}
+        run: |
+          test -n "$EXPECTED_VERSION"
+          node scripts/check-public.mjs https://kawal-asap-design-review.zain.workers.dev "$EXPECTED_VERSION"
+          node scripts/check-public.mjs https://kawal.id "$EXPECTED_VERSION"

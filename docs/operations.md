@@ -2,8 +2,8 @@
 
 This is a native Void development foundation and synthetic design review.
 No sign-in, reports, ingestion, publication, withdrawal, or media workflow is
-implemented. No native Void deployment has been made. This guide does not
-authorize deployment, authentication, or shared infrastructure changes.
+implemented. The user approved automatic public-preview deployment from main.
+Editorial deployment and unrelated shared infrastructure changes need approval.
 
 ## Tools and local state
 
@@ -58,7 +58,8 @@ not durable reports, R2 uploads, backup recovery, or production readiness.
 
 CI installs the same toolchain and runs `pnpm check`. It then starts local
 editorial, checks D1/R2 health, stops its process group, and checks static Caddy
-reads. It does not deploy or need service credentials.
+reads. These checks need no credentials. A separate step in the same job deploys
+only the public preview on a main push, after all checks pass.
 
 ## Static reads and build guard
 
@@ -72,7 +73,8 @@ fallbacks that turn direct reads or navigation into application requests.
 Caddy serves only `apps/public/dist/client`. It does not serve source, local
 D1/R2, private files, or backups. It blocks private paths and returns 404 for
 missing routes, JSON, and old React Router `.data` paths. Generated build
-metadata is not public. Review pages retain `noindex` and synthetic-data warnings.
+metadata is not public: `apps/public/public/.assetsignore` excludes `/.vite/`
+from the Cloudflare upload. Review pages retain `noindex` and synthetic-data warnings.
 Options A/C contain synthetic reports; `/` and B do not.
 
 Pages and data use `public, max-age=60, must-revalidate`. Only hash-named code
@@ -80,16 +82,47 @@ assets use an immutable one-year policy. These are local origin headers, not
 proof of Cloudflare cache behavior. Native client navigation uses static JSON.
 Verify both direct requests and native `Link` clicks with editorial stopped.
 
-## Deployment boundary
+## Public preview deployment
 
 The configured public target is `kawal-asap-design-review` in account
 `1d60533bd63392b6dc25160f907c4f76`, with the `kawal.id` custom domain. The editorial
 target is not deployed. Use separate hosts for public and future editorial work.
 
-The live preview still uses the earlier assets-only React Router export from
+Before the first successful native deployment, the live preview uses the earlier
+assets-only React Router export from
 [the approved build](https://github.com/kawaltech/kawal.id/commit/810db964be60017101c5c984ad0c4b854654e499).
 Its root redirects to `/rancangan/b`. The native source instead renders B at `/`.
-Neither local builds nor a push change the live deployment.
+Local builds do not deploy. The approved GitHub Actions workflow deploys the
+synthetic public preview after a main push passes checks. It does not deploy
+editorial, change `www`, or implement report publication.
+
+Set `CLOUDFLARE_API_TOKEN` in the repository's **Settings → Secrets and variables
+→ Actions**. Use a scoped token for account `1d60533bd63392b6dc25160f907c4f76`
+and zone `kawal.id`. Void documents Account Workers Scripts Edit plus access to
+resources it provisions. This target has no D1/R2 bindings. The custom-domain
+trigger operation also needs zone access; do not assume Workers Scripts Edit
+alone is sufficient. Use Cloudflare's Workers token template, restricted to this
+account and zone, and check the permissions before saving it. Never enter the
+token in chat. The workflow fails explicitly if the secret is absent.
+
+Main runs share one concurrency group and are not cancelled in progress. Before
+deployment, each run checks that its commit is still main's head. This skips
+superseded queued commits. The workflow uses `--skip-build` to upload the output
+that passed the completeness guard, not a second unchecked build. Only the
+deployment step receives the token. Normal orb checks need no token.
+
+The CLI stages and probes the candidate before activation. CI reads this run's
+`cloudflare_deploy_end` success record, then checks its exact `versionId` through
+`/__void/ready` on both `kawal.id` and
+`kawal-asap-design-review.zain.workers.dev`. It also checks all HTML/JSON pairs,
+code assets, report isolation, and missing private paths. See the Actions run
+for the deployed version and check results; a build alone is not deployment proof.
+
+If the CLI or post-deploy checks fail, inspect the active version and both hosts
+before retrying. A post-deploy failure does not automatically undo activation.
+Trigger synchronization after activation is not fully transactional. Do not
+claim the old version is active only because the job failed. Rollback can restore
+withdrawn content and is not an approved report recovery procedure.
 
 Before an authorized native deployment, confirm the account, Worker, routes,
 asset-only public classification, expected readiness version, and complete
@@ -97,7 +130,12 @@ prerenders. Authenticate through the supported CLI flow or a secret store. Do
 not extract MCP credentials or put tokens in commands, config, logs, or Git.
 `pnpm deploy:preview` builds and deploys; it is not a dry run. Do not run it for
 local validation. Review any generated resource lock before use on another
-machine. Do not enable automatic deployment.
+machine. Manual deployments must not overlap CI. They need separate approval.
+
+Editorial can deploy to a separate staging host after native Google-only sign-in
+and reviewer controls pass tests. The current placeholder and health route are
+not a protected editorial product. Staging need not wait for real reports, but
+real reports remain blocked by the withdrawal and recovery gates below.
 
 The zone uses `jasmine.ns.cloudflare.com` and `simon.ns.cloudflare.com`.
 The apex is bound to the preview Worker, with HTTPS redirection enabled. The

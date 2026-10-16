@@ -38,9 +38,10 @@ amp orb services ensure
 
 Use the returned portal URLs. `dev` runs public development. `editorial` runs the
 local Workers runtime. `public` serves static files with Caddy. Stop `dev` and
-`editorial` to test public independence. Use `a1.medium` (4 CPUs, 8 GB RAM) for
-the combined build, services, and browser checks. This is not a production sizing
-claim. Run toolchain commands with `bash -lc` in the orb.
+`editorial` to test public independence. The project default is `a1.small`
+(2 CPUs, 4 GB RAM). The combined build, services, and browser checks have passed
+on `a1.medium`, not yet on small. This is not a production sizing claim. Run
+toolchain commands with `bash -lc` in the orb.
 
 ## Start on another machine
 
@@ -56,21 +57,34 @@ pnpm dev
 
 Install the pinned Caddy version separately if you need local static checks.
 
-| Command                               | Purpose                                                                  |
-| ------------------------------------- | ------------------------------------------------------------------------ |
-| `pnpm dev`                            | Public native Void development server                                    |
-| `pnpm dev:editorial`                  | Editorial native Void development with local D1/R2                       |
-| `pnpm check`                          | Types, lint, tests, and both builds                                      |
-| `pnpm build`                          | Native `vp build` in both targets; validate the public export            |
-| `pnpm format`                         | Format source files                                                      |
-| `pnpm public:serve`                   | Serve `apps/public/dist/client` with Caddy                               |
-| `node scripts/check-public.mjs <url>` | Check public HTML, JSON, assets, isolation, and 404s                     |
-| `pnpm deploy:preview`                 | Deploy public preview; requires separate approval and CLI authentication |
+| Command                               | Purpose                                                                    |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| `pnpm dev`                            | Public native Void development server                                      |
+| `pnpm dev:editorial`                  | Editorial native Void development with local D1/R2                         |
+| `pnpm check`                          | Types, lint, tests, and both builds                                        |
+| `pnpm build`                          | Native `vp build` in both targets; validate the public export              |
+| `pnpm format`                         | Format source files                                                        |
+| `pnpm public:serve`                   | Serve `apps/public/dist/client` with Caddy                                 |
+| `node scripts/check-public.mjs <url>` | Check public HTML, JSON, assets, isolation, and 404s                       |
+| `pnpm deploy:preview`                 | Manual public preview deployment; requires approval and a Cloudflare token |
 
 Both workspaces use Void and `@void/react` 1.1.11 and the Vite+ core alias.
 The root `migrations/0001-users.sql` is historical and is not applied.
 
-No native Void deployment has been made. The existing live design preview is
-unchanged. The foundation does not provide edge stale-on-error guarantees or a
-safe report rollback workflow. Real report publication remains blocked by the
-release gates in ADR 0002.
+## Public preview deployment
+
+The user approved public-only deployment after checks pass on a push to `main`.
+GitHub Actions checks both targets, tests static reads with editorial stopped,
+then deploys only the checked public output. Pull requests do not deploy.
+Main deployments cannot overlap; a superseded revision is skipped. Post-deploy
+checks require the exact active Worker version on `kawal.id` and Workers.dev.
+
+The workflow needs the repository Actions secret `CLOUDFLARE_API_TOKEN`.
+Enter it in GitHub's masked secret field, not in chat or source. See the
+[operations guide](docs/operations.md#public-preview-deployment) for access and
+failure handling. Until the secret is set and the workflow passes, the first
+native deployment is pending. Editorial is not deployed by this workflow.
+
+This is a synthetic preview, not report publication. The foundation does not
+provide edge stale-on-error guarantees or a safe report rollback workflow.
+Real reports remain blocked by the release gates in ADR 0002.

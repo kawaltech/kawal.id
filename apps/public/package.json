@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vp dev",
     "build": "vp build && node ../../scripts/check-public-build.mjs",
-    "deploy": "pnpm build && void deploy --platform cloudflare"
+    "deploy": "pnpm build && void deploy --platform cloudflare --skip-build"
   },
   "dependencies": {
     "@void/react": "1.1.11",

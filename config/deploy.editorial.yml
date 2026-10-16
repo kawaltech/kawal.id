@@ -1,0 +1,28 @@
+# Template only. No server or registry is configured by this repository.
+service: kawal-asap-editorial
+image: <%= ENV.fetch("KAMAL_IMAGE_PREFIX") %>/kawal-asap-editorial
+servers:
+  web:
+    - <%= ENV.fetch("KAMAL_HOST") %>
+proxy:
+  ssl: true
+  host: <%= ENV.fetch("EDITORIAL_HOST") %>
+  app_port: 3000
+  healthcheck:
+    path: /editor/healthz
+registry:
+  server: ghcr.io
+  username: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME") %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+builder:
+  arch: amd64
+  target: editorial
+env:
+  clear:
+    NODE_ENV: production
+    DATA_DIR: /data
+    HOST: 0.0.0.0
+    PORT: "3000"
+volumes:
+  - /srv/kawal-asap:/data

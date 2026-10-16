@@ -1,0 +1,60 @@
+name: Check infrastructure
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: npm install --global pnpm@10.11.0
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.node-version') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: editorial
+          push: false
+          load: true
+          tags: kawal-asap-editorial:check
+          cache-from: type=gha,scope=editorial
+          cache-to: type=gha,mode=max,scope=editorial
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: public
+          push: false
+          load: true
+          tags: kawal-asap-public:check
+          cache-from: type=gha,scope=public
+          cache-to: type=gha,mode=max,scope=public
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Check static reads with the editorial container stopped
+        run: |
+          trap 'docker rm -f kawal-editorial-check kawal-public-check || true' EXIT
+          mkdir -p "$RUNNER_TEMP/kawal-data"
+          sudo chown 1000:1000 "$RUNNER_TEMP/kawal-data"
+          docker run -d --name kawal-editorial-check -p 3000:3000 \
+            -v "$RUNNER_TEMP/kawal-data:/data" kawal-asap-editorial:check
+          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:3000/editor/healthz
+          docker stop kawal-editorial-check
+          docker run -d --name kawal-public-check -p 8080:8080 \
+            -v "$RUNNER_TEMP/kawal-data/public:/data/public:ro" kawal-asap-public:check
+          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:8080/
+          node scripts/check-public.mjs http://127.0.0.1:8080

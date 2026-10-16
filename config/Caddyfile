@@ -1,0 +1,31 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+:{$PORT:8080} {
+	root * {$PUBLIC_ROOT:./.data/public/current}
+	encode zstd gzip
+
+	# Default to the strict report policy, including client navigation data.
+	@content not path /assets/*
+	header @content Cache-Control "public, max-age=60, s-maxage=60, must-revalidate"
+	header X-Content-Type-Options nosniff
+	header Referrer-Policy strict-origin-when-cross-origin
+
+	@code path /assets/*
+	header @code Cache-Control "public, max-age=31536000, immutable"
+
+	@private path /editor /editor/* /auth /auth/* /__dev /__dev/* /preview /preview/* /private /private/* /backups /backups/* /db /db/* /.* /*.sqlite*
+	handle @private {
+		header Cache-Control "private, no-store"
+		respond 404
+	}
+
+	handle {
+		# No SPA fallback and no reverse proxy to the editorial process.
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+}

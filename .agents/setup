@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+SECONDS=0
+node_version="$(cat .node-version)"
+pnpm_version="$(node -p "require('./package.json').packageManager.split('@')[1]")"
+tool_root="$HOME/.local/share/kawal-orb-tools"
+tool_bin="$tool_root/node_modules/.bin"
+
+echo "[setup] Check Node.js $node_version and pnpm $pnpm_version"
+if [[ ! -x "$tool_bin/node" || "$("$tool_bin/node" --version)" != "v$node_version" ]] ||
+   [[ ! -x "$tool_bin/pnpm" || "$(PATH="$tool_bin:$PATH" "$tool_bin/pnpm" --version)" != "$pnpm_version" ]]; then
+  npm install --prefix "$tool_root" --no-audit --no-fund --package-lock=false --save=false \
+    "node@$node_version" "pnpm@$pnpm_version"
+fi
+export PATH="$tool_bin:$PATH"
+echo "[setup] Toolchain ready after ${SECONDS}s"
+
+# Amp and supervised services use separate login shells. Keep the toolchain
+# active for this repository without changing the orb's system Node.js.
+profile_marker="# kawal.id orb toolchain"
+if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
+  cat >> "$HOME/.bash_profile" <<EOF
+
+$profile_marker
+if [[ "\$PWD" == "$repo_root" || "\$PWD" == "$repo_root/"* ]]; then
+  export PATH="$tool_bin:\$PATH"
+fi
+EOF
+fi
+
+echo "[setup] Install locked dependencies"
+step_start=$SECONDS
+pnpm install --frozen-lockfile
+echo "[setup] Dependencies ready after $((SECONDS - step_start))s"
+
+echo "[setup] Generate React Router types"
+step_start=$SECONDS
+pnpm exec react-router typegen
+echo "[setup] Types ready after $((SECONDS - step_start))s"
+echo "[setup] Complete in ${SECONDS}s"

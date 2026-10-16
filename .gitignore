@@ -7,3 +7,6 @@
 
 # Local configuration files
 *.local.json
+
+# Orb portal metadata
+/.amp/portals/*

@@ -22,8 +22,31 @@ A public reporting platform for collecting and displaying incident reports with 
 Install the dependencies:
 
 ```bash
-npm install
+pnpm install --frozen-lockfile
 ```
+
+Use the Node.js version in `.node-version` and the pnpm version in
+`package.json`.
+
+### Amp Orbs
+
+Amp runs `.agents/setup` for a fresh orb when no exact snapshot is available.
+The script installs the pinned tools, installs locked dependencies, and
+generates React Router types. Amp can reuse this state from a project snapshot.
+The setup script is safe to run again after repository updates.
+
+The tools are available in new login shells in this repository and its
+subdirectories. `.agents/resume` checks the tool versions without reinstalling
+dependencies. No database, API key, or user authentication is required yet.
+
+Run `pnpm typecheck` and `pnpm build` to check the application. Start a supervised
+development server with:
+
+```bash
+amp orb service start dev --command 'pnpm dev --host 0.0.0.0 --port "$PORT"' --portal
+```
+
+Use the portal URL returned by the command to open the application.
 
 ### Development
 

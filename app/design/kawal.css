@@ -1,0 +1,1174 @@
+/* Kawal Asap design review. Paper-and-ink language adapted from Cukup
+   (github.com/zainfathoni/cukup, service/dashboard/dashboard.css).
+   All assets are local: no remote fonts, images, or map tiles. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Paper is a little greyer than Cukup to suggest haze. */
+  --paper: #f7f0e2;
+  --card: #fffdf7;
+  --ink: #26201a;
+  --ink-2: #5c5347;
+  --ink-3: #6f6455;
+  --dot-ink: #26201a1a;
+
+  --sun: #ffd84d;
+  --rose: #ffb9cc;
+  --sky: #a5dcff;
+  --mint: #b9e6a6;
+  --ash: #e3dccf;
+  --on-pastel: #26201a;
+  --link: #8a2f0a;
+
+  /* Data meaning. Orange is reserved for satellite detections. */
+  --detect: #b23c05;
+  --detect-fill: #ff8b4a;
+  --report: #0d5f4e;
+  --report-fill: #4fbd7c;
+  --sea: #dcebf0;
+  --land: #fffdf7;
+  --land-other: #ece3d1;
+
+  --ok: #0f6b34;
+  --ok-fill: #4fbd7c;
+  --warning-bg: #ffe9a8;
+  --warning-ink: #574208;
+  --warning-mark: #9b3a10;
+  --error-bg: #ffd9d2;
+  --error-ink: #7a2411;
+
+  --focus: #6b2fd6;
+
+  --border: 2px solid var(--ink);
+  --shadow: 4px 4px 0 var(--ink);
+  --shadow-lg: 6px 6px 0 var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  --font-display:
+    ui-rounded, "SF Pro Rounded", "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --measure: 62ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --paper: #17130f;
+    --card: #221c16;
+    --ink: #f5e7d2;
+    --ink-2: #c4b5a1;
+    --ink-3: #a2937f;
+    --dot-ink: #f6e8cf14;
+    --sun: #e0b93a;
+    --rose: #e097ad;
+    --sky: #7fbde6;
+    --mint: #8ec97b;
+    --ash: #3a3025;
+    --on-pastel: #1a120d;
+    --link: #ff9b72;
+    --detect: #ff9b72;
+    --detect-fill: #c2571f;
+    --report: #6fd8bb;
+    --report-fill: #2c8a52;
+    --sea: #1d2a30;
+    --land: #2c241c;
+    --land-other: #221c16;
+    --ok: #7fdca6;
+    --ok-fill: #2c8a52;
+    --warning-bg: #4a3a0c;
+    --warning-ink: #ffe9a8;
+    --warning-mark: #ffa877;
+    --error-bg: #4d2015;
+    --error-ink: #ffcabc;
+    --focus: #d9b9ff;
+    --shadow: 4px 4px 0 #0000008f;
+    --shadow-lg: 6px 6px 0 #0000008f;
+    --shadow-sm: 3px 3px 0 #0000008f;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot-ink) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ka h1,
+.ka h2,
+.ka h3,
+.ka p,
+.ka ul,
+.ka ol,
+.ka dl,
+.ka figure {
+  margin-top: 0;
+}
+
+.ka h1,
+.ka h2,
+.ka h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.ka h1 {
+  margin-block: 0.4rem 1.1rem;
+  font-size: clamp(2rem, 6.5vw, 3.3rem);
+  line-height: 1.06;
+}
+
+.ka h2 {
+  margin-bottom: 0.9rem;
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+}
+
+.ka h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.ka a {
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
+.eyebrow {
+  margin-bottom: 0.3rem;
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--ink-2);
+}
+
+.small {
+  font-size: 0.86rem;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 10;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--sun);
+  color: var(--on-pastel) !important;
+  padding: 0.5rem 0.8rem;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Page frame */
+
+.ka {
+  --page: 54rem;
+}
+
+.ka-b {
+  --page: 76rem;
+}
+
+.ka-c {
+  --page: 62rem;
+}
+
+.ka-top,
+.ka main,
+.ka-footer,
+.review-bar {
+  width: min(var(--page), calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.ka main {
+  display: grid;
+  gap: 1.5rem;
+  padding-bottom: 2.5rem;
+  overflow-wrap: break-word;
+}
+
+.ka main:focus {
+  outline: none;
+}
+
+.ka section,
+.card {
+  min-width: 0;
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--card);
+  padding: clamp(1.1rem, 3.5vw, 2rem);
+}
+
+.ka section.hero {
+  background-image: radial-gradient(var(--dot-ink) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+  box-shadow: var(--shadow-lg);
+}
+
+.lead {
+  max-width: var(--measure);
+  font-size: clamp(1.05rem, 2.4vw, 1.2rem);
+}
+
+.prose {
+  max-width: var(--measure);
+}
+
+/* Review bar: tooling for this design review, not product UI. */
+
+.review-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-top: 1rem;
+  border: 2px dashed var(--ink-2);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.86rem;
+}
+
+.review-bar p {
+  margin: 0;
+}
+
+.review-bar strong {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.review-bar a {
+  font-weight: 650;
+}
+
+/* Masthead */
+
+.ka-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-block: 1.25rem 1.1rem;
+}
+
+.wordmark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.wordmark-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.wordmark-tag {
+  border: var(--border);
+  border-radius: 2rem;
+  background: var(--ash);
+  color: var(--ink);
+  padding: 0.05rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ka-top ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ka-top nav a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Controls */
+
+.ka button,
+.ka .button {
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  background: var(--card);
+  color: var(--ink);
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  font-weight: 650;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.ka button:hover,
+.ka a.button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.ka button:active,
+.ka a.button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.ka button[aria-pressed="true"] {
+  background: var(--sun);
+  color: var(--on-pastel);
+}
+
+.ka fieldset:disabled button {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+  transform: none;
+}
+
+.ka a.button.primary {
+  background: var(--sun);
+  color: var(--on-pastel);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 1.4rem 0 0;
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented legend,
+.control-label {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.35rem;
+  padding: 0;
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ka .segmented button {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.88rem;
+}
+
+.review-bar .segmented button {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.8rem;
+  box-shadow: none;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.75rem;
+  margin-block: 1rem;
+}
+
+/* Freshness and data notices */
+
+.freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: var(--border);
+  border-radius: 2rem;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  padding: 0.35rem 0.8rem;
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+
+.freshness-mark {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: none;
+  border: 2px solid var(--ok);
+  border-radius: 50%;
+  background: var(--ok-fill);
+}
+
+.freshness.usang .freshness-mark {
+  border-color: var(--warning-mark);
+  border-radius: 0;
+  background: var(--sun);
+  transform: rotate(45deg);
+}
+
+.freshness.tidak-tersedia .freshness-mark {
+  border-color: var(--error-ink);
+  border-radius: 0;
+  background: transparent;
+  background-image:
+    linear-gradient(45deg, transparent 42%, var(--error-ink) 42% 58%, transparent 58%),
+    linear-gradient(-45deg, transparent 42%, var(--error-ink) 42% 58%, transparent 58%);
+}
+
+.panel-notice {
+  margin-block: 0 1rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  padding: 0.7rem 0.95rem;
+}
+
+.panel-notice p {
+  margin: 0;
+}
+
+.panel-notice p + p {
+  margin-top: 0.35rem;
+}
+
+.panel-notice.usang {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.panel-notice.tidak-tersedia {
+  background: var(--error-bg);
+  color: var(--error-ink);
+}
+
+.draft-badge {
+  display: inline-block;
+  border: 2px dashed currentColor;
+  border-radius: 2rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Figures */
+
+.figure-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.7rem;
+}
+
+.big-figure {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 8vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.figure-caption {
+  max-width: var(--measure);
+  margin-top: 0.4rem;
+  color: var(--ink-2);
+  font-size: 0.92rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.tile {
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  padding: 0.85rem 1rem;
+}
+
+.tile .big-figure {
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+}
+
+.tile p {
+  margin: 0.3rem 0 0;
+}
+
+/* Map */
+
+.map-figure {
+  margin: 0 0 1rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--sea);
+  overflow: hidden;
+}
+
+.map-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.map-figure figcaption {
+  border-top: var(--border);
+  background: var(--card);
+  padding: 0.6rem 0.85rem;
+  color: var(--ink-2);
+  font-size: 0.82rem;
+}
+
+.map-land {
+  fill: var(--land);
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.map-other {
+  fill: var(--land-other);
+  stroke: var(--ink-3);
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+}
+
+.map-detection {
+  fill: var(--detect-fill);
+  fill-opacity: 0.55;
+  stroke: var(--detect);
+  stroke-width: 2;
+}
+
+.map-detection.rendah {
+  fill-opacity: 0;
+  stroke-dasharray: 2.5 2;
+}
+
+.map-report {
+  fill: var(--report-fill);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.map-label {
+  fill: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.map-empty {
+  fill: var(--error-ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.legend svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* Tables */
+
+.table-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+}
+
+.ka table {
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.ka caption {
+  padding-bottom: 0.4rem;
+  text-align: left;
+  font-weight: 700;
+}
+
+.ka th,
+.ka td {
+  border-bottom: 1px solid var(--ink);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ka th {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ka td.num,
+.ka th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ka details {
+  margin-top: 0.85rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  padding: 0.6rem 0.9rem;
+}
+
+.ka summary {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ka details[open] summary {
+  margin-bottom: 0.6rem;
+}
+
+/* Guidance cards */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.cards li {
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  color: var(--on-pastel);
+}
+
+.cards li.sky {
+  background: var(--sky);
+}
+
+.cards li.mint {
+  background: var(--mint);
+}
+
+.cards li.rose {
+  background: var(--rose);
+}
+
+.cards p {
+  margin-bottom: 0;
+}
+
+.cards.compact li {
+  padding: 0.8rem 0.9rem;
+  font-size: 0.92rem;
+}
+
+.note {
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+
+/* Field report */
+
+.report {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  padding: 1rem;
+}
+
+.report + .report {
+  margin-top: 1rem;
+}
+
+.report figure {
+  margin: 0;
+}
+
+.report figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.report figcaption {
+  margin-top: 0.4rem;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+
+.report h3 {
+  margin-top: 0.2rem;
+}
+
+.report blockquote {
+  margin: 0 0 0.8rem;
+  border-left: 4px solid var(--report);
+  padding-left: 0.8rem;
+}
+
+.trail {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.trail div {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.trail dt {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.trail dd {
+  margin: 0;
+}
+
+.reviewed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px solid var(--report);
+  border-radius: 2rem;
+  padding: 0 0.55rem;
+  color: var(--report);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Limits and status */
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2rem;
+}
+
+.split ul {
+  margin-bottom: 0;
+  padding-left: 1.2rem;
+}
+
+.split li + li {
+  margin-top: 0.3rem;
+}
+
+.status-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.status-list div {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  padding: 0.75rem 1rem;
+}
+
+.status-list dt {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.status-list dd {
+  margin: 0;
+}
+
+.ka-footer {
+  padding-bottom: 2.5rem;
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.ka-footer p {
+  max-width: 70ch;
+  margin: 0 0 0.4rem;
+}
+
+/* Option B: map-first dashboard */
+
+.ka-top .freshness {
+  margin: 0;
+}
+
+.ka section.hero .freshness {
+  margin-bottom: 0;
+}
+
+.dash {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.dash details .table-scroll {
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.dash thead th {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+}
+
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+/* Option C: daily evidence record */
+
+.ledger-day {
+  display: grid;
+  gap: 1rem;
+}
+
+.day-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3rem 1rem;
+  border-bottom: var(--border);
+  padding-bottom: 0.6rem;
+}
+
+.day-head h2 {
+  margin: 0;
+}
+
+.strip {
+  overflow-x: auto;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  padding: 0.8rem 1rem 0.6rem;
+}
+
+/* Keep time labels readable on phones; the strip scrolls sideways instead. */
+.strip svg {
+  display: block;
+  width: 100%;
+  min-width: 32rem;
+  height: auto;
+  overflow: visible;
+}
+
+.strip-axis {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.strip-tick {
+  fill: var(--detect-fill);
+  stroke: var(--detect);
+  stroke-width: 1.5;
+}
+
+.strip-report {
+  fill: var(--report-fill);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.strip-label {
+  fill: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.strip-gap {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+.province-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.province-counts li {
+  border: var(--border);
+  border-radius: 2rem;
+  background: var(--card);
+  padding: 0.15rem 0.7rem;
+  font-size: 0.84rem;
+}
+
+.province-counts strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.briefing {
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--sky);
+  color: var(--on-pastel);
+  padding: 1rem 1.2rem;
+}
+
+.briefing h3 {
+  margin-top: 0;
+}
+
+.briefing p:last-child {
+  margin-bottom: 0;
+}
+
+.ka-c .overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Review index */
+
+.options {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.options li {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 1rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  padding: 1rem;
+}
+
+.option-letter {
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border: var(--border);
+  border-radius: 50%;
+  background: var(--sun);
+  color: var(--on-pastel);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.options h3 {
+  margin-bottom: 0.3rem;
+}
+
+.options p {
+  margin-bottom: 0.4rem;
+}
+
+@media (max-width: 60rem) {
+  .dash,
+  .ka-c .overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .cards,
+  .split,
+  .report {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .status-list div,
+  .trail div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+
+  .options li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .report figure {
+    max-width: 16rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka button,
+  .ka .button {
+    transition: none;
+  }
+
+  .ka button:hover,
+  .ka a.button:hover,
+  .ka button:active,
+  .ka a.button:active {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .ka section,
+  .card,
+  .tile,
+  .panel-notice,
+  .freshness {
+    box-shadow: none;
+  }
+
+  .map-detection,
+  .map-report,
+  .strip-tick,
+  .strip-report,
+  .freshness-mark {
+    forced-color-adjust: auto;
+  }
+
+  .ka button[aria-pressed="true"] {
+    outline: 2px solid ButtonText;
+  }
+}

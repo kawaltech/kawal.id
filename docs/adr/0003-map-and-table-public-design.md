@@ -18,7 +18,7 @@ Three options used the same synthetic data and the same design language:
 - **C, Catatan harian (daily record):** a dated record with a detection-time strip,
   field reports with their review history, and an English media briefing.
 
-The review pages are in `app/routes/rancangan/`. They contain only synthetic data.
+The review pages are in `apps/public/pages/rancangan/`. They contain only synthetic data.
 
 ## Decision
 
@@ -47,10 +47,10 @@ The review pages are in `app/routes/rancangan/`. They contain only synthetic dat
 
 ## Consequences
 
-- The page contains no field reports. It can use the guidance and detection policy
-  from [ADR 0002](0002-static-publication.md): five minutes of edge freshness and
-  stale delivery for up to 24 hours if the origin fails. This needs a
-  route-specific Caddy rule. The current default is the strict report policy.
+- The page contains no field reports. The amended
+  [ADR 0002](0002-static-publication.md) retains the last valid export and its
+  timestamp. The full Void stack does not establish the earlier 24-hour edge
+  stale-on-error policy. Cache behavior remains a measured release gate.
 - Do not add a report list, report count, or report preview to this page. That
   content would require the strict 60-second report policy.
 - Report pages need their own design. They can reuse the report card and the

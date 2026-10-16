@@ -38,7 +38,11 @@ echo "[setup] Toolchain ready after ${SECONDS}s"
 
 # Amp and supervised services use separate login shells. Keep the toolchain
 # active for this repository without changing the orb's system Node.js.
-profile_marker="# kawal.id Vite+ toolchain"
+profile_marker="# kawal.id toolchain after orb environment"
+# Replace the old hook. Amp's later environment block can reset its PATH.
+if [[ -f "$HOME/.bash_profile" ]]; then
+  sed -i '/^# kawal.id Vite+ toolchain$/,/^fi$/d' "$HOME/.bash_profile"
+fi
 if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
   cat >> "$HOME/.bash_profile" <<EOF
 

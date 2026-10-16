@@ -3,49 +3,93 @@ status: accepted
 date: 2026-10-16
 ---
 
-# Use Void to deploy public static files
+# Use the full native Void stack with separate public and editorial targets
 
-Keep React Router, Node.js, and Vite+. Use Void as the deployment layer for the
-public static build on Cloudflare. The user accepted this scope on 16 October 2026. This does not move editorial work, SQLite, sessions, or private media to
-Cloudflare.
+The user chose the full Void stack, not React Router with the Void deploy CLI.
+There are no product features or real records to migrate. Use native Void React
+pages and loaders, Workers, D1, R2, and future native Void authentication. Keep
+Vite+ and the accepted option B design. This replaces ADR 0001's stack and the
+earlier deployment-only version of this decision. It closes ADR 0005.
 
-React Router builds the HTML and navigation data. Void deploys only
-`build/client`, not the server bundle or local data. Use its explicit static app
-type, without `voidPlugin()`, framework inference, ISR, or an SPA fallback.
-Keep missing pages, data files, and editorial endpoints as 404 responses.
+## Two targets, one repository
 
-Void provides a deployment workflow and asset routing without replacing our
-framework. Version 1.1.11 adds a small routing Worker before Workers Assets,
-rather than an assets-only upload. This Worker applies redirects and headers;
-it must not render the application or read a database. Its requests are subject
-to Worker quotas. Review those limits before public release.
+- `apps/public`: native Void React, `output: "static"`, ISR disabled, and complete
+  HTML plus `_void/pages/*.json` for every page. No API routes, authentication,
+  middleware, crons, or queues. Do not add routing redirects, rewrites, or
+  fallbacks that disable static navigation. Use native `Link` navigation.
+- `apps/editorial`: native Void server output with Workers, D1, and R2. Use a
+  separate host for future editorial requests. Keep all editorial responses
+  `private, no-store`. Public reads must not call this target.
+- Share design code in `app/design`. Keep option B at `/`, without field reports.
+  Retain the review pages and their synthetic-data warnings until release work
+  removes them. [ADR 0003](0003-map-and-table-public-design.md) still governs design.
+- Pin Void and `@void/react` together. Each workspace must resolve the Vite+ core
+  alias, not a second Vite installation. Node.js is the build and local tool
+  runtime; the deployed editorial runtime is Workers.
+- Local D1/R2 use separate Miniflare state per checkout. Normal setup, tests, and
+  builds need no Google, NASA, or Cloudflare credentials. No automatic deployment
+  is enabled. Remote changes need separate approval.
 
-## Boundaries
+## Storage and future authentication
 
-- The current target is the existing synthetic design preview Worker. Keep its
-  exact root redirect to option B, custom domain, warnings, and `noindex`.
-- Keep the accepted cache classes from ADR 0002. Do not treat Void's defaults
-  or a successful deployment as proof of cache expiry, purge, or stale delivery.
-  Its direct-deployment ISR purge is not a zone-wide edge purge, so do not use
-  ISR for report withdrawal.
-- Public file updates must not require an editorial application restart. The
-  controlled publication and withdrawal workflow is still unimplemented.
-  Before reports are published, prevent an asset rollback from restoring
-  withdrawn content and verify removal from every controlled public target.
-- Keep Caddy for independent local static checks. Docker and Kamal remain the
-  accepted editorial deployment plan. A Cloudflare-native editorial system is
-  only [proposed in ADR 0005](0005-cloudflare-editorial.md).
-- Pin the CLI in the lockfile. Normal orb development and tests must not require
-  Cloudflare credentials. Keep credentials and generated local state out of Git.
-  Do not enable automatic deployments or create a Void team platform.
+D1 is managed SQLite through async bindings. It is not a `better-sqlite3`
+connection or a local file whose WAL, locks, and backup API we manage. R2 replaces
+local production media files. Keep private originals and approved public copies
+in separate storage boundaries. Future migrations must support overlapping
+application versions. Review D1 batch/transaction behavior, backup retention,
+Time Travel, and full database-plus-media restoration before accepting reports.
+The root `migrations/0001-users.sql` is an immutable historical file, not an
+editorial D1 migration. No replacement product schema exists yet.
 
-The live preview predates this configuration. A Void deployment requires an
-authenticated CLI, an existing-Worker handoff, and HTTP checks of its final
-output. Adding the configuration does not establish that this handoff passed.
+Use native Void authentication when sign-in is built. Explicitly allow only
+Google; disable email/password and account linking. Require an invitation or
+reviewer approval. A Google sign-in alone must not grant reviewer rights. Keep
+identity tied to the provider's stable subject, not just an email address. Test
+callback validation, sessions, revocation, and role checks before release. Any
+local test sign-in must be unavailable in production. Live Google checks need
+development credentials and exact callback registration; foundation checks do not.
+
+## Static safety and release limits
+
+Void 1.1.11 can warn about a failed prerender and still exit successfully.
+`scripts/check-public-build.mjs` must reject missing HTML/JSON and loader errors.
+Do not turn the public target into a hybrid app: direct visits in a hybrid app
+can execute loaders and query D1 even when navigation uses static JSON.
+
+Direct-deploy SSG reads local Miniflare state, not production D1. Future public
+generation must consume an approved-public export, with fixtures in orbs. Do not
+point public loaders at the editorial database. [ADR 0002](0002-static-publication.md)
+defines activation and withdrawal requirements.
+
+Each public update is a deployment. Measure build and deployment time before
+selecting a publication frequency. Serialize activation and prevent an older
+export from replacing a newer export. These controls are not implemented yet.
+
+Void's routing Worker runs before asset delivery, including code assets. It uses
+compute quota and does not use the Cache API by default. Zone Cache Rules and
+`s-maxage` or `stale-if-error` headers do not prove edge caching in this path.
+The supported fallback is the last valid export with its timestamp, not a
+promised 24-hour edge stale-on-error period. Measure caching and failure behavior
+before release.
+
+CLI rollback, dashboard rollback, and automatic readiness-failure restoration can
+restore withdrawn content. Block real report publication until a withdrawal-safe
+rollback procedure exists. ISR does not meet report withdrawal requirements.
+
+## Current delivery boundary
+
+This foundation implements neither sign-in nor reports, ingestion, publication,
+withdrawal, or media processing. Caddy serves only the public static output for
+local checks. Docker and Kamal are no longer the deployment plan.
+
+The live assets-only design Worker predates this migration. No native Void
+deployment has been made. Do not treat a local build as a verified Worker handoff.
 
 ## References
 
-- [Prebuilt static sites](https://void.cloud/guide/app-types)
-- [Static asset caching](https://void.cloud/guide/edge/static-assets)
-- [Direct Cloudflare deployment and ISR limits](https://void.cloud/integrations/cloudflare)
-- [Independent assessment](https://ampcode.com/threads/T-01a145ab-fb67-71e4-abd1-a67b28dd4880)
+- [Decision discussion](https://ampcode.com/threads/T-01a1447e-b3df-739d-82e4-48e8f72ea5ad)
+- [Independent source review and local controls](https://ampcode.com/threads/T-01a145ab-fb67-71e4-abd1-a67b28dd4880)
+- [Void pages](https://void.cloud/guide/pages-routing/overview)
+- [D1](https://void.cloud/guide/database/d1)
+- [Storage](https://void.cloud/guide/storage)
+- [Direct Cloudflare deployment](https://void.cloud/integrations/cloudflare)

@@ -1,9 +1,16 @@
 ---
-status: accepted
+status: superseded by ADR-0004
 date: 2026-10-16
 ---
 
 # Build Kawal Asap as one self-contained application
+
+This is a historical decision. [ADR 0004](0004-void-static-deployment.md)
+replaces its React Router, Node.js server, local SQLite/WAL, local-file, and
+Docker/Kamal choices with the full native Void stack. No product data needs
+migration. Keep the domain and safety requirements, including credential-free
+orbs, reviewed publication, and private originals. The text below records the
+earlier decision; it is not current setup or operating guidance.
 
 Kawal Asap needs a small system that each Amp orb can run independently.
 Use React Router, Node.js, Vite+, SQLite, and local files.

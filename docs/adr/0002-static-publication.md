@@ -5,146 +5,91 @@ date: 2026-10-16
 
 # Serve public information from static publication files
 
-Use SQLite for editorial records and generate a separate set of public files.
-Use React Router prerendering for public routes and Cloudflare for public caching.
-Serve public pages and data without a live database query or a Google session.
-Use the cache and withdrawal periods below for the first implementation.
+Keep public reads independent of editorial requests, sessions, and database
+access. Generate a complete approved-public export before activation. This
+decision was amended for the full native Void stack in
+[ADR 0004](0004-void-static-deployment.md). The earlier React Router, same-host
+origin, export-symlink, and edge stale-on-error clauses no longer apply.
 
-## Context
+## Origin and generation
 
-Public information should remain available if the editorial process fails.
-Most public reads do not need a live application response. The user prefers
-static public content and dynamic processing for editorial work.
+- Use a separate static-only Void public target. Native prerendering must produce
+  HTML and `_void/pages/*.json` for every public page. Validate completeness and
+  loader success because Void 1.1.11 can exit successfully after a prerender error.
+- Keep Workers, D1, R2, sessions, and write endpoints in the separate editorial
+  target. A public visit or native client navigation must not call it. Prove
+  direct visits, navigation, and assets with editorial stopped.
+- Generate only from an approved-public export. Direct Cloudflare SSG uses local
+  Miniflare state, not production D1. Use synthetic fixtures in normal orbs. Never
+  export session data, private originals, or unreviewed reports.
+- Show source times and the last successful update. Keep the accessible table
+  usable without the map. Missing data must not appear as zero detections.
+- Keep private originals, approved public copies, backups, and public build
+  files separate. Caddy's local document root is only `apps/public/dist/client`.
+  There is no fallback or proxy to editorial.
 
-This is a change from the initial per-request publication check in
-[ADR 0001](0001-self-contained-kawal-asap.md). This decision replaces that check
-for public reads. The static read path does not check SQLite on each request.
-It must remove withdrawn content from public files and caches.
+## Publication and failure
 
-## Decision
+Each public update is a deployment. Prepare and check a complete export first.
+Serialize publication and reject an older export that could replace a newer
+publication or restore withdrawn content. A failed normal generation keeps the
+last valid export, with its timestamp. It must not claim current feed data.
+Measure generation/deployment time and select a publication frequency before
+release. This foundation does not implement the publication workflow.
 
-- Keep the accepted Node.js, React Router, SQLite, and Kamal stack.
-- Use one source of application code. Do not create a separate frontend project
-  or a second database. Public file generation and editorial requests can share
-  components and validation code.
-- Use React Router's `prerender` configuration to enumerate public URLs. Its
-  build generates HTML and client navigation data through route loaders. Read
-  only approved public data during generation. Do not export editorial routes,
-  session data, private originals, or unreviewed reports.
-- Keep server rendering available for protected editorial routes. Do not disable
-  it globally to make public pages static. The public server must serve generated
-  HTML and navigation data without falling back to the editorial server.
-- Generate HTML pages, JSON map data, and approved public copies. Include source
-  times and the last successful data update. Keep the accessible table usable
-  without the map. Filters can operate on exported data in the browser.
-- Run generation after approved content changes and successful ingestion.
-  A content change can require a generation build, but not a new application
-  deployment. Measure generation time before adding a custom incremental renderer.
-- Prepare and validate a complete export before making it current. Change the
-  current export atomically. Serialize export activation so an older job cannot
-  replace a newer publication or restore withdrawn content.
-- Run the static file server separately from the editorial process on the same
-  host. An editorial restart must not stop public file delivery. Use persistent
-  storage for the active export, database, and media.
-- Give the public server access only to exported content. Do not expose SQLite,
-  private originals, backups, or inactive exports through its document root.
-- Keep Google callbacks, sessions, review actions, and publication commands
-  dynamic. Keep their responses out of shared caches.
-- Do not add public upload intake to the first fixture-based implementation.
-  If introduced later, submission requires a write endpoint even if public reads
-  remain static. It must not write directly into the public export.
+## Cache policy and reliability
 
-The public export is a read model. It is not a SQLite read replica. Later, we can
-copy exports to other hosts without copying the editorial database. Put
-Cloudflare in front of the production public origin. Orbs must also work without
-Cloudflare. Do not add another origin host or a database replication service yet.
+The local origin sends `public, max-age=60, must-revalidate` for pages and data.
+Only hash-named code under `/assets/` gets a one-year immutable policy. Do not
+include report content or private data in code assets. Editorial responses use
+`private, no-store` and must not enter shared caches.
 
-### Cloudflare rules
+Void's routing Worker runs for public requests, including code assets. It has
+compute limits and does not use the Cache API by default. Zone Cache Rules,
+`s-maxage`, and `stale-if-error` do not establish edge caching in this path. The
+previous five-minute freshness and 24-hour edge stale-on-error promise is
+replaced by the last valid export and its timestamp. No measured production
+cache guarantee exists yet. Test actual headers, hits, expiry, and failure
+behavior before selecting a release policy. Do not enable Always Online or a
+service worker that bypasses withdrawal rules.
 
-- Explicitly enable caching for public HTML, JSON, and React Router navigation
-  data. Cloudflare does not cache HTML or JSON by default.
-- Limit caching to known public routes and exported assets. Bypass editorial,
-  authentication, session, preview, and write endpoints. Use `private, no-store`
-  on their responses. Do not cache responses that set session cookies.
-- Keep browser and edge policies consistent with each content class below.
-  Cloudflare overrides must not extend the withdrawal period accidentally.
-- Purge affected cached pages, navigation data, JSON, and media after correction
-  or withdrawal. A successful origin update alone does not purge the edge.
-- Do not enable Always Online or a service worker cache that bypasses these rules.
-  Verify actual cache headers, hits, expiry, and origin-error behavior before release.
+Static files remove editorial and D1 from public reads. They do not remove the
+asset host, routing Worker quota, network, or deployment system as failure
+points. A cache is not a backup.
 
-## Cache and withdrawal rule
+## Withdrawal gate
 
-Use these defaults for the first implementation:
+Real report publication is blocked until these controls exist and pass tests:
 
-- **Guidance and satellite detections:** Use five minutes of edge freshness and
-  permit stale delivery for up to 24 hours after expiry if the origin fails.
-  Show source and update times. This information is not a live alert service.
-- **Field reports and their public copies:** Allow at most 60 seconds of cache
-  freshness. Require revalidation after expiry. Do not serve stale content on
-  errors. Do not give these files immutable cache headers.
-- Use the stricter report policy on any page or data file that contains field
-  reports or their public copies. Do not extend their lifetime by mixing them
-  into a longer-lived guidance page, search index, or navigation payload.
-- **Code assets:** Use long cache periods with content-based names. Do not include
-  report content or private information in these assets.
-- On withdrawal, remove the content from every active page, list, data export,
-  and media path. Retire old public URLs. Do not leave a versioned media URL
-  accessible after its publication is withdrawn.
-- Report withdrawal success only after the origin stops serving the content and
-  Cloudflare confirms the required purge. A failed export or purge must not
-  produce a false success message. Keep the withdrawal pending until it succeeds.
-- Browser copies of reports can remain fresh for up to 60 seconds after the
-  origin changes. Previously downloaded copies and open pages cannot be recalled.
-- Guidance and detection data have a longer outage window. A correction can reach
-  cached readers later if the origin is unavailable. Do not promise a 60-second
-  withdrawal deadline for this content class.
-- A new public host or cache adds another withdrawal target. Do not report
-  success until all controlled public origins have applied the change.
+- Remove withdrawn content from every active page, navigation payload, list,
+  search index, data export, and public media URL. Retire old URLs. Inactive
+  deployment URLs must not provide a way to read withdrawn content.
+- Prevent CLI rollback, dashboard rollback, and automatic readiness-failure
+  restoration from restoring withdrawn reports. A failed publication that
+  restores an older deployment must not undo a withdrawal.
+- Confirm the active version through `/__void/ready` and check HTTP responses for
+  missing content on every controlled hostname. Confirm any required cache purge
+  by checking responses, not only the purge API result. A new hostname is another
+  withdrawal target.
+- Keep withdrawal pending if generation, activation, removal, or purge fails.
+  Keeping the old export available is not successful withdrawal.
+- Preserve the report limit of at most 60 seconds of browser/cache freshness,
+  with revalidation after expiry and no stale-on-error delivery. A release policy
+  must not extend it by mixing reports into longer-lived pages or immutable media.
+- Do not use ISR as the report withdrawal mechanism. Its regional invalidation
+  and stale response behavior do not prove removal from all public targets.
 
-Normal export failures keep the last complete export available. They must show
-the last successful update, not claim that the feed is current. Withdrawal
-failures need an explicit pending state; retaining old content is not successful
-withdrawal.
+Open pages and copies already downloaded cannot be recalled. Do not promise both
+unrestricted stale delivery and a fixed withdrawal deadline.
 
-## Reliability limits
-
-Static files remove the editorial process and database from public reads. They
-do not remove the single host, disk, network, or static file server as failure
-points. Cloudflare can serve eligible responses that remain in its cache.
-Uncached, evicted, or expired responses outside the stale allowance still need
-the origin. Editorial work and new Google sign-ins also need the application.
-A cache is not a backup or a complete high-availability system.
-
-Keeping last-known public content during an outage conflicts with strict
-withdrawal when that content is withdrawn. Do not promise both unrestricted
-stale delivery and a fixed withdrawal deadline.
-
-## First implementation
-
-1. Create the fresh application, version pins, migrations, and fixture data.
-   Update orb setup. No Google credentials are required for normal tests.
-2. Add local test sign-in and reviewer permissions. Create one fixture field
-   report and public copy through an editorial form.
-3. Prerender a static report page, its navigation data, and an index. Prove that
-   direct visits and client navigation work when the editorial process stops.
-   The public server must not read SQLite.
-4. Test failed generation, concurrent publication, correction, and withdrawal.
-   Check old URLs and response cache headers, not only the new page.
-5. Add Google sign-in and test its validation locally. Check the live Google flow
-   separately with development credentials before release.
-
-This slice does not need a live hotspot feed, a pilot region, concession data,
-or production infrastructure. Those decisions do not block fixture-based work.
-
-## Agreement
-
-The user accepted these cache policies on 16 October 2026. No further product
-decision needs to block the first fixture-based implementation. Production
-deployment still needs separate approval.
+Before release, test concurrent publication, correction, withdrawal, failed
+generation, and all rollback paths with fixtures. Agree recovery targets and
+test database-plus-media restoration separately. No live feed or Google client
+is required for these local foundation checks. Production deployment needs
+separate approval.
 
 ## References
 
-- [React Router rendering strategies](https://reactrouter.com/start/framework/rendering)
+- [Native Void decision and source review](0004-void-static-deployment.md)
+- [Cloudflare deployment limits](https://void.cloud/integrations/cloudflare)
 - [Cloudflare default cache behavior](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/)
-- [Cloudflare origin cache control](https://developers.cloudflare.com/cache/concepts/cache-control/)

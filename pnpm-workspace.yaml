@@ -2,11 +2,14 @@ packages:
   - .
   - apps/*
 overrides:
-  vite@*: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
 # The core alias reports the Vite+ release, not the upstream Vite version.
 peerDependencyRules:
   allowedVersions:
     vite: 1.3.0
+    # These optional peers serve unused Cloudflare test helpers, not Wrangler.
+    "@cloudflare/workers-auth@0.14.0>vitest": 5.0.5
+    "@cloudflare/workers-utils@0.47.2>vitest": 5.0.5
 onlyBuiltDependencies:
   - esbuild
   - workerd

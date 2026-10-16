@@ -1,0 +1,15 @@
+{
+  "name": "@kawal/editorial",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build"
+  },
+  "dependencies": {
+    "@void/react": "1.1.11",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "void": "1.1.11"
+  }
+}

@@ -1,5 +1,4 @@
-import styles from "~/design/kawal.css?url";
-import { designFixture } from "~/design/fixture";
+import type { InferProps } from "void";
 import {
   DetectionFigure,
   DetectionTable,
@@ -19,22 +18,9 @@ import {
   useDesignState,
 } from "~/design/ui";
 
-import type { Route } from "./+types/a";
+import type { loader } from "./a.server";
 
-export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: styles }];
-
-export function meta() {
-  return [
-    { title: "Rancangan A: Warga dulu · Kawal Asap" },
-    { name: "robots", content: "noindex" },
-  ];
-}
-
-export function loader() {
-  return designFixture();
-}
-
-export default function OptionA({ loaderData }: Route.ComponentProps) {
+export default function OptionA(loaderData: InferProps<typeof loader>) {
   const view = useDesignState(loaderData);
   const unavailable = view.detections === null;
   return (

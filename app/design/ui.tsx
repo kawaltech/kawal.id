@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link } from "@void/react";
 
 import type { Detection } from "./detections";
 import {
@@ -59,7 +59,7 @@ export function ReviewBar({
       <p>
         <strong>Design review · option {option}</strong>{" "}
         <span className="muted">Synthetic data. Not a fire information service.</span>{" "}
-        <Link to="/rancangan">All options</Link>
+        <Link href="/rancangan">All options</Link>
       </p>
       <fieldset className="segmented">
         <legend className="sr-only">Preview the data state</legend>

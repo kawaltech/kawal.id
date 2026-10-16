@@ -1,7 +1,7 @@
 import { useState } from "react";
+import type { InferProps } from "void";
 
-import styles from "~/design/kawal.css?url";
-import { designFixture, formatDay, formatWibTime, wibDay } from "~/design/fixture";
+import { formatDay, formatWibTime, wibDay } from "~/design/fixture";
 import {
   DetectionTable,
   FeedNotice,
@@ -22,23 +22,9 @@ import {
   type MapView,
 } from "~/design/ui";
 
-import type { Route } from "./+types/b";
+import type { loader } from "./b.server";
 
-export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: styles }];
-
-export function meta() {
-  return [
-    { title: "Rancangan B: Peta dan tabel · Kawal Asap" },
-    { name: "robots", content: "noindex" },
-  ];
-}
-
-export function loader() {
-  const { generatedAt, feeds, detections, guidance } = designFixture();
-  return { generatedAt, feeds, detections, guidance };
-}
-
-export default function OptionB({ loaderData }: Route.ComponentProps) {
+export default function OptionB(loaderData: InferProps<typeof loader>) {
   const view = useDesignState(loaderData);
   const [mapView, setMapView] = useState<MapView>("pilot");
   const unavailable = view.detections === null;
@@ -150,7 +136,7 @@ export default function OptionB({ loaderData }: Route.ComponentProps) {
           <GuidanceCards guidance={loaderData.guidance} compact />
           <p className="note">
             Laporan lapangan akan ada di halaman sendiri. Halaman ini hanya memuat data satelit dan
-            panduan, jadi salinan cadangan halaman ini boleh tampil lebih lama saat server bermasalah.
+            panduan. Waktu pembaruan terakhir menunjukkan umur data yang tersedia.
           </p>
         </section>
 

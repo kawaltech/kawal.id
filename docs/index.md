@@ -10,6 +10,8 @@
 - [Accepted stack and Google sign-in](adr/0001-self-contained-kawal-asap.md)
 - [Accepted static public reads and cache rules](adr/0002-static-publication.md)
 - [Accepted public page design: map and table](adr/0003-map-and-table-public-design.md)
+- [Accepted Void static deployment layer](adr/0004-void-static-deployment.md)
+- [Proposed Cloudflare editorial processing and storage](adr/0005-cloudflare-editorial.md)
 - [Infrastructure operations and release limits](operations.md)
 
 ## Overview

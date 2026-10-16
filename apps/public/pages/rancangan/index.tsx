@@ -1,17 +1,4 @@
-import { Link } from "react-router";
-
-import styles from "~/design/kawal.css?url";
-
-import type { Route } from "./+types/index";
-
-export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: styles }];
-
-export function meta() {
-  return [
-    { title: "Kawal Asap visual design options" },
-    { name: "robots", content: "noindex" },
-  ];
-}
+import { Link } from "@void/react";
 
 const OPTIONS = [
   {
@@ -32,7 +19,7 @@ const OPTIONS = [
       "A wide dashboard. Summary tiles, a map next to its table, and filters for time and confidence. Guidance is short. Field reports go to a separate page.",
     fit: "Use this option if the first users are journalists, analysts, or local government staff.",
     cache:
-      "The page has only detections and guidance. It can use the 5-minute policy with stale delivery for up to 24 hours if the origin fails. This needs a route-specific cache rule.",
+      "The page has only detections and guidance. Keep the last valid export and its update time. The Void deployment does not provide a 24-hour stale-on-error guarantee.",
   },
   {
     letter: "C",
@@ -80,7 +67,7 @@ export default function DesignIndex() {
                 </span>
                 <div>
                   <h3>
-                    <Link to={option.path}>
+                    <Link href={option.path}>
                       Option {option.letter}: {option.name}
                     </Link>{" "}
                     <span className="draft-badge">

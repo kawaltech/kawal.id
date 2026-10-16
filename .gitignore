@@ -1,17 +1,20 @@
 .DS_Store
-/node_modules/
+node_modules/
 
-# React Router
+# Previous local builds and storage
 /.react-router/
 /build/
+dist/
 
 # Local configuration files
 *.local.json
 /.data/
-/.env
-/.env.*
-!/.env.example
+.env
+.env.*
 /.vite-plus/
+.void/
+.void-wrangler.jsonc
+.wrangler/
 /.kamal/secrets
 *.sqlite*
 

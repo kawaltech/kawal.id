@@ -1,5 +1,6 @@
 packages:
   - .
+  - apps/*
 overrides:
   vite@*: npm:@voidzero-dev/vite-plus-core@1.3.0
 # The core alias reports the Vite+ release, not the upstream Vite version.
@@ -7,5 +8,5 @@ peerDependencyRules:
   allowedVersions:
     vite: 1.3.0
 onlyBuiltDependencies:
-  - better-sqlite3
   - esbuild
+  - workerd

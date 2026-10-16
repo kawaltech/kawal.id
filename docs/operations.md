@@ -1,7 +1,8 @@
 # Infrastructure operations
 
-This is a development foundation. No production host, Google client, Cloudflare
-zone, or registry has been configured. No deployment is authorized by this guide.
+This is a development foundation with a synthetic design preview on Cloudflare.
+No production application host, Google client, or container registry has been
+configured. No deployment is authorized by this guide.
 
 ## Local data
 
@@ -73,6 +74,49 @@ A purge API response of HTTP 200 confirms receipt, not content removal. Check
 post-purge cache status and the expected revision or removal response at each
 affected public URL. Do not treat an old cached response as a successful
 withdrawal. See [purge verification](https://developers.cloudflare.com/cache/how-to/purge-cache/).
+
+### Cloudflare design preview
+
+The isolated `kawal-asap-design-review` Worker serves only the synthetic static
+preview. Its exact root path returns `302 Location: /rancangan/b`. The destination
+is relative, so it stays on the request host. Other review paths stay available.
+This is not a production publication or a check of Caddy cache headers.
+
+Use the pinned Void CLI and `void.config.ts` for subsequent deployments. React
+Router still builds the files with `vp run build`. Void's explicit static mode
+uploads only `build/client`; `public/.assetsignore` excludes Vite build metadata.
+It must not upload `build/server`, SQLite, private media, or backups. Do not add
+the Void Vite plugin, enable ISR, or use the `--spa` flag.
+
+The CLI adds a small asset-routing Worker for redirects and response headers.
+This is not an editorial runtime, but its requests count against Worker limits.
+The configured cache classes match ADR 0002. Check the deployed headers and
+expiry behavior; configuration alone does not prove global purge or stale delivery.
+
+Run `vp run check` before deployment. Authenticate the CLI with
+`pnpm exec void cloudflare login`, or use a scoped `CLOUDFLARE_API_TOKEN` from a
+secret store. Never put tokens in config, commands, or Git. Confirm the account,
+existing Worker, and `kawal.id` route before the first handoff. Then use
+`vp run deploy:preview` when deployment is authorized. Keep review warnings and
+`noindex`; do not enable an automatic deployment workflow. Void has no deploy
+dry-run flag. Do not use a deploy command as a local validation check.
+
+Keep generated local state under the ignored `.void` directory. If deployment
+creates `void.lock.json`, review and commit its resource IDs before deployment
+from another machine. Never include credentials. The current live preview uses
+the earlier assets-only upload until a Void deployment is verified. See
+[ADR 0004](adr/0004-void-static-deployment.md) and
+[Void deployment](https://void.cloud/guide/deployment).
+
+The Cloudflare Free zone `kawal.id` uses `jasmine.ns.cloudflare.com` and
+`simon.ns.cloudflare.com`. Its apex custom domain points to the preview Worker.
+Cloudflare manages the apex DNS record; do not replace it with old Netlify
+addresses. HTTPS redirection is enabled. Check certificate validity and public
+DNS resolution before declaring a domain cutover complete.
+
+The existing DNS-only `www` records still use Netlify to redirect to
+`https://kawal.id/`. Keep that Netlify site until this redirect has a replacement.
+Preserve other DNS records before any future nameserver change.
 
 ## Backup and restore
 

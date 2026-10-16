@@ -1,7 +1,6 @@
-import styles from "~/design/kawal.css?url";
+import type { InferProps } from "void";
 import {
   CONFIDENCES,
-  designFixture,
   formatDay,
   visibleDetections,
   wibDay,
@@ -27,20 +26,7 @@ import {
   type FieldReport,
 } from "~/design/ui";
 
-import type { Route } from "./+types/c";
-
-export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: styles }];
-
-export function meta() {
-  return [
-    { title: "Rancangan C: Catatan harian · Kawal Asap" },
-    { name: "robots", content: "noindex" },
-  ];
-}
-
-export function loader() {
-  return designFixture();
-}
+import type { loader } from "./c.server";
 
 const DAYS = ["2026-10-16", "2026-10-15", "2026-10-14"];
 const WIDTH = 600;
@@ -129,7 +115,7 @@ function DayStrip({
   );
 }
 
-export default function OptionC({ loaderData }: Route.ComponentProps) {
+export default function OptionC(loaderData: InferProps<typeof loader>) {
   const view = useDesignState(loaderData);
   const all = visibleDetections(loaderData, view.state, 72, CONFIDENCES);
   return (

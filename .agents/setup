@@ -12,27 +12,6 @@ caddy_version="$(cat .caddy-version)"
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
 
-# SQLite can need a native build. Do not depend on the orb template's tools.
-if ! command -v g++ >/dev/null || ! command -v make >/dev/null || ! command -v python3 >/dev/null; then
-  sudo apt-get update
-  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential python3
-fi
-
-# Install Docker tools, but start the daemon only as a supervised orb service.
-docker_packages=()
-command -v docker >/dev/null || docker_packages+=(docker-ce-cli)
-command -v dockerd >/dev/null || docker_packages+=(docker-ce containerd.io)
-docker buildx version >/dev/null 2>&1 || docker_packages+=(docker-buildx-plugin)
-if (( ${#docker_packages[@]} )); then
-  sudo install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/debian/gpg -o "$scratch/docker.asc"
-  sudo install -m 0644 "$scratch/docker.asc" /etc/apt/keyrings/docker.asc
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" |
-    sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  sudo apt-get update
-  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${docker_packages[@]}"
-fi
-
 echo "[setup] Prepare Vite+ $vp_version and the pinned runtime"
 if [[ ! -x "$VP_HOME/bin/vp" ]] || ! "$VP_HOME/bin/vp" --version | head -1 | grep -Fqx "vp v$vp_version"; then
   curl --fail --silent --show-error --location https://vite.plus -o "$scratch/vp-install.sh"
@@ -76,16 +55,10 @@ step_start=$SECONDS
 vp install --frozen-lockfile
 echo "[setup] Dependencies ready after $((SECONDS - step_start))s"
 
-echo "[setup] Generate React Router types"
+echo "[setup] Build the independent Void targets"
 step_start=$SECONDS
-pnpm exec react-router typegen
-echo "[setup] Types ready after $((SECONDS - step_start))s"
-
-echo "[setup] Prepare independent local storage and test identities"
-if [[ "${NODE_ENV:-}" == "production" ]]; then
-  echo "Do not run orb setup against production storage." >&2
-  exit 1
-fi
-# Do not use project DATA_DIR or credentials when preparing a shared snapshot.
-DATA_DIR="$repo_root/.data" pnpm db:seed
+pnpm build
+echo "[setup] Builds ready after $((SECONDS - step_start))s"
+# D1 and R2 use local Miniflare state when the editorial service starts.
+# Setup must not authenticate Cloudflare or run a remote database command.
 echo "[setup] Complete in ${SECONDS}s"

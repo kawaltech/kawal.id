@@ -1,11 +1,12 @@
 # Kawal Asap
 
 A self-contained application for reviewed fire and smoke information.
-This repository currently contains infrastructure and a neutral static page.
+This repository contains infrastructure and a synthetic map-and-table preview.
 It does not yet provide reports, live detections, sign-in, or a publication workflow.
 
 Read [ADR 0001](docs/adr/0001-self-contained-kawal-asap.md),
-[ADR 0002](docs/adr/0002-static-publication.md), and the
+[ADR 0002](docs/adr/0002-static-publication.md),
+[ADR 0004](docs/adr/0004-void-static-deployment.md), and the
 [operations guide](docs/operations.md) before adding features.
 
 ## Tools
@@ -16,6 +17,7 @@ Read [ADR 0001](docs/adr/0001-self-contained-kawal-asap.md),
 - pnpm, pinned in `package.json`, with a committed lockfile.
 - SQLite with WAL, SQL migrations, and local files.
 - Caddy for a separate static public server.
+- Void for deployment of the public static build to Cloudflare.
 - Docker targets and Kamal templates for one persistent host.
 
 ## Start in an Amp orb
@@ -71,6 +73,9 @@ Node.js version. To run the static server, also install the Caddy version in
 | `vp run db:backup /path/new.sqlite` | Create a consistent database backup                       |
 | `vp run public:init`                | Create the initial public export if none exists           |
 | `vp run public:serve`               | Serve only the current static export                      |
+| `vp run deploy:preview`             | Deploy the static design preview; needs authorization     |
 
 Use `vp run build`, not `vp build`: React Router owns the framework build.
-The same rule applies to `dev`. No visual design has been selected yet.
+The same rule applies to `dev`. Option B is the accepted public design.
+Cloudflare editorial processing and storage remain
+[proposed, not accepted](docs/adr/0005-cloudflare-editorial.md).

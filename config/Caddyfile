@@ -5,19 +5,17 @@
 }
 
 :{$PORT:8080} {
-	root * {$PUBLIC_ROOT:./.data/public/current}
+	root * {$PUBLIC_ROOT:./apps/public/dist/client}
 	encode zstd gzip
 
 	header X-Content-Type-Options nosniff
 	header Referrer-Policy strict-origin-when-cross-origin
 
-	# Keep override order explicit. All other content uses the report policy.
+	# This is a local file-server check, not a Cloudflare cache implementation.
 	route {
-		header Cache-Control "public, max-age=60, s-maxage=60, must-revalidate"
+		header Cache-Control "public, max-age=60, must-revalidate"
 		@code path /assets/*
 		header @code Cache-Control "public, max-age=31536000, immutable"
-		@detections path /rancangan/b /rancangan/b/ /rancangan/b.data
-		header @detections Cache-Control "public, max-age=300, stale-if-error=86400"
 
 		@private path /editor /editor/* /auth /auth/* /__dev /__dev/* /preview /preview/* /private /private/* /backups /backups/* /db /db/* /.* /*.sqlite*
 		handle @private {

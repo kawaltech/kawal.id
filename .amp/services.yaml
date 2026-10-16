@@ -1,14 +1,21 @@
 services:
   dev:
-    command: pnpm dev --host 0.0.0.0 --port "$PORT"
-    health: /editor/healthz
+    command: pnpm --filter @kawal/public exec vp dev --host 0.0.0.0 --port "$PORT"
+    health: /
     portal:
       title: Kawal Asap development
-      description: Neutral application shell. No sign-in or live data is enabled.
+      description: Native Void public pages with synthetic data. Option B is selected.
+  editorial:
+    command: pnpm --filter @kawal/editorial exec vp dev --host 0.0.0.0 --port "$PORT"
+    health: /healthz
+    review: false
+    portal:
+      title: Kawal Asap editorial foundation
+      description: Local Workers runtime with independent D1 and R2. Sign-in is not implemented.
   public:
-    command: pnpm build && pnpm public:init && pnpm public:serve
+    command: pnpm --filter @kawal/public build && pnpm public:serve
     health: /
     review: false
     portal:
       title: Kawal Asap static export
-      description: Static public files. No editorial process or database is required for reads.
+      description: Static public files only. No application process or database is required for reads.

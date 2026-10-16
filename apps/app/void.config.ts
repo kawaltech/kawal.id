@@ -20,6 +20,15 @@ export default defineConfig({
   cloudflare: {
     name: "kawal-app",
     account_id: "1d60533bd63392b6dc25160f907c4f76",
+    d1_databases: [
+      {
+        binding: "DB",
+        database_name: "kawal-app-db",
+        database_id: "8f362e20-3ba6-468d-8681-ed0fb9f597ee",
+        migrations_dir: "./db/migrations",
+      },
+    ],
+    r2_buckets: [{ binding: "STORAGE", bucket_name: "kawal-app-storage" }],
     routes: [{ pattern: "app.kawal.id", custom_domain: true }],
     workers_dev: false,
     preview_urls: false,

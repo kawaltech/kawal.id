@@ -10,6 +10,7 @@ export default defineConfig({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "robots", content: "noindex" },
     ],
+    link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
   },
   routing: {
     isr: false,

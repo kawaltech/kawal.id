@@ -934,6 +934,24 @@ describe("sessions and access removal", () => {
 });
 
 describe("response policy", () => {
+  test("the platform favicon works before sign-in without opening other paths", async () => {
+    const { app } = await createApp();
+    const html = await (await app.fetch("/sign-in")).text();
+    const iconLink = html.match(/<link\b[^>]*\brel="icon"[^>]*>/)?.[0];
+    expect(iconLink).toContain('href="/favicon.svg"');
+    expect(iconLink).toContain('type="image/svg+xml"');
+    const icon = await app.fetch("/favicon.svg");
+    expect(icon.status).toBe(200);
+    expect(icon.headers.get("content-type")).toContain("image/svg+xml");
+    expect(await icon.text()).toContain("<title>Kawal.id</title>");
+    expect((await app.fetch("/favicon.svg", { method: "HEAD" })).status).toBe(200);
+    await expectJsonError(await app.fetch("/private.svg"), 401);
+    await expectJsonError(
+      await app.fetch("/favicon.svg", { method: "POST", origin: APP_ORIGIN }),
+      401,
+    );
+  });
+
   test("every app response is no-store and noindex", async () => {
     const { app, db } = await createApp();
     const { jar } = await reviewer(app, db);

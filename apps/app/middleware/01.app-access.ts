@@ -13,6 +13,8 @@ function isOpen(method: string, path: string) {
   if (path === "/api/auth" || path.startsWith("/api/auth/")) return true;
   if (OPEN_PATHS.has(path)) return true;
   if (method !== "GET" && method !== "HEAD") return false;
+  // The platform favicon is public, including before sign-in.
+  if (path === "/favicon.svg") return true;
   // Hash-named build code only. It contains no records.
   if (path.startsWith("/assets/")) return true;
   // The dev server sends source modules such as /pages/sign-in.tsx through the

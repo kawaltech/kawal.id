@@ -1,5 +1,11 @@
 # Phase 2: Core Data Structure - Implementation Plan
 
+> Historical plan. Its React Router, Google Sheets, category, and report tasks
+> are not current requirements. Use the [contributor guide](../index.md),
+> [ADR 0004](../adr/0004-void-static-deployment.md),
+> [ADR 0007](../adr/0007-reliable-data-before-playback.md), and
+> [GitHub Issues](https://github.com/kawaltech/kawal.id/issues) for current work.
+
 ## Overview
 
 Phase 2 focuses on building the core data management infrastructure for the
@@ -82,9 +88,7 @@ export function getCategoryBySlug(slug: string): Category | undefined;
 export function getUncategorizedCategory(): Category;
 
 // Category utilities
-export function createCategoriesRecord(
-  categories: Categories,
-): CategoriesRecord;
+export function createCategoriesRecord(categories: Categories): CategoriesRecord;
 export function getCategoryReportCounts(): Record<string, number>;
 
 // Validation

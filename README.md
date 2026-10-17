@@ -3,14 +3,33 @@
 A native Void foundation for reviewed fire and smoke information. The public
 preview preserves the selected map-and-table design, option B. All data is
 synthetic. The app has Google-only sign-in and invitation-based reviewer
-access for local checks. It is not deployed. Private report drafts and
-review have a local implementation. Public reports, live ingestion,
-publication, withdrawal, and media workflows are not implemented.
+access. App staging is deployed, but this is not a production reporting
+service. Private drafts and two-person review were merged in
+[PR #1](https://github.com/kawaltech/kawal.id/pull/1); that workflow is not
+deployed to app staging. Live ingestion, public reports, publication,
+withdrawal, and media workflows are not implemented.
 
 Read [ADR 0004](docs/adr/0004-void-static-deployment.md) for the full Void decision,
 [ADR 0002](docs/adr/0002-static-publication.md) for static publication and withdrawal,
 [ADR 0003](docs/adr/0003-map-and-table-public-design.md) for design, and the
 [operations guide](docs/operations.md) before adding features.
+
+## Contribute and find work
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow and
+[docs/index.md](docs/index.md) for current decisions and remaining work in
+[GitHub Issues](https://github.com/kawaltech/kawal.id/issues).
+The [local development guide](docs/development.md) explains credential-free
+startup and the test-only auth substitute. A copy-ready
+[agent handoff prompt](docs/contributor-handoff.md) is also available.
+
+Use [SECURITY.md](SECURITY.md) for private vulnerability reports. The repository
+is being prepared for open-source publication. Project code is licensed under
+the [MIT License](LICENSE); third-party material keeps its own terms. The final
+disclosure and security-reporting checks are not complete. See the
+[readiness gates](docs/open-source-readiness.md) and
+[third-party notices](THIRD_PARTY_NOTICES.md). The software license does not
+authorize access to private records or grant rights to future report content.
 
 ## Structure
 

@@ -41,7 +41,8 @@ export async function buildApp(source = join(repository, "apps/app")): Promise<A
   await cp(join(repository, "app"), join(directory, "app"), { recursive: true });
   await symlink(join(repository, "apps/app/node_modules"), join(target, "node_modules"), "dir");
   await symlink(join(repository, "node_modules"), join(directory, "node_modules"), "dir");
-  await run("bash", ["-lc", "vp build"], {
+  // A second login shell can lose the toolchain PATH outside the checkout.
+  await run(process.execPath, [join(repository, "node_modules/vite-plus/bin/vp"), "build"], {
     cwd: target,
     // Vitest sets NODE_ENV=test, and Vite then keeps import.meta.env.DEV true.
     // Build exactly as a deployment does.

@@ -1,0 +1,34 @@
+name: Task proposal
+description: Agree one bounded task before implementation.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read CONTRIBUTING.md and the active ADRs first. Search existing issues and PRs.
+        A proposal is not approved scope or permission for remote operations.
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome and reason
+      description: Explain who needs this change and why. Link related issues and decisions.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and limits
+      description: State what is included, what is excluded, and any dependencies.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance checks
+      description: Give observable results and synthetic checks that establish success.
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Ownership and approvals
+      description: Name a proposed contributor, overlapping work, and any license, privacy, migration, or remote-action decisions. Wait for maintainer agreement before implementation.

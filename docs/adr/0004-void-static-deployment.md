@@ -42,8 +42,9 @@ in separate storage boundaries. Future migrations must support overlapping
 application versions. Review D1 batch/transaction behavior, backup retention,
 Time Travel, and full database-plus-media restoration before accepting reports.
 The root `migrations/0001-users.sql` is an immutable historical file, not an
-app D1 migration. Native auth and reviewer migrations are in
-`apps/app/db/migrations/`; no report schema exists yet. Keep D1 read
+app D1 migration. Native auth, reviewer access, and private report migrations
+are in `apps/app/db/migrations/`. The report migration is merged but is not
+applied to staging. Keep D1 read
 replication off for the app database
 ([ADR 0006](0006-d1-read-replication-off.md)).
 

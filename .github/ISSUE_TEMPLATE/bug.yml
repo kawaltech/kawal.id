@@ -1,0 +1,29 @@
+name: Bug report
+description: Report a problem with synthetic reproduction steps.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not put secrets, personal data, real reports, or private media here.
+        Use SECURITY.md for a suspected vulnerability. Do not test shared services without approval.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: State the result you expected and the result you got.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How can we reproduce it locally?
+      description: Give the revision, commands, and minimal synthetic input. Do not include cookies or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and checks
+      description: Give the OS, pinned tool versions, and relevant check results. Remove private data from logs.
+    validations:
+      required: true

@@ -12,14 +12,14 @@ jobs:
       group: kawal-public-${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main' || github.run_id }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
       - run: npm install --global pnpm@10.11.0
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.node-version') }}
@@ -51,7 +51,7 @@ jobs:
           curl --fail --retry 15 --retry-delay 1 --retry-all-errors --max-time 5 http://127.0.0.1:8080/ > /dev/null
           node scripts/check-public.mjs http://127.0.0.1:8080
       - name: Check whether the pushed range needs public deployment
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.repository == 'kawaltech/kawal.id' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: changes
         env:
           PUSH_BEFORE: ${{ github.event.before }}
@@ -62,7 +62,7 @@ jobs:
             echo "Documentation-only push: checks passed; skip public deployment."
           fi
       - name: Check that this is still the latest main revision
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.repository == 'kawaltech/kawal.id' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: latest
         run: |
           latest="$(git ls-remote origin refs/heads/main | cut -f1)"
@@ -80,7 +80,7 @@ jobs:
             fi
           fi
       - name: Deploy the checked public preview
-        if: steps.latest.outputs.current == 'true' && steps.changes.outputs.deploy == 'true'
+        if: github.repository == 'kawaltech/kawal.id' && steps.latest.outputs.current == 'true' && steps.changes.outputs.deploy == 'true'
         id: deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -112,7 +112,7 @@ jobs:
           console.log(`Public Worker version: ${version}`);
           NODE
       - name: Check the deployed version and public files on both hosts
-        if: steps.latest.outputs.current == 'true' && steps.changes.outputs.deploy == 'true'
+        if: github.repository == 'kawaltech/kawal.id' && steps.latest.outputs.current == 'true' && steps.changes.outputs.deploy == 'true'
         env:
           EXPECTED_VERSION: ${{ steps.deploy.outputs.version }}
         run: |

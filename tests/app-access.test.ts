@@ -992,11 +992,15 @@ describe("response policy", () => {
 
 describe("production build boundary", () => {
   test("reject a non-production app build before it can expose dev behavior", () => {
-    const result = spawnSync("bash", ["-lc", "vp build"], {
-      cwd: join(build.directory, "apps/app"),
-      env: { ...process.env, NODE_ENV: "test" },
-      encoding: "utf8",
-    });
+    const result = spawnSync(
+      process.execPath,
+      [join(build.directory, "node_modules/vite-plus/bin/vp"), "build"],
+      {
+        cwd: join(build.directory, "apps/app"),
+        env: { ...process.env, NODE_ENV: "test" },
+        encoding: "utf8",
+      },
+    );
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("App builds require NODE_ENV=production.");
   });

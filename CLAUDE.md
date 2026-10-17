@@ -18,7 +18,9 @@ login shell (`bash -lc`) in orbs.
 ## Boundaries
 
 - Read `CONTEXT.md`, ADR 0002, ADR 0003, and ADR 0004 first. ADR 0001's stack and
-  ADR 0005's separate proposal are superseded. `docs/index.md` is historical.
+  ADR 0005's separate proposal are superseded. `docs/index.md` lists current
+  guidance and preserves the historical plan below it. Follow its contributor
+  workflow; keep task status and file ownership in GitHub Issues.
 - Use the full native Void stack, with two targets in this repository. Do not
   restore React Router, Docker/Kamal, or local production SQLite/WAL management.
 - Keep `apps/public` static-only: no API routes, auth, middleware, crons, queues,

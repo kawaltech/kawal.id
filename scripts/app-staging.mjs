@@ -85,8 +85,8 @@ async function preflight(commit, root) {
   assert.ok(files.length > 0, "Commit the generated auth and reviewer migrations");
   const journal = JSON.parse(readFileSync(join(migrations, "meta/_journal.json"), "utf8"));
   assert.deepEqual(
-    journal.entries.map((entry) => `${entry.tag}.sql`).sort(),
-    [...files].sort(),
+    journal.entries.map((entry) => `${entry.tag}.sql`).sort((a, b) => a.localeCompare(b)),
+    [...files].sort((a, b) => a.localeCompare(b)),
     "Each migration must have one journal entry",
   );
   const schema = files.map((name) => readFileSync(join(migrations, name), "utf8")).join("\n");

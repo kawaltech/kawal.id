@@ -48,7 +48,7 @@ function httpsOrigin(value: string | undefined) {
 // where `import.meta.env` does not exist.
 const isDevelopment = import.meta.env?.DEV === true;
 
-export default defineAuth(({ defaults, env }) => {
+export default defineAuth(({ defaults, env, request }) => {
   // A deployed Worker uses only the configured origin for callbacks, redirects and
   // origin checks. Development uses the request origin.
   const deployedOrigin = httpsOrigin(readString(env, "AUTH_BASE_URL"));
@@ -56,7 +56,7 @@ export default defineAuth(({ defaults, env }) => {
   const clientId = readString(env, "AUTH_GOOGLE_CLIENT_ID");
   const clientSecret = readString(env, "AUTH_GOOGLE_CLIENT_SECRET");
   const googleReady = Boolean(clientId && clientSecret && (isDevelopment || origin));
-  const baseURL = origin ?? String(defaults.baseURL);
+  const baseURL = origin ?? new URL(request.url).origin;
 
   return {
     ...defaults,

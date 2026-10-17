@@ -6,7 +6,7 @@ Do not put secrets or private records in the prompt.
 
 ```text
 Work on kawaltech/kawal.id as a contributor. First read CLAUDE.md,
-CONTRIBUTING.md, README.md, docs/index.md, and CONTEXT.md. Follow the active
+CONTRIBUTING.md, README.md, MANIFESTO.md, docs/index.md, and CONTEXT.md. Follow the active
 ADRs; older plans are historical. Use ASD-STE100 for English prose.
 
 Check the actual branch, origin/main, working tree, and latest issue and PR
@@ -32,6 +32,10 @@ media have separate release gates. A private approval is not publication.
 
 Make the smallest change that meets the agreed issue. Add regression tests for
 observable behavior. Do not change shared files without coordinating ownership.
+Prefer inferred return types and clear code. Keep explicit types at necessary
+contracts; do not hide errors with assertions. Fix recurring mistakes in code
+first, then static checks, then short instructions. Use focused review for
+judgment calls. Reuse shared design tokens, not synthetic fixtures in the app.
 Never expose secrets, personal data, real reports, cookies, or private media in
 source, issues, logs, evidence, or prompts. Follow SECURITY.md for vulnerabilities.
 

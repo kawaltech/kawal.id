@@ -474,7 +474,7 @@ describe("report workflow", () => {
       act(app, `/reports/${id}?decide`, one.jar, body("approve")),
       act(app, `/reports/${id}?decide`, two.jar, body("reject")),
     ]);
-    expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+    expect(responses.map((response) => response.status).sort((a, b) => a - b)).toEqual([200, 409]);
     const reviews = await rows<{ decision: string }>(db, "SELECT decision FROM report_reviews");
     expect(reviews).toHaveLength(1);
     const decisionEvents = (await events(db, id)).filter((event) =>

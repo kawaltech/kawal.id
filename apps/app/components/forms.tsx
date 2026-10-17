@@ -17,14 +17,14 @@ type Fields = Record<string, string>;
 
 type ActionForm<T extends Fields> = {
   data: T;
-  setData<K extends keyof T & string>(field: K, value: T[K]): void;
+  setData: <K extends keyof T & string>(field: K, value: T[K]) => void;
   errors: Partial<Record<keyof T & string, string>>;
   error: VoidActionError | null;
   pending: boolean;
-  post(formData: FormData): void;
-  put(formData: FormData): void;
-  patch(formData: FormData): void;
-  delete(formData: FormData): void;
+  post: (formData: FormData) => void;
+  put: (formData: FormData) => void;
+  patch: (formData: FormData) => void;
+  delete: (formData: FormData) => void;
 };
 
 /**

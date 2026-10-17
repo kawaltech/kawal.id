@@ -33,6 +33,20 @@ Use existing patterns and the smallest change that meets the agreed scope.
 Add tests for observable behavior. For a UI change, inspect the affected states
 at a wide and narrow width; attach safe screenshots or an interaction clip.
 
+Make code explain its rules through clear names and small, coherent functions.
+Prefer inferred return types. Use explicit types at contracts that need them;
+do not add assertions to hide a type error. `pnpm typecheck` runs native Vite+
+compiler checks, and `pnpm lint` runs type-aware rules with warnings as failures.
+
+Fix a recurring agent mistake in the code or contract first, then add a static
+check where practical. Add instructions only for rules that code cannot express.
+Use focused review for the remaining judgment calls, not a second rule book.
+
+Reuse the design tokens in `app/design/kawal.css` and follow ADR 0003. The private
+app must not import synthetic design data or fixture-coupled UI; lint checks
+these direct imports. This check does not prove visual consistency. Keep visual
+review evidence for UI changes; propose a design change before implementation.
+
 ## Send a pull request
 
 1. Fork the repository or use a permitted branch. Do not work on `main`.

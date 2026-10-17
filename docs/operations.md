@@ -2,7 +2,8 @@
 
 This is a native Void development foundation and synthetic design review.
 App sign-in and reviewer access have local implementations. Live Google
-and app deployment checks are not complete. Reports, ingestion,
+and app deployment checks are not complete. Private report drafts and
+review have a local implementation (ADR 0008). Public reports, ingestion,
 publication, withdrawal, and media workflows are not implemented.
 The user approved automatic public-preview deployment from main.
 App deployment and unrelated shared infrastructure changes need approval.

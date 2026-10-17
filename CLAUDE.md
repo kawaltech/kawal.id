@@ -52,7 +52,8 @@ This is a native foundation and synthetic design review, not a reporting product
 App sign-in, sessions, and reviewer access have local implementations.
 App staging is deployed at `app.kawal.id`. The owner's admin invitation, live
 Google sign-in, protected access, and sign-out checks passed. See
-`docs/app-staging.md`. Reports,
+`docs/app-staging.md`. Private report drafts and two-person review have a local
+implementation (ADR 0008); they are not applied to staging. Public reports,
 ingestion, publication, withdrawal, and media workflows are not implemented.
 Do not claim their production checks passed.
 

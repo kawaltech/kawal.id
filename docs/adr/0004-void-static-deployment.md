@@ -43,7 +43,9 @@ application versions. Review D1 batch/transaction behavior, backup retention,
 Time Travel, and full database-plus-media restoration before accepting reports.
 The root `migrations/0001-users.sql` is an immutable historical file, not an
 app D1 migration. Native auth and reviewer migrations are in
-`apps/app/db/migrations/`; no report schema exists yet.
+`apps/app/db/migrations/`; no report schema exists yet. Keep D1 read
+replication off for the app database
+([ADR 0006](0006-d1-read-replication-off.md)).
 
 Use native Void authentication. Explicitly allow only
 Google; disable email/password and account linking. Require an invitation or

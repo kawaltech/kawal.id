@@ -9,7 +9,7 @@
     "dev:app": "pnpm --filter @kawal/app dev",
     "public:serve": "caddy run --config config/Caddyfile --adapter caddyfile",
     "deploy:preview": "pnpm --filter @kawal/public deploy",
-    "typecheck": "tsc",
+    "typecheck": "vp check --no-fmt --no-lint",
     "test": "vp test run",
     "lint": "vp lint --deny-warnings",
     "format": "vp fmt",

@@ -224,8 +224,8 @@ describe("database-wide restore drill (local model, synthetic)", () => {
     expect(
       result.violations["report state agrees with its current revision and review"]
         .map((row) => row.id)
-        .sort(),
-    ).toEqual([ids.approved, ids.rejected].sort());
+        .sort((a, b) => String(a).localeCompare(String(b))),
+    ).toEqual([ids.approved, ids.rejected].sort((a, b) => a.localeCompare(b)));
   }, 120_000);
 
   test("a restore returns every table to the restore point and keeps integrity controls", async () => {

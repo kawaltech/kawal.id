@@ -1,25 +1,33 @@
 # Open-source readiness
 
-Status: preparation in progress. The repository is still private. This record
-does not authorize a visibility change, merge, or deployment. The owner approved
-MIT licensing and a readiness-branch push with a draft PR.
+Status: the owner authorized open-source publication on 17 October 2026.
+The readiness changes were merged in [PR #7](https://github.com/kawaltech/kawal.id/pull/7).
+The repository is still private pending the visibility change and private
+vulnerability reporting setup. Publication does not authorize app deployment,
+remote migrations, real-data intake, or shared-history changes.
+
+The authorized visibility-change request returned HTTP 403, `Resource not
+accessible by integration`. A follow-up API read confirmed `private: true`.
+The owner must change visibility in GitHub Settings, then enable private
+vulnerability reporting. Do not infer setting-write permission from the API's
+`admin: true` repository permission field. No alternate credential was used.
 
 ## Publication gates
 
-| Gate                      | State and next action                                                                                                                                                                                                                                      |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Project license           | MIT approved by the owner. The root `LICENSE` and all three workspace manifests record it. Third-party material keeps its own terms.                                                                                                                       |
-| Contributor entry point   | `CONTRIBUTING.md`, the document index, local development guide, issue forms, PR template, and agent handoff prompt are prepared on this branch. GitHub Issues remain the backlog.                                                                          |
-| Security reporting        | `SECURITY.md` is prepared. Confirm a working private reporting channel before publication. The API read returned 404; it did not establish that private reporting is enabled.                                                                              |
-| Third-party rights        | Retain the Cukup MIT notice for adapted CSS. Review dependency notices for each distributed bundle, not only repository source.                                                                                                                            |
-| History disclosure        | Owner review required for Git author metadata, internal Amp links, and the real-access timing record in `docs/app-staging.md`. Removing a current link does not remove it from history.                                                                    |
-| Historical sample data    | Owner must confirm provenance and approve disclosure of historical `app/data/reports.json`, introduced at `62b3ec3`. The history calls it dummy data, but it describes allegations at real places. Do not treat that label alone as proof of provenance.   |
-| Hosted material           | A hosted snapshot passed the secret scan below. Disclosure approval, secret scopes, and repository settings still need review. This scan does not prove that the material has no private data.                                                             |
-| Fork workflow             | Canonical-repository guards are prepared for deployment and post-deployment steps. Actions and both Vite+ bootstrap scripts are pinned to source commits. Fork and PR checks need no deployment token. Keep the latest-main and documentation-only guards. |
-| Local development         | Public and app dev passed with cleared credentials, an empty home, and fresh local state. See the checked boundary in `development.md`.                                                                                                                    |
-| Known dependency advisory | The legacy loader's esbuild edge now uses 0.28.2. The dependency audit reports no known vulnerabilities. Migration generation and the full check pass. See the compatibility limits below.                                                                 |
-| Incoming PR listener      | Deferred by the owner. No subscription is installed or required for this readiness PR.                                                                                                                                                                     |
-| Final publication         | Review the final integrated revision and get explicit approval for the visibility change. Code readiness does not grant permission to accept real reports.                                                                                                 |
+| Gate                      | State and next action                                                                                                                                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project license           | MIT approved by the owner. The root `LICENSE` and all three workspace manifests record it. Third-party material keeps its own terms.                                                                                                                     |
+| Contributor entry point   | `CONTRIBUTING.md`, the document index, local development guide, issue forms, PR template, and agent handoff prompt are merged. GitHub Issues remain the backlog.                                                                                         |
+| Security reporting        | GitHub private vulnerability reporting is the selected channel. Repository maintainers receive reports. Enable and verify it when the repository becomes public. The private-repository API returned 404, not proof of enablement.                       |
+| Third-party rights        | Retain the Cukup MIT notice for adapted CSS. Review dependency notices for each distributed bundle, not only repository source.                                                                                                                          |
+| History disclosure        | The owner authorized publication of this repository with its history. This exposes Git author metadata, existing Amp links, and staging timing records. It does not change linked services' access permissions. No history rewrite is planned.           |
+| Historical sample data    | The owner confirmed on 17 October 2026 that historical `app/data/reports.json` is entirely synthetic and safe to publish, including references to real places.                                                                                           |
+| Hosted material           | A hosted snapshot passed the secret scan below. Repository settings and secret scopes remain unverified where the integration lacks permission. This scan does not prove that the material has no private data.                                          |
+| Fork workflow             | Canonical-repository guards are merged for deployment and post-deployment steps. Actions and both Vite+ bootstrap scripts are pinned to source commits. Fork and PR checks need no deployment token. Keep the latest-main and documentation-only guards. |
+| Local development         | Public and app dev passed with cleared credentials, an empty home, and fresh local state. See the checked boundary in `development.md`.                                                                                                                  |
+| Known dependency advisory | The legacy loader's esbuild edge now uses 0.28.2. The dependency audit reports no known vulnerabilities. Migration generation and the full check pass. See the compatibility limits below.                                                               |
+| Incoming PR listener      | Deferred by the owner. No subscription is installed or required for this readiness PR.                                                                                                                                                                   |
+| Final publication         | The owner authorized the visibility change. Verify public source access, the MIT license, contributor links, and private vulnerability reporting after the change. Real reports remain blocked.                                                          |
 
 Do not rewrite shared history without an approved plan. If disclosure is not
 acceptable, agree a history-removal or clean-public-history plan before making
@@ -110,9 +118,20 @@ review separate from secret detection.
 - The Cukup notice is included in both targets. Keep distribution-specific
   dependency notice review as a separate gate.
 
-These changes need review and merge before they are part of default-branch
-clones. No repository visibility, workspace membership, listener, or remote
-application resource changed during the local checks.
+These changes are merged and available in default-branch clones. No repository
+visibility, workspace membership, listener, or remote application resource
+changed during the local checks.
+
+## Public deployment evidence
+
+The main workflow after [PR #8](https://github.com/kawaltech/kawal.id/pull/8)
+[passed](https://github.com/kawaltech/kawal.id/actions/runs/39047429801).
+Both controlled public hosts passed the expected-version and full static HTTP
+checks. The active public version is `c8ea92cb-d755-4d66-b46d-e66028ab3bcb`.
+Native readiness logs show the old healthy version on attempts 1–3 and the
+candidate on attempt 4. This proves routing delay in this run, not the cause
+of the earlier failed run. The safe diagnostic patch changes no readiness
+budget, version check, activation, or restoration rule. App staging is unchanged.
 
 ## PR listener
 

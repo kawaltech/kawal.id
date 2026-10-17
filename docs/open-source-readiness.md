@@ -2,15 +2,18 @@
 
 Status: the owner authorized open-source publication on 17 October 2026.
 The readiness changes were merged in [PR #7](https://github.com/kawaltech/kawal.id/pull/7).
-The repository is still private pending the visibility change and private
-vulnerability reporting setup. Publication does not authorize app deployment,
+The owner made the repository public. An unauthenticated API read confirms
+`private: false`, `visibility: public`, default branch `main`, and license `MIT`.
+The unauthenticated repository page returns HTTP 200. Private vulnerability
+reporting remains disabled. Publication does not authorize app deployment,
 remote migrations, real-data intake, or shared-history changes.
 
 The authorized visibility-change request returned HTTP 403, `Resource not
-accessible by integration`. A follow-up API read confirmed `private: true`.
-The owner must change visibility in GitHub Settings, then enable private
-vulnerability reporting. Do not infer setting-write permission from the API's
-`admin: true` repository permission field. No alternate credential was used.
+accessible by integration`; the owner completed that change in GitHub Settings.
+The private-reporting enable request also returned HTTP 403, and a follow-up API
+read returned `enabled: false`. The owner must enable **Private vulnerability
+reporting** under Settings → Advanced Security. Do not infer setting-write
+permission from `admin: true`. No alternate credential was used.
 
 ## Publication gates
 
@@ -18,7 +21,7 @@ vulnerability reporting. Do not infer setting-write permission from the API's
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Project license           | MIT approved by the owner. The root `LICENSE` and all three workspace manifests record it. Third-party material keeps its own terms.                                                                                                                     |
 | Contributor entry point   | `CONTRIBUTING.md`, the document index, local development guide, issue forms, PR template, and agent handoff prompt are merged. GitHub Issues remain the backlog.                                                                                         |
-| Security reporting        | GitHub private vulnerability reporting is the selected channel. Repository maintainers receive reports. Enable and verify it when the repository becomes public. The private-repository API returned 404, not proof of enablement.                       |
+| Security reporting        | GitHub private vulnerability reporting is the selected channel. The public-repository API reports `enabled: false`; the enable request returned 403. The owner must enable it in Settings → Advanced Security.                                           |
 | Third-party rights        | Retain the Cukup MIT notice for adapted CSS. Review dependency notices for each distributed bundle, not only repository source.                                                                                                                          |
 | History disclosure        | The owner authorized publication of this repository with its history. This exposes Git author metadata, existing Amp links, and staging timing records. It does not change linked services' access permissions. No history rewrite is planned.           |
 | Historical sample data    | The owner confirmed on 17 October 2026 that historical `app/data/reports.json` is entirely synthetic and safe to publish, including references to real places.                                                                                           |
@@ -27,7 +30,7 @@ vulnerability reporting. Do not infer setting-write permission from the API's
 | Local development         | Public and app dev passed with cleared credentials, an empty home, and fresh local state. See the checked boundary in `development.md`.                                                                                                                  |
 | Known dependency advisory | The legacy loader's esbuild edge now uses 0.28.2. The dependency audit reports no known vulnerabilities. Migration generation and the full check pass. See the compatibility limits below.                                                               |
 | Incoming PR listener      | Deferred by the owner. No subscription is installed or required for this readiness PR.                                                                                                                                                                   |
-| Final publication         | The owner authorized the visibility change. Verify public source access, the MIT license, contributor links, and private vulnerability reporting after the change. Real reports remain blocked.                                                          |
+| Final publication         | Public repository access, `main`, and the MIT license are verified without credentials. The checked local contributor links resolve. Private vulnerability reporting remains an owner setting task. Real reports remain blocked.                         |
 
 Do not rewrite shared history without an approved plan. If disclosure is not
 acceptable, agree a history-removal or clean-public-history plan before making

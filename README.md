@@ -24,11 +24,12 @@ startup and the test-only auth substitute. A copy-ready
 [agent handoff prompt](docs/contributor-handoff.md) is also available.
 
 Use [SECURITY.md](SECURITY.md) for private vulnerability reports. The repository
-is being prepared for open-source publication; the project license and final
-disclosure review are not complete. See the
+is being prepared for open-source publication. Project code is licensed under
+the [MIT License](LICENSE); third-party material keeps its own terms. The final
+disclosure and security-reporting checks are not complete. See the
 [readiness gates](docs/open-source-readiness.md) and
-[third-party notices](THIRD_PARTY_NOTICES.md). No open-source license is granted
-by this README.
+[third-party notices](THIRD_PARTY_NOTICES.md). The software license does not
+authorize access to private records or grant rights to future report content.
 
 ## Structure
 

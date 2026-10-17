@@ -111,8 +111,16 @@ token to this account and zone. Never enter the token in chat. The workflow
 fails explicitly if the secret is absent.
 
 Main runs share one concurrency group and are not cancelled in progress. Before
-deployment, each run checks that its commit is still main's head. This skips
-superseded queued commits. The workflow uses `--skip-build` to upload the output
+deployment, each run checks the complete pushed range with
+`scripts/check-public-changes.mjs`. It skips deployment and post-deploy checks
+only when every changed path is under `docs/`, or is a Markdown file outside
+`apps/` and `app/`. All local checks still run. Mixed pushes, code renames into
+docs, and missing history require deployment.
+
+The latest-main guard rejects a checked revision when newer code exists. If
+only documentation follows it, the checked code can still deploy. This prevents
+a docs-only push from cancelling a pending code deployment while also skipping
+its own deployment. The workflow uses `--skip-build` to upload the output
 that passed the completeness guard, not a second unchecked build. Only the
 deployment step receives the token. Normal orb checks need no token.
 

@@ -77,7 +77,9 @@ The root `migrations/0001-users.sql` is historical and is not applied.
 The user approved public-only deployment after checks pass on a push to `main`.
 GitHub Actions checks both targets, tests static reads with the app stopped,
 then deploys only the checked public output. Pull requests do not deploy.
-Main deployments cannot overlap; a superseded revision is skipped. Post-deploy
+Documentation-only pushes also run checks, but skip deployment. This exception
+never includes paths under `apps/` or `app/`. Main deployments cannot overlap;
+a revision superseded by code is skipped. Post-deploy
 checks require the exact active Worker version on `kawal.id` and Workers.dev.
 
 The workflow needs the repository Actions secret `CLOUDFLARE_API_TOKEN`.

@@ -128,8 +128,9 @@ async function preflight(commit, root) {
     console.log("Existing lock: it matches the pinned D1 database and R2 bucket.");
   } else {
     console.log(
-      `First deployment: Void creates BETTER_AUTH_SECRET and publishes on https://${staging.host} ` +
-        "before readiness. No previous version exists for rollback.",
+      "No local lock: this does not show whether the Worker is deployed. " +
+        `If it does not exist, Void creates BETTER_AUTH_SECRET and publishes on https://${staging.host} ` +
+        "before readiness, with no previous version for rollback.",
     );
   }
   console.log(

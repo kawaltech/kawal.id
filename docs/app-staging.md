@@ -1,10 +1,23 @@
 # App staging preparation
 
-This document prepares a manual staging deployment of `apps/app` to
-`https://app.kawal.id`. It is preparation only. Nobody has approved the
-deployment, the Google OAuth client, the new D1/R2 resources, the secrets, or
-the DNS change. Do not run the remote commands in this document before you get
-approval for each gate.
+This document describes manual staging deployment of `apps/app` to
+`https://app.kawal.id`. The first deployment and secret writes were approved
+and completed from commit
+[`9996920`](https://github.com/kawaltech/kawal.id/commit/9996920478e4090ebadd3e77e55ef03127ba1e70).
+Each new remote action still needs approval for its gate.
+
+The deployment operator reported these measured results:
+
+- Two migrations applied. The first version was
+  `b9eb8c8b-12cc-4977-a284-9c19315b82ef`.
+- After the secret writes, version `23afa2e5-2f73-4765-b749-d5da40cce9be`
+  was active at 100%. The staging HTTP check passed for both versions.
+- D1 read replication stayed disabled. D1 has eight tables. D1 and R2 use APAC.
+- Google authorization uses the app callback and PKCE S256. Email sign-in is
+  unavailable. The first admin invitation and live Google sign-in are pending.
+
+This is a deployment record, not a claim that later commits are deployed to
+the app. In particular, this app version precedes the favicon commit.
 
 The public site `kawal.id` stays static and independent. This procedure does not
 change the public Worker, its workflow, or the `www` redirect.
@@ -27,7 +40,7 @@ Do the steps in this order. Stop at the first failure.
 | 5    | Pin the D1 ID and the R2 bucket in `void.config.ts` in a reviewed commit. Repeat gate 2.                                                   | Code                |
 | 6    | `node scripts/app-staging.mjs preflight <commit>` passes on that final commit.                                                             | Local, no network   |
 | 7    | Approval: register the Google OAuth client for the staging callback.                                                                       | External (Google)   |
-| 8    | Approval: create the Worker secrets.                                                                                                       | Cloudflare write    |
+| 8    | Approval: write the Worker secrets through the Cloudflare API after the first deployment.                                                  | Cloudflare write    |
 | 9    | Approval: apply migrations, attach `app.kawal.id`, and deploy. Accept that the first version is live before readiness and has no rollback. | Cloudflare and DNS  |
 | 10   | `node scripts/check-app-staging.mjs` passes with the new version ID.                                                                       | Read-only HTTP      |
 | 11   | Approval: write the first reviewer invitation to remote D1.                                                                                | Cloudflare D1 write |
@@ -36,6 +49,10 @@ The preflight fails on purpose until gates 3-5 are complete. It requires the
 pinned D1 database, the pinned R2 bucket, and the exact `migrations_dir`. This
 blocker prevents a deployment that provisions resources. Provisioning turns on
 D1 read replication (see [D1 and R2 before deployment](#d1-and-r2-before-deployment)).
+
+Gate 8 records approval before gate 9. On the first deployment, execute its
+secret writes after gate 9, then run gate 10 on the final active version.
+Until those secrets exist, Google sign-in stays disabled.
 
 An approval covers only the actions it names. One approval can cover several
 named gates. Record the approval with the commit SHA. Do not run a manual
@@ -112,8 +129,12 @@ state.
    no resource. See the next section for the exact conditions. If a pin is
    missing, Void creates or adopts the resources with no prompt (`:4792`),
    and it turns on D1 read replication. The preflight blocks that case.
-3. Builds the Worker again with `vite build` (`:4069`), which is the Vite+ core
-   alias in this workspace. `--skip-build` is not available for a Worker app
+3. Builds the Worker again through `resolveProjectCommand(root, "vite build")`
+   (`:4069`). The app package declares `vite-plus`, so Void selects its local
+   `vp build`. A `vite` package alias alone does not select `vp`. The first
+   deployment needed a temporary `vite` shim because that declaration was
+   absent. `inference.build` is ignored on this native server path in 1.1.11;
+   do not use it as the fix. `--skip-build` is not available for a Worker app
    (`:4547`). The native build adds the `__VOID_VERSION_METADATA` binding
    (`dist/version-metadata-B1Bm2wSq.mjs:54`, `:70`). Thus `/__void/ready`
    returns `versionId`.
@@ -132,11 +153,12 @@ state.
    Custom Domain, and checks readiness. See the next section.
 8. Writes `cloudflare_deploy_end` with `worker` and `versionId` to the JSONL log
    in `~/.void/logs/` (`:3318`).
-9. Local write: Void writes `apps/app/void.lock.json`
-   (`dist/cloudflare-config-rdFOys4X.mjs:11`, `:88`, `:140`). This file records
-   the authored `cloudflare` block, the resolved config with the D1 ID, the R2
-   bucket name, and `migrations_dir`. The coordinator must review and commit it
-   before another machine deploys. The lock contains resource IDs, not secrets.
+9. Optional local write: Void can write `apps/app/void.lock.json` when generated
+   settings differ from the authored config, or a lock already exists
+   (`dist/cloudflare-config-rdFOys4X.mjs`). The first deployment wrote no lock:
+   the required resources were already pinned. Do not require or invent one.
+   If a later deployment writes a lock, review its account, resource IDs, and
+   `migrations_dir` before another machine deploys. These are not secrets.
 
 ## D1 and R2 before deployment
 
@@ -249,32 +271,39 @@ Secure entry:
 
 - Do not put a value in chat, Git, a command argument, an environment file in the
   repository, or a CI log.
-- Enter each value at the masked prompt of `void secret put <NAME>` in a
-  terminal. Do not use `void secret put NAME=value`.
+- Use an approved secret store with the Cloudflare Workers secrets API, or the
+  dashboard's secret entry fields. Do not log request bodies or values.
 - Use your own workstation. Do not paste values into an orb.
 - Do not extract connected or MCP credentials for this procedure.
 
-`void secret` and `void db execute --remote` need `platform: "cloudflare"` in
-`apps/app/.void/project.json` (`dist/secret-CClHaFxm.mjs:56`). This file
-is local and Git ignores it. `void connect --platform cloudflare` writes it and
-signs in through the browser.
+`void secret put` refuses to run without an `env.ts` that registers a schema
+with `defineEnv()`. This app has no `env.ts`. The measured error was
+`env.ts is required before setting production values`. Do not use that command
+for this procedure or add an empty schema as a workaround.
 
-Set the three Google and base URL secrets before the first deployment. On a
-missing Worker, a secret write makes a placeholder draft Worker that returns an
-empty response. Void recognizes this draft (`VOID_SECRET_DRAFT_SOURCE` and
-`isVoidSecretOnlyDraft` in `@void/deploy-cloudflare/dist/index.mjs`) and
-replaces it with the first bootstrap (`:1309`, `:1423`). This path is from
-source only; no live test has examined it. The draft can briefly answer on
-`workers.dev` until the first deployment applies `workers_dev: false`. The first version is
-then checked with all secrets present. If you set secrets after a deployment,
-each write makes a new active version without a Void readiness check. Then get
-the active version with `void project status` and run gate 10 again.
+The first deployment creates `BETTER_AUTH_SECRET`. After it completes, write
+the three Google and base URL secrets through the Cloudflare Workers secrets
+API, as in the approved first deployment. Each write makes a new active
+version without a Void readiness check. Read the final active version from
+Cloudflare or `void project status`, then run gate 10 with that version ID,
+not the earlier deploy-log ID. Do not replace `BETTER_AUTH_SECRET` as part of
+these three writes.
+
+On later deployments, keep the existing secrets unless a separate approval
+permits a change. Do not repeat the first-deployment secret writes by default.
+
+`void db execute --remote` needs `platform: "cloudflare"` in
+`apps/app/.void/project.json`. This file is local and Git ignores it.
 
 ## Cloudflare authentication
 
 Use the browser flow (`void connect --platform cloudflare`) on the operator's
 workstation, or a scoped API token in a secret store. If you use a token,
 restrict it to account `1d60533bd63392b6dc25160f907c4f76` and zone `kawal.id`.
+Set an expiry date. `void connect` with a token failed in the measured
+non-interactive shell. For a token-backed deployment, create the local project
+file directly, as shown below. This selects the platform; it does not sign in
+or grant remote access. Never copy MCP credentials into the CLI.
 The public deployment passed with Account Workers Scripts Edit, Account Settings
 Read, Zone Workers Routes Edit, User Details Read, and Memberships Read. That set
 attached the `kawal.id` Custom Domain. The app deployment also needs D1 Edit
@@ -321,19 +350,26 @@ The preflight makes no network request. It stops if one of these is false:
 A passed preflight is not deployment approval.
 
 ```sh
-# Gate 8, after approval. Interactive, masked prompts.
+# Gate 8: get approval for the three secret writes. Do not write them yet.
 cd apps/app
-pnpm exec void connect --platform cloudflare
-pnpm exec void secret put AUTH_GOOGLE_CLIENT_ID
-pnpm exec void secret put AUTH_GOOGLE_CLIENT_SECRET
-pnpm exec void secret put AUTH_BASE_URL
-pnpm exec void secret list
+# Local platform selection for an approved token-backed deployment.
+# Merge this key if the file already has other settings. Do not overwrite them.
+node --input-type=module <<'NODE'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+const path = '.void/project.json';
+const config = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : {};
+mkdirSync('.void', { recursive: true });
+writeFileSync(path, JSON.stringify({ ...config, platform: 'cloudflare' }, null, 2) + '\n');
+NODE
 
 # Gate 9, after approval. Never add --provision.
 started="$(node -p Date.now())"
-pnpm exec void deploy --platform cloudflare
+NODE_ENV=production pnpm exec void deploy --platform cloudflare
 cd ../..
 version="$(node scripts/app-staging.mjs version "$started")"
+
+# Now execute the approved gate 8 secret writes through the Cloudflare API.
+# Read the final active version ID after those writes and replace $version.
 
 # Gate 10: read-only.
 node scripts/check-app-staging.mjs https://app.kawal.id "$version" \
@@ -342,8 +378,8 @@ node scripts/check-public.mjs https://kawal.id <active-public-version-id>
 ```
 
 After gate 9, read the D1 settings again and confirm that read replication is
-still off. Give `apps/app/void.lock.json` to the coordinator for review
-and commit. Do not commit it from the deployment workstation without review.
+still off. If `apps/app/void.lock.json` was written, give it to the coordinator
+for review. No lock was written by the first deployment.
 
 ## Post-deployment checks
 

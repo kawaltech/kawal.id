@@ -6,30 +6,31 @@ and pull requests for code review. The old plan below is history, not a backlog.
 
 ## Current documents
 
-| Document                                              | Use                                                                         |
-| ----------------------------------------------------- | --------------------------------------------------------------------------- |
-| [README](../README.md)                                | Setup, commands, and repository structure.                                  |
-| [Contributing](../CONTRIBUTING.md)                    | Issue ownership, pull requests, checks, and handoff.                        |
-| [Local development](development.md)                   | Run without a cloud account; auth and test limits.                          |
-| [Security policy](../SECURITY.md)                     | Private vulnerability reporting and supported code.                         |
-| [Open-source readiness](open-source-readiness.md)     | Publication gates and source-audit limits.                                  |
-| [Agent handoff prompt](contributor-handoff.md)        | Initial prompt for a contributor using Opus or another agent.               |
-| [Domain terms](../CONTEXT.md)                         | Shared language for observations, reports, and publication.                 |
-| [ADR 0002](adr/0002-static-publication.md)            | Static public reads, export activation, cache limits, and withdrawal gates. |
-| [ADR 0003](adr/0003-map-and-table-public-design.md)   | Accepted option B map-and-table design.                                     |
-| [ADR 0004](adr/0004-void-static-deployment.md)        | Native Void stack with separate public and app targets.                     |
-| [ADR 0006](adr/0006-d1-read-replication-off.md)       | D1 read replication stays disabled.                                         |
-| [ADR 0007](adr/0007-reliable-data-before-playback.md) | Reliable satellite data before playback; 3D is deferred.                    |
-| [Operations](operations.md)                           | Local services, operating limits, and release controls.                     |
-| [App staging](app-staging.md)                         | Deployment procedure, approval gates, and recorded staging checks.          |
+| Document                                                 | Use                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [README](../README.md)                                   | Setup, commands, and repository structure.                                  |
+| [Contributing](../CONTRIBUTING.md)                       | Issue ownership, pull requests, checks, and handoff.                        |
+| [Local development](development.md)                      | Run without a cloud account; auth and test limits.                          |
+| [Security policy](../SECURITY.md)                        | Private vulnerability reporting and supported code.                         |
+| [Open-source readiness](open-source-readiness.md)        | Publication gates and source-audit limits.                                  |
+| [Agent handoff prompt](contributor-handoff.md)           | Initial prompt for a contributor using Opus or another agent.               |
+| [Domain terms](../CONTEXT.md)                            | Shared language for observations, reports, and publication.                 |
+| [ADR 0002](adr/0002-static-publication.md)               | Static public reads, export activation, cache limits, and withdrawal gates. |
+| [ADR 0003](adr/0003-map-and-table-public-design.md)      | Accepted option B map-and-table design.                                     |
+| [ADR 0004](adr/0004-void-static-deployment.md)           | Native Void stack with separate public and app targets.                     |
+| [ADR 0006](adr/0006-d1-read-replication-off.md)          | D1 read replication stays disabled.                                         |
+| [ADR 0007](adr/0007-reliable-data-before-playback.md)    | Reliable satellite data before playback; 3D is deferred.                    |
+| [ADR 0008](adr/0008-private-report-drafts-and-review.md) | Private drafts, frozen revisions, and two-person review.                    |
+| [Operations](operations.md)                              | Local services, operating limits, and release controls.                     |
+| [App staging](app-staging.md)                            | Deployment procedure, approval gates, and recorded staging checks.          |
 
 The [satellite-release proposal](plans/reliable-satellite-release.md) breaks
 issue #5 into work packages. It is proposed, not accepted implementation scope.
 
-Accepted ADR 0008 and the private report implementation are in
-[PR #1](https://github.com/kawaltech/kawal.id/pull/1). Until that PR merges, read
-[ADR 0008 on its branch](https://github.com/kawaltech/kawal.id/blob/report-review-slice/docs/adr/0008-private-report-drafts-and-review.md).
-Its acceptance is not evidence of a merge, remote migration, or deployment.
+ADR 0008 and the private report implementation were merged in
+[PR #1](https://github.com/kawaltech/kawal.id/pull/1). The report migration is
+not applied to staging, and the report workflow is not deployed there. Merge
+approval does not authorize either operation or real-data intake.
 
 ## Work and ownership
 

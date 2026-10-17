@@ -87,3 +87,24 @@ locked dependencies. The app applied two local migrations, health returned
 200 with `{"status":"ok"}`, the public page returned 200, and Google sign-in
 returned 404. This verifies credential-free runtime startup in a Linux orb,
 not a fresh package download, every host OS, live OAuth, or remote deployment.
+
+A later check on the local readiness branch, based on merged
+[`7b52b3c`](https://github.com/kawaltech/kawal.id/commit/7b52b3cf99ec855b467bb60fb960c5c30e542899),
+used an isolated source copy, an empty home, and an allowlisted environment
+with no provider credentials. This time setup downloaded the pinned tools and
+installed the locked dependencies. Cold setup took 20 seconds; a second run
+took 11 seconds, including 5 seconds for the warm install. Resume took
+0.48 seconds. A clean login shell selected Node.js 24.22.0 and pnpm 10.11.0.
+
+The first `pnpm check` failed because a test's second login shell lost Vite+
+when building outside the checkout. The harness now invokes the installed
+Vite+ CLI with the running Node.js binary, without a second shell.
+The same clean-home check then passed all 101 tests, types, lint, both builds,
+and all five public HTML/JSON pairs.
+
+Both supervised dev servers started. The app applied all three local
+migrations, health returned 200 with `{"status":"ok"}`, and missing-Google
+sign-in returned 404. Public development returned 200 with the app stopped.
+With both dev servers stopped, Caddy passed the complete public HTTP checks.
+No Cloudflare login, account, token, remote migration, or deployment was used.
+This is Linux-orb evidence, not a check of every contributor OS or live OAuth.

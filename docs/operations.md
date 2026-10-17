@@ -1,10 +1,12 @@
 # Foundation operations
 
 This is a native Void development foundation and synthetic design review.
-App sign-in and reviewer access have local implementations. Live Google
-and app deployment checks are not complete. Private report drafts and
-review have a local implementation (ADR 0008). Public reports, ingestion,
-publication, withdrawal, and media workflows are not implemented.
+App sign-in and reviewer access are deployed to staging. The owner's live
+Google sign-in, protected access, and sign-out checks passed; see the
+[staging record](app-staging.md). Private report drafts and two-person review
+were merged in PR #1 (ADR 0008), but are not deployed to staging. Public
+reports, ingestion, publication, withdrawal, and media workflows are not
+implemented.
 The user approved automatic public-preview deployment from main.
 App deployment and unrelated shared infrastructure changes need approval.
 
@@ -90,8 +92,8 @@ Verify both direct requests and native `Link` clicks with the app stopped.
 ## Public preview deployment
 
 The configured public target is `kawal-asap-design-review` in account
-`1d60533bd63392b6dc25160f907c4f76`, with the `kawal.id` custom domain. The app
-target is not deployed. Use separate hosts for the public site and the app.
+`1d60533bd63392b6dc25160f907c4f76`, with the `kawal.id` custom domain. App
+staging is separate at `app.kawal.id`. This workflow does not deploy it.
 
 The first native deployment passed on 16 October 2026:
 [workflow run](https://github.com/kawaltech/kawal.id/actions/runs/38948227220/attempts/2).

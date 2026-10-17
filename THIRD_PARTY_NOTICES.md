@@ -6,10 +6,11 @@
 `service/dashboard/dashboard.css` in
 [Cukup at the referenced revision](https://github.com/zainfathoni/cukup/commit/903a4e137c44e7513bc32365ca9571704d90f7cb).
 The [upstream license](https://github.com/zainfathoni/cukup/blob/903a4e137c44e7513bc32365ca9571704d90f7cb/LICENSE)
-is reproduced in the [public notice file](apps/public/public/third-party-notices.txt).
-The public build copies it to `/third-party-notices.txt`. Keep that file with
-distributed output: CSS compilation removes comments. Keep this source index
-and the full notice with source copies too.
+is reproduced in the [public notice file](apps/public/public/third-party-notices.txt)
+and the [app notice file](apps/app/public/third-party-notices.txt). Both targets
+use the adapted CSS. Each build copies its notice into `dist/client`.
+Keep it with distributed output: CSS compilation removes comments. Keep this
+source index and the full notice with source copies too.
 
 ## Installed dependencies
 

@@ -1,0 +1,47 @@
+diff --git a/dist/index.mjs b/dist/index.mjs
+index f521fd45aa6c16b4f90eecb2f94c1413511b5ad6..32ebbec3133d817a559a8f599d01549ccdc47dfc 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -2167,6 +2167,9 @@ async function probeReadiness(url, workerName, readinessHeaders, authenticatedWo
+ 		const remaining = deadline - Date.now();
+ 		if (remaining <= 0) break;
+ 		let response;
++		let outcome = "http-error";
++		let observedReady = null;
++		let observedVersionId = null;
+ 		try {
+ 			response = await fetcher(url, {
+ 				headers: {
+@@ -2179,9 +2182,29 @@ async function probeReadiness(url, workerName, readinessHeaders, authenticatedWo
+ 			});
+ 			if (response.ok) {
+ 				const body = await response.json();
+-				if (body.ready === true && (expectedVersionId === void 0 || body.versionId === expectedVersionId)) return "ready";
+-			} else if (await isCloudflareAccessDenial(response)) return "access-denied";
+-		} catch {} finally {
++				observedReady = body.ready === true;
++				if (typeof body.versionId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.versionId)) observedVersionId = body.versionId;
++				outcome = body.ready === true ? "version-mismatch" : "not-ready";
++				if (body.ready === true && (expectedVersionId === void 0 || body.versionId === expectedVersionId)) {
++					outcome = "ready";
++					return "ready";
++				}
++			} else if (await isCloudflareAccessDenial(response)) {
++				outcome = "access-denied";
++				return "access-denied";
++			}
++		} catch {
++			outcome = response ? "invalid-response" : "request-error";
++		} finally {
++			console.error(JSON.stringify({
++				msg: "void_readiness_probe",
++				attempt: attempt + 1,
++				status: response?.status ?? null,
++				ready: observedReady,
++				versionId: observedVersionId,
++				expectedVersionId,
++				outcome
++			}));
+ 			if (response && !response.bodyUsed) await response.body?.cancel().catch(() => {});
+ 		}
+ 		if (attempt + 1 < attempts) {

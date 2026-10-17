@@ -134,6 +134,15 @@ The CLI stages and probes the candidate before activation. CI reads this run's
 code assets, report isolation, and missing private paths. See the Actions run
 for the deployed version and check results; a build alone is not deployment proof.
 
+Void 1.1.11 discards failed readiness response details. A pinned pnpm patch to
+`@void/deploy-cloudflare` writes one `void_readiness_probe` JSON record to stderr
+per attempt: attempt number, HTTP status, ready flag, valid returned version UUID,
+expected version, and outcome. It does not log headers, raw response bodies,
+URLs, or exception messages. The existing CLI step captures these records in
+the Actions log on success or failure; no debug flag is needed. Keep the patch
+until an upstream version provides equivalent diagnostics. It does not change
+retry timing, the exact-version requirement, activation, or restoration.
+
 If the CLI or post-deploy checks fail, inspect the active version and both hosts
 before retrying. A post-deploy failure does not automatically undo activation.
 Trigger synchronization after activation is not fully transactional. Do not

@@ -8,6 +8,11 @@ overrides:
   vite: npm:@voidzero-dev/vite-plus-core@1.3.0
   '@esbuild-kit/core-utils@3.3.2>esbuild': 0.28.2
 
+patchedDependencies:
+  '@void/deploy-cloudflare@1.1.11':
+    hash: 6870f6b3af1464eb77cb9806de31e2d9c8091d01c1c879b01377467be504126e
+    path: patches/@void__deploy-cloudflare@1.1.11.patch
+
 importers:
 
   .:
@@ -3332,7 +3337,7 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.2.0
 
-  '@void/deploy-cloudflare@1.1.11':
+  '@void/deploy-cloudflare@1.1.11(patch_hash=6870f6b3af1464eb77cb9806de31e2d9c8091d01c1c879b01377467be504126e)':
     dependencies:
       '@void/deploy-core': 1.1.11
       jsonc-parser: 3.3.1
@@ -4207,7 +4212,7 @@ snapshots:
       '@cloudflare/workers-auth': 0.14.0(vitest@5.0.5)
       '@cloudflare/workers-types': 5.20261016.1
       '@napi-rs/keyring': 2.1.1
-      '@void/deploy-cloudflare': 1.1.11
+      '@void/deploy-cloudflare': 1.1.11(patch_hash=6870f6b3af1464eb77cb9806de31e2d9c8091d01c1c879b01377467be504126e)
       '@void/deploy-core': 1.1.11
       '@void/edge': 1.1.11
       '@void/isr': 1.1.11

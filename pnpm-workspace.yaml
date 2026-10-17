@@ -15,3 +15,5 @@ peerDependencyRules:
 onlyBuiltDependencies:
   - esbuild
   - workerd
+patchedDependencies:
+  "@void/deploy-cloudflare@1.1.11": patches/@void__deploy-cloudflare@1.1.11.patch

@@ -14,10 +14,10 @@ MIT licensing and a readiness-branch push with a draft PR.
 | Third-party rights        | Retain the Cukup MIT notice for adapted CSS. Review dependency notices for each distributed bundle, not only repository source.                                                                                                                            |
 | History disclosure        | Owner review required for Git author metadata, internal Amp links, and the real-access timing record in `docs/app-staging.md`. Removing a current link does not remove it from history.                                                                    |
 | Historical sample data    | Owner must confirm provenance and approve disclosure of historical `app/data/reports.json`, introduced at `62b3ec3`. The history calls it dummy data, but it describes allegations at real places. Do not treat that label alone as proof of provenance.   |
-| Hosted material           | Review issues, PR text, Actions logs/artifacts, secret scopes, and repository settings before visibility changes. The source audit did not cover them.                                                                                                     |
+| Hosted material           | A hosted snapshot passed the secret scan below. Disclosure approval, secret scopes, and repository settings still need review. This scan does not prove that the material has no private data.                                                             |
 | Fork workflow             | Canonical-repository guards are prepared for deployment and post-deployment steps. Actions and both Vite+ bootstrap scripts are pinned to source commits. Fork and PR checks need no deployment token. Keep the latest-main and documentation-only guards. |
 | Local development         | Public and app dev passed with cleared credentials, an empty home, and fresh local state. See the checked boundary in `development.md`.                                                                                                                    |
-| Known dependency advisory | One moderate esbuild advisory needs a supported update or a documented risk decision. See below.                                                                                                                                                           |
+| Known dependency advisory | The legacy loader's esbuild edge now uses 0.28.2. The dependency audit reports no known vulnerabilities. Migration generation and the full check pass. See the compatibility limits below.                                                                 |
 | Incoming PR listener      | Deferred by the owner. No subscription is installed or required for this readiness PR.                                                                                                                                                                     |
 | Final publication         | Review the final integrated revision and get explicit approval for the visibility change. Code readiness does not grant permission to accept real reports.                                                                                                 |
 
@@ -58,14 +58,42 @@ Their state is not verified. An owner must check default token permissions,
 fork approval settings, repository secrets, and protected-branch rules in the
 GitHub UI. Do not infer those settings from the checked-in workflow alone.
 
-The dependency audit reported moderate advisory
+The dependency audit originally reported moderate advisory
 [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99)
-for esbuild 0.18.20 through Void's Drizzle tooling. Vulnerable dev-server use was
-not demonstrated. A fresh audit still reports this advisory, and the registry
-still lists Void 1.1.11 as the latest release. Do not use a forced transitive
-upgrade without checking Void compatibility. Resolve this with a supported
-update or an explicit risk decision before publication. Do not expose a local
-development server to an untrusted network.
+for esbuild 0.18.20 through Void's Drizzle tooling. The affected feature is the
+esbuild development server. The legacy
+[core-utils 3.3.2 source](https://github.com/esbuild-kit/core-utils/blob/v3.3.2/src/transform/index.ts)
+uses `transform`, `transformSync`, and `version`, not the server API. A scoped
+override now makes only `@esbuild-kit/core-utils@3.3.2>esbuild` use 0.28.2, already
+used by the main toolchain. It removes the vulnerable copy from the lockfile;
+it does not suppress the advisory or change Void's version.
+
+This override exceeds the legacy loader's declared esbuild range. Both transform
+APIs and their options remain available. The pinned Node.js 24 meets the newer
+runtime requirement. Local probes through the actual dependency edge passed
+TypeScript transforms, define-style class fields, dynamic import, source maps
+with spaces in the source path, and synchronous CommonJS/`import.meta.url`.
+`void db generate` reported no schema changes. `pnpm check` passed all 101 tests,
+types, lint, both builds, and the five public HTML/JSON pairs. `pnpm audit`
+reported no known vulnerabilities. These are Linux-orb checks, not proof of
+all source syntax or every contributor OS. Review or remove the override when
+Void replaces the deprecated loader. Do not expose a local development server
+to an untrusted network.
+
+The 17 October hosted snapshot contained seven issue/PR records, two PRs,
+fourteen issue comments, logs from twenty-seven workflow runs, and eleven
+retained Docker build artifacts. The artifacts predate the native Void
+migration. Gitleaks 8.30.1 found zero matches in the downloaded text, archived
+logs, and artifact text. The scan included 87 text streams from the artifacts'
+decoded archives, with up to four archive and decoding levels. The scanner
+binary's release checksum was verified before use. The scanner's own release
+files and sample credentials were outside the hosted scan input.
+
+This scan does not validate every binary field or establish permission to
+publish private data. Some issue text and comments contain Amp links. Hosted
+material created after the snapshot and remote settings remain outside this
+check. No artifact, workflow run, or comment was deleted. Keep owner disclosure
+review separate from secret detection.
 
 ## Local readiness evidence
 

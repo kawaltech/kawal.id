@@ -37,3 +37,22 @@ _Avoid_: Deletion of all evidence
 **Guidance**:
 Reviewed advice for a stated audience, with source references and a review date.
 _Avoid_: Personalized medical advice
+
+**Report draft**:
+A field report that its author can still change. Only the author can read the
+open revision.
+_Avoid_: Submission, publication
+
+**Report revision**:
+One numbered version of a report. A submitted revision is frozen.
+_Avoid_: Edit history entry
+
+**Review decision**:
+A decision by a member other than the author on exactly one submitted revision:
+approve, request changes, or reject.
+_Avoid_: Verification of a field report
+
+**Approved revision**:
+A revision whose content a reviewer accepted as accurate and safe. It stays
+private. It is not a publication.
+_Avoid_: Published report, verified evidence

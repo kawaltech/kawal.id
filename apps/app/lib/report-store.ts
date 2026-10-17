@@ -84,7 +84,13 @@ SELECT ?7, ?6, ?3, ?5, 'report.create', ?1, ?2, NULL, 'draft' WHERE ${CHANGED}`,
   ];
 }
 
-/** Save the open revision of the actor's own draft, and with `submit`, freeze it for review. */
+/**
+ * Save the open revision of the actor's own draft, and with `submit`, freeze it
+ * for review. `version` is the open revision's save token. A private save
+ * changes only that revision, so the report row, its version, its time, and
+ * the list order stay the same for other members. A submission is visible, so
+ * it also changes the report row.
+ */
 export function saveStatements(input: {
   actor: ReportActor;
   content: RevisionContent;
@@ -102,27 +108,37 @@ export function saveStatements(input: {
     input.changeId,
     ...contentParams(input.content),
   ];
-  const statements: SqlStatement[] = [
+  const content =
+    "title = ?8, account = ?9, observed_at = ?10, province = ?11, area = ?12, source_channel = ?13, version = version + 1, updated_at = ?6";
+  if (!input.submit) {
+    return [
+      {
+        sql: `UPDATE report_revisions SET ${content}
+WHERE submitted_at IS NULL AND version = ?2 AND id = (
+  SELECT r.current_revision_id FROM reports r
+  WHERE r.id = ?1 AND r.state = 'draft' AND r.author_user_id = ?3 AND ${ACTIVE_GRANT})`,
+        params,
+      },
+    ];
+  }
+  return [
     {
-      sql: `UPDATE reports SET state = ${input.submit ? "'in_review'" : "'draft'"}, version = version + 1, last_change_id = ?7, updated_at = ?6
-WHERE id = ?1 AND state = 'draft' AND version = ?2 AND author_user_id = ?3 AND ${ACTIVE_GRANT}`,
+      sql: `UPDATE reports SET state = 'in_review', version = version + 1, last_change_id = ?7, updated_at = ?6
+WHERE id = ?1 AND state = 'draft' AND author_user_id = ?3 AND ${ACTIVE_GRANT}
+  AND EXISTS (SELECT 1 FROM report_revisions o WHERE o.id = reports.current_revision_id AND o.submitted_at IS NULL AND o.version = ?2)`,
       params,
     },
     {
-      sql: `UPDATE report_revisions SET title = ?8, account = ?9, observed_at = ?10, province = ?11, area = ?12, source_channel = ?13,
-  updated_at = ?6${input.submit ? ", submitted_at = ?6" : ""}
+      sql: `UPDATE report_revisions SET ${content}, submitted_at = ?6
 WHERE submitted_at IS NULL AND id = (SELECT c.current_revision_id FROM reports c WHERE c.id = ?1 AND c.last_change_id = ?7)`,
       params,
     },
-  ];
-  if (input.submit) {
-    statements.push({
+    {
       sql: `INSERT INTO report_audit_events (id, occurred_at, actor_user_id, actor_grant_id, action, report_id, revision_id, from_state, to_state)
 SELECT ?7, ?6, ?3, ?5, 'report.submit', ?1, c.current_revision_id, 'draft', 'in_review' FROM reports c WHERE c.id = ?1 AND c.last_change_id = ?7`,
       params,
-    });
-  }
-  return statements;
+    },
+  ];
 }
 
 /** The author, or an admin, discards a draft. */
@@ -343,7 +359,10 @@ export type ReportSummary = {
 export type ReportView = {
   id: string;
   state: ReportState;
+  /** Changes only with visible events. Decisions and discards name it. */
   version: number;
+  /** The author's save token for the open revision. Null for everyone else. */
+  draftVersion: number | null;
   mine: boolean;
   authorName: string;
   createdAt: string;
@@ -383,6 +402,7 @@ type RevisionRow = {
   province: string | null;
   area: string | null;
   source_channel: SourceChannel | null;
+  version: number;
   created_at: string;
   updated_at: string;
   submitted_at: string | null;
@@ -452,13 +472,12 @@ FROM reports r LEFT JOIN "user" u ON u.id = r.author_user_id WHERE r.id = ?1`,
     reportId,
   );
   if (!report) return null;
-  const allRevisions = (
-    await all<RevisionRow>(
-      db,
-      "SELECT * FROM report_revisions WHERE report_id = ?1 ORDER BY number",
-      reportId,
-    )
-  ).map(toRevision);
+  const revisionRows = await all<RevisionRow>(
+    db,
+    "SELECT * FROM report_revisions WHERE report_id = ?1 ORDER BY number",
+    reportId,
+  );
+  const allRevisions = revisionRows.map(toRevision);
   const mine = report.author_user_id === viewer.userId;
   const submitted = allRevisions.filter((revision) => revision.submittedAt !== null);
   const admin = viewer.role === "admin";
@@ -469,9 +488,12 @@ FROM reports r LEFT JOIN "user" u ON u.id = r.author_user_id WHERE r.id = ?1`,
   const lastSubmitted = submitted.at(-1);
   const shownSource = mine || metadataOnly ? current : lastSubmitted;
   if (!shownSource) return null;
+  // The metadata exception shows the title and the report's own dates. The open
+  // revision's save time is private to the author.
   const shown: RevisionView = metadataOnly
     ? {
         ...shownSource,
+        updatedAt: report.updated_at,
         account: null,
         observedAt: null,
         province: null,
@@ -524,6 +546,12 @@ FROM report_audit_events e LEFT JOIN "user" u ON u.id = e.actor_user_id WHERE e.
     id: report.id,
     state: report.state,
     version: report.version,
+    draftVersion:
+      mine && report.state === "draft"
+        ? (revisionRows.find(
+            (row) => row.id === report.current_revision_id && row.submitted_at === null,
+          )?.version ?? null)
+        : null,
     mine,
     authorName: report.author_name ?? UNKNOWN_NAME,
     createdAt: report.created_at,

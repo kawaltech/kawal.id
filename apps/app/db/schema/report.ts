@@ -15,7 +15,8 @@ export const reports = sqliteTable(
     authorUserId: text("author_user_id").notNull(),
     // The open revision of a draft, or the last submitted revision.
     currentRevisionId: text("current_revision_id").notNull(),
-    // Each change increments it. A write must name the version it read.
+    // Each change that other members can see increments it: create, submit,
+    // decision, or discard. A decision or discard must name the version it read.
     version: integer("version").notNull(),
     // Set to a new random ID by each change. Later statements in the same D1
     // batch run only when this batch made the change.
@@ -46,6 +47,9 @@ export const reportRevisions = sqliteTable(
     province: text("province"),
     area: text("area"),
     sourceChannel: text("source_channel"),
+    // The author's save token for an open revision. A private save increments
+    // only this value, so other members cannot see that a save happened.
+    version: integer("version").notNull().default(1),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
     // NULL while open. After it is set, the row does not change.

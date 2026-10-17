@@ -38,6 +38,7 @@ CREATE TABLE `report_revisions` (
 	`province` text,
 	`area` text,
 	`source_channel` text,
+	`version` integer DEFAULT 1 NOT NULL,
 	`created_at` text NOT NULL,
 	`updated_at` text NOT NULL,
 	`submitted_at` text,

@@ -202,7 +202,7 @@ can refuse startup. Do not delete that state automatically. First confirm that
 it is disposable and contains no work to keep. Only then, from `apps/app`,
 run `pnpm exec void db reset` to rebuild local D1 from the committed migrations.
 Never use this recovery step with remote or non-disposable data. A fresh local
-state applies both migrations without a reset.
+state applies all committed migrations without a reset.
 
 ## Release gates
 

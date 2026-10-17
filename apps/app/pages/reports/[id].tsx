@@ -19,7 +19,15 @@ export default function Report({ report }: InferProps<typeof loader>) {
           <StateBadge state={report.state} />
           <span>Penulis: {report.mine ? "Anda" : report.authorName}</span>
           <span>Dibuat {formatWib(report.createdAt)}</span>
-          <span>Diperbarui {formatWib(report.updatedAt)}</span>
+          <span>
+            Diperbarui{" "}
+            {formatWib(
+              // Only the author sees the time of a private save.
+              report.mine && shown.updatedAt > report.updatedAt
+                ? shown.updatedAt
+                : report.updatedAt,
+            )}
+          </span>
         </p>
       </section>
 
@@ -83,9 +91,9 @@ export default function Report({ report }: InferProps<typeof loader>) {
                 </p>
               </div>
               <DraftForm
-                key={report.version}
+                key={report.draftVersion}
                 reportId={report.id}
-                version={report.version}
+                version={report.draftVersion ?? 0}
                 initial={{
                   title: shown.title,
                   account: shown.account ?? "",

@@ -28,8 +28,13 @@ no role.
   obey this rule too. Thus a first approval needs at least two active members.
 - An open draft is private to its author. Other members see a report after its
   first submission, and then only its submitted revisions.
-- An admin sees the title and dates of another author's draft that was never
-  submitted, and can discard it. An admin cannot edit or review it.
+- An admin can discard any current draft of another author. This includes a
+  draft that a reviewer returned with a change request. A discard needs no note.
+- Visibility is a separate rule. An admin sees only the title and dates of
+  another author's draft that was never submitted. An admin cannot edit or
+  review another author's draft.
+- A private save is not visible to other members. It does not change the
+  report's version, its update time, or its place in a list.
 - Each write checks the active grant again inside the D1 write. A revoked grant
   stops the next action.
 - A revoked author cannot edit. Another member can still decide their submitted
@@ -59,11 +64,11 @@ no role.
 
 Four tables in `apps/app/db/migrations/`:
 
-- `reports`: state, author, current revision, a version for optimistic
-  concurrency, and a change marker for each D1 batch.
+- `reports`: state, author, current revision, a version that changes only with
+  visible events, and a change marker for each D1 batch.
 - `report_revisions`: title, account, observed time (UTC, shown in WIB),
-  province from the fixed list of 38, kecamatan or desa text, and source
-  channel. A submitted revision must have every field.
+  province from the fixed list of 38, kecamatan or desa text, source channel,
+  and the author's save version. A submitted revision must have every field.
 - `report_reviews`: one decision for each revision, with the reviewer's grant.
 - `report_audit_events`: append-only. IDs, action, and states only.
 

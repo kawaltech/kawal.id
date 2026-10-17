@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "64325283-97b4-4f52-b655-65398744c71d",
+  "id": "e1e97f49-0f66-407a-89d9-36832eee0912",
   "prevId": "7b86cc35-39f0-4fee-8d38-063bf166ed98",
   "tables": {
     "reviewer_audit_events": {
@@ -529,6 +529,14 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
         },
         "created_at": {
           "name": "created_at",

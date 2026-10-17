@@ -99,6 +99,7 @@ type ReportJson = {
   id: string;
   state: string;
   version: number;
+  draftVersion?: number | null;
   metadataOnly: boolean;
   shown: { id: string; number: number; title: string; account: string | null };
   revisions: { number: number }[];
@@ -134,8 +135,23 @@ async function save(
   fields: Record<string, string>,
   intent: "save" | "submit" = "save",
 ) {
-  const version = String((await report(app, author.jar, id)).version);
-  return act(app, `/reports/${id}?save`, author.jar, { version, intent, ...fields });
+  return act(app, `/reports/${id}?save`, author.jar, {
+    version: await draftVersion(app, author, id),
+    intent,
+    ...fields,
+  });
+}
+
+/** The author's save token. */
+async function draftVersion(app: AppRuntime, author: Member, id: string) {
+  const view = await report(app, author.jar, id);
+  return String(view.draftVersion ?? view.version);
+}
+
+/** What one member can read about reports: the list and one report, as page data. */
+async function visible(app: AppRuntime, viewer: Member, id: string) {
+  const list = (await (await data(app, "/reports", viewer.jar)).json()) as { props: unknown };
+  return { list: list.props, report: await report(app, viewer.jar, id) };
 }
 
 async function decide(app: AppRuntime, reviewer: Member, id: string, decision: string, note = "") {
@@ -234,6 +250,14 @@ describe("report access", () => {
     const view = (JSON.parse(body) as PageJson).props.report!;
     expect(view.metadataOnly).toBe(true);
     expect(view.can).toMatchObject({ edit: false, review: false, discard: true });
+
+    // The accepted exception shows the title and dates. A later private save
+    // that keeps the title changes nothing that the admin can read.
+    const before = await visible(app, admin, id);
+    expect((await save(app, author, id, { ...COMPLETE, area: "Desa Contoh Lain" })).status).toBe(
+      200,
+    );
+    expect(await visible(app, admin, id)).toEqual(before);
 
     // A reviewer who is not the author cannot see or discard it.
     const version = String(view.version);
@@ -381,7 +405,7 @@ describe("report workflow", () => {
     const { app, db } = await createApp();
     const author = await member(app, db);
     const id = await createDraft(app, author);
-    const version = String((await report(app, author.jar, id)).version);
+    const version = await draftVersion(app, author, id);
     const first = { ...COMPLETE, title: "Judul pertama" };
     expect(
       (await act(app, `/reports/${id}?save`, author.jar, { version, intent: "save", ...first }))
@@ -396,6 +420,40 @@ describe("report workflow", () => {
       }),
     );
     expect((await report(app, author.jar, id)).shown.title).toBe("Judul pertama");
+  });
+
+  test("private saves on a returned draft change nothing that other members see", async () => {
+    const { app, db } = await createApp();
+    const author = await member(app, db);
+    const reviewer = await member(app, db);
+    const admin = await member(app, db, "admin");
+    const returned = await createDraft(app, author);
+    await save(app, author, returned, COMPLETE, "submit");
+    await decide(app, reviewer, returned, "request_changes", "Periksa jam pengamatan.");
+    // A later visible change on another report puts that report first in the list.
+    const later = await createDraft(app, admin, "Laporan lain yang dikirim kemudian");
+    await save(app, admin, later, { ...COMPLETE, title: "Laporan lain" }, "submit");
+
+    const reviewerBefore = await visible(app, reviewer, returned);
+    const adminBefore = await visible(app, admin, returned);
+    for (const account of ["Perbaikan pertama.", "Perbaikan kedua, belum dikirim."]) {
+      expect((await save(app, author, returned, { ...COMPLETE, account })).status).toBe(200);
+    }
+    expect((await report(app, author.jar, returned)).shown.account).toBe(
+      "Perbaikan kedua, belum dikirim.",
+    );
+    expect(await visible(app, reviewer, returned)).toEqual(reviewerBefore);
+    expect(await visible(app, admin, returned)).toEqual(adminBefore);
+
+    // The admin's discard uses the version the admin read before the saves.
+    expect(
+      (
+        await act(app, `/reports/${returned}?discard`, admin.jar, {
+          version: String(adminBefore.report.version),
+        })
+      ).status,
+    ).toBe(200);
+    expect((await state(db, returned)).state).toBe("discarded");
   });
 
   test("two concurrent decisions on one revision record exactly one", async () => {

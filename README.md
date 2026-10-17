@@ -1,5 +1,8 @@
 # Kawal Asap
 
+**Help people. Protect sources. Make the evidence open to scrutiny.**
+Read our [manifesto](MANIFESTO.md) for the project's purpose and principles.
+
 A native Void foundation for reviewed fire and smoke information. The public
 preview preserves the selected map-and-table design, option B. All data is
 synthetic. The app has Google-only sign-in and invitation-based reviewer

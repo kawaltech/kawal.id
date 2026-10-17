@@ -9,6 +9,7 @@ and pull requests for code review. The old plan below is history, not a backlog.
 | Document                                                 | Use                                                                         |
 | -------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [README](../README.md)                                   | Setup, commands, and repository structure.                                  |
+| [Manifesto](../MANIFESTO.md)                             | Purpose, public-interest principles, and evidence limits.                   |
 | [Contributing](../CONTRIBUTING.md)                       | Issue ownership, pull requests, checks, and handoff.                        |
 | [Local development](development.md)                      | Run without a cloud account; auth and test limits.                          |
 | [Security policy](../SECURITY.md)                        | Private vulnerability reporting and supported code.                         |

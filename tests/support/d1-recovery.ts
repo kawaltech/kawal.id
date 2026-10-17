@@ -95,10 +95,7 @@ WHERE NOT EXISTS (SELECT 1 FROM "user" u WHERE u.id = g.user_id)`,
 };
 
 /** Statements that reproduce the database. Tables are in parent-first order. */
-export interface Snapshot {
-  tables: string[];
-  statements: string[];
-}
+export type Snapshot = Awaited<ReturnType<typeof snapshot>>;
 
 type Row = Record<string, unknown>;
 
@@ -106,8 +103,8 @@ interface Reader {
   all(sql: string): Promise<Row[]>;
 }
 
-function d1Reader(db: D1Like): Reader {
-  return { all: async (sql) => (await db.prepare(sql).all<Row>()).results };
+function d1Reader(db: D1Like) {
+  return { all: async (sql: string) => (await db.prepare(sql).all<Row>()).results };
 }
 
 const SCHEMA_SQL = `SELECT type, name, tbl_name, sql FROM sqlite_master
@@ -117,7 +114,7 @@ function quoteName(name: string) {
   return `"${name.replaceAll('"', '""')}"`;
 }
 
-function literal(value: unknown): string {
+function literal(value: unknown) {
   if (value === null || value === undefined) return "NULL";
   if (typeof value === "number" || typeof value === "bigint") return String(value);
   if (typeof value === "string") return `'${value.replaceAll("'", "''")}'`;
@@ -128,7 +125,7 @@ function literal(value: unknown): string {
   throw new Error(`Unsupported value in snapshot: ${typeof value}`);
 }
 
-async function parentFirst(reader: Reader, tables: string[]): Promise<string[]> {
+async function parentFirst(reader: Reader, tables: string[]) {
   const parents = new Map<string, Set<string>>();
   for (const table of tables) {
     const keys = await reader.all(`PRAGMA foreign_key_list(${quoteName(table)})`);
@@ -146,7 +143,7 @@ async function parentFirst(reader: Reader, tables: string[]): Promise<string[]> 
   return ordered;
 }
 
-async function snapshotWith(reader: Reader): Promise<Snapshot> {
+async function snapshotWith(reader: Reader) {
   const objects = await reader.all(SCHEMA_SQL);
   const tables = await parentFirst(
     reader,
@@ -174,12 +171,12 @@ async function snapshotWith(reader: Reader): Promise<Snapshot> {
 }
 
 /** Read the complete schema and data at this moment. */
-export function snapshot(db: D1Like): Promise<Snapshot> {
+export function snapshot(db: D1Like) {
   return snapshotWith(d1Reader(db));
 }
 
 /** Statements as one SQL file, without BEGIN or COMMIT. */
-export function sqlFile(statements: string[]): string {
+export function sqlFile(statements: string[]) {
   return statements.join("\n") + "\n";
 }
 
@@ -188,7 +185,7 @@ export function sqlFile(statements: string[]): string {
  * restore, it removes every table, row, index, and trigger that is not in the
  * snapshot, and it keeps the same Worker, secret, and binding.
  */
-export async function restoreInPlace(db: D1Like, value: Snapshot): Promise<void> {
+export async function restoreInPlace(db: D1Like, value: Snapshot) {
   const current = await d1Reader(db).all(SCHEMA_SQL);
   const drop = [
     ...current
@@ -217,7 +214,7 @@ export interface TableRows {
 }
 
 /** Read every row of every table with its primary key columns. */
-export async function tableRows(db: D1Like): Promise<TableRows> {
+export async function tableRows(db: D1Like) {
   const reader = d1Reader(db);
   const objects = await reader.all(SCHEMA_SQL);
   const result: TableRows = { keys: {}, rows: {} };
@@ -245,7 +242,7 @@ export async function tableRows(db: D1Like): Promise<TableRows> {
  * must have the same schema. A remote drill can apply the result after its
  * restore point, as ordinary application writes would.
  */
-export function changeStatements(before: TableRows, after: TableRows, order: string[]): string[] {
+export function changeStatements(before: TableRows, after: TableRows, order: string[]) {
   const where = (table: string, row: Row) =>
     before.keys[table]!.map((key) => `${quoteName(key)} = ${literal(row[key])}`).join(" AND ");
   const deletes: string[] = [];
@@ -290,7 +287,7 @@ export interface Inspection {
   foreignKeyErrors: Row[];
 }
 
-async function inspectWith(reader: Reader): Promise<Inspection> {
+async function inspectWith(reader: Reader) {
   const objects = await reader.all(SCHEMA_SQL);
   const tables = objects
     .filter((o) => o.type === "table")
@@ -330,7 +327,7 @@ async function inspectWith(reader: Reader): Promise<Inspection> {
 }
 
 /** Owners, row counts, fingerprints, triggers, and rule violations. */
-export function inspect(db: D1Like): Promise<Inspection> {
+export function inspect(db: D1Like) {
   return inspectWith(d1Reader(db));
 }
 
@@ -339,7 +336,7 @@ export function inspect(db: D1Like): Promise<Inspection> {
  * This checks the content of an export file. It does not prove that D1 can
  * import or restore that file.
  */
-export async function inspectSqlFile(sql: string): Promise<Inspection> {
+export async function inspectSqlFile(sql: string) {
   const { DatabaseSync } = await import("node:sqlite");
   const database = new DatabaseSync(":memory:");
   try {

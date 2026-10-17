@@ -28,6 +28,11 @@ and pull requests for code review. The old plan below is history, not a backlog.
 The [satellite-release proposal](plans/reliable-satellite-release.md) breaks
 issue #5 into work packages. It is proposed, not accepted implementation scope.
 
+The [recovery and data-rule proposal](plans/d1-recovery-and-data-rules.md)
+records issue #3's local synthetic evidence and open decisions. It is not an
+accepted retention policy or proof of remote Time Travel. Real reports remain
+blocked.
+
 ADR 0008 and the private report implementation were merged in
 [PR #1](https://github.com/kawaltech/kawal.id/pull/1). The report migration is
 not applied to staging, and the report workflow is not deployed there. Merge

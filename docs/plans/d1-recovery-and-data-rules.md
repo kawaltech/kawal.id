@@ -13,9 +13,10 @@ acceptance, permission for remote work, or proof of remote recovery. Real report
 remain blocked. Use synthetic text only until the owner accepts the decisions,
 the required controls exist, and the isolated remote drill passes.
 
-This plan covers the private text-report slice in PR #1 and all other tables in
-`kawal-app-db`. It adds no code, migration, backup service, or retention job.
-There is no R2/media workflow in this slice. R2 bindings do not prove media
+This plan covers the merged private text-report slice from PR #1 and all other
+tables in `kawal-app-db`. The change adds a synthetic test harness and this
+proposal, not application code, a migration, a backup service, or a retention
+job. There is no R2/media workflow in this slice. R2 bindings do not prove media
 recovery. A future media slice needs a separate database-plus-object procedure.
 Public publication and withdrawal remain subject to ADR 0002.
 
@@ -28,10 +29,11 @@ hostname after rollback. A successful D1 restore cannot satisfy these checks.
 
 Read together with [ADR 0004](../adr/0004-void-static-deployment.md),
 [ADR 0006](../adr/0006-d1-read-replication-off.md), and
-[operations](../operations.md). ADR 0008 and the report migration were read from
-the pushed [PR #1 source](https://github.com/kawaltech/kawal.id/tree/a235996d27fdf361a0a0cef004c26b36620109b9).
-They are not on this document's main base. This plan does not review or accept
-PR #1, including its later, local privacy fix. The coordinator owns that work.
+[operations](../operations.md). [ADR 0008](../adr/0008-private-report-drafts-and-review.md)
+and the report migration are merged in
+[PR #1](https://github.com/kawaltech/kawal.id/pull/1), including the private-save
+privacy fix. The integration below uses current main, not the earlier unmerged
+report branch. The report migration and workflow are not deployed to staging.
 
 ## 1. Verified Cloudflare documentation
 
@@ -90,16 +92,24 @@ a new plan for cross-database dependencies; it is not part of this change.
 The prior worker saved local checkpoint `d2d91c2` on `d1-recovery-plan`, based on
 main at [the checkpoint base](https://github.com/kawaltech/kawal.id/commit/8dc66a8db2b80a37afec6161245abbb3814e9c18).
 The recovered files are `tests/d1-recovery.test.ts` and
-`tests/support/d1-recovery.ts`. They need PR #1's schema. Main alone is not a
-valid test target.
+`tests/support/d1-recovery.ts`. They need PR #1's schema, which is now on main.
+The old pre-PR main alone was not a valid test target.
 
 The original checkpoint reported 5/5 local drill tests and a 104/104 suite run
 before the final two drill tests. The coordinator then recovered the exact local
-PR privacy-fix commit `5390704cead61ce460e294a5f12ab05ef6180c55`, added the
+PR privacy-fix commit
+[`5390704`](https://github.com/kawaltech/kawal.id/commit/5390704cead61ce460e294a5f12ab05ef6180c55), added the
 diagnostic regression below, and ran `pnpm check` with both harness files.
 That combined check passed: 107/107 tests in seven files, typecheck, lint, both
 native builds, and the public guard's five complete HTML/JSON pairs. This is
 local synthetic evidence, not remote Time Travel or deployment evidence.
+
+On 17 October 2026, the coordinator integrated the same three saved files onto
+[current main](https://github.com/kawaltech/kawal.id/commit/153bdcee30a5c5d22d8722a57299da2bd99518e5)
+and reran `pnpm check`. All 107 tests in seven files, including all six recovery
+tests, passed. Typecheck, lint, both native builds, and all five public HTML/JSON
+pairs also passed. No application code, schema, dependency, or remote resource
+changed. This current-main run is separate from the older checkpoint results.
 
 The harness models restore by reading logical schema/data and later replacing
 it in temporary Miniflare D1. This is not the remote Time Travel implementation.

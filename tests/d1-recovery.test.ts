@@ -59,7 +59,7 @@ async function createApp() {
 }
 
 let identities = 0;
-type Member = { jar: CookieJar; id: string; identity: Parameters<typeof signInWithGoogle>[1] };
+type Member = Awaited<ReturnType<typeof member>>;
 
 async function member(app: AppRuntime, db: D1Like, role: "reviewer" | "admin" = "reviewer") {
   identities += 1;
@@ -76,7 +76,7 @@ async function member(app: AppRuntime, db: D1Like, role: "reviewer" | "admin" = 
     .prepare(`SELECT id FROM "user" WHERE email = ?`)
     .bind(identity.email)
     .first<{ id: string }>();
-  return { jar, id: row!.id, identity } satisfies Member;
+  return { jar, id: row!.id, identity };
 }
 
 function data(app: AppRuntime, path: string, jar?: CookieJar) {

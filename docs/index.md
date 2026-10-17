@@ -1,18 +1,72 @@
-# Kawal.id - Public Reporting Website
+# Kawal.id contributor guide
 
-> Historical plan. For the new Kawal Asap direction, use
-> [ADR 0001](adr/0001-self-contained-kawal-asap.md). The tasks below are not the
-> current implementation scope.
+Use this index for current decisions and operating documents. Use
+[GitHub Issues](https://github.com/kawaltech/kawal.id/issues) for remaining work
+and pull requests for code review. The old plan below is history, not a backlog.
 
-## Current decisions
+## Current documents
 
-- [Domain terms](../CONTEXT.md)
-- [Accepted stack and Google sign-in](adr/0001-self-contained-kawal-asap.md)
-- [Accepted static public reads and cache rules](adr/0002-static-publication.md)
-- [Accepted public page design: map and table](adr/0003-map-and-table-public-design.md)
-- [Accepted Void static deployment layer](adr/0004-void-static-deployment.md)
-- [Proposed Cloudflare editorial processing and storage](adr/0005-cloudflare-editorial.md)
-- [Infrastructure operations and release limits](operations.md)
+| Document                                              | Use                                                                         |
+| ----------------------------------------------------- | --------------------------------------------------------------------------- |
+| [README](../README.md)                                | Setup, commands, and repository structure.                                  |
+| [Domain terms](../CONTEXT.md)                         | Shared language for observations, reports, and publication.                 |
+| [ADR 0002](adr/0002-static-publication.md)            | Static public reads, export activation, cache limits, and withdrawal gates. |
+| [ADR 0003](adr/0003-map-and-table-public-design.md)   | Accepted option B map-and-table design.                                     |
+| [ADR 0004](adr/0004-void-static-deployment.md)        | Native Void stack with separate public and app targets.                     |
+| [ADR 0006](adr/0006-d1-read-replication-off.md)       | D1 read replication stays disabled.                                         |
+| [ADR 0007](adr/0007-reliable-data-before-playback.md) | Reliable satellite data before playback; 3D is deferred.                    |
+| [Operations](operations.md)                           | Local services, operating limits, and release controls.                     |
+| [App staging](app-staging.md)                         | Deployment procedure, approval gates, and recorded staging checks.          |
+
+Accepted ADR 0008 and the private report implementation are in
+[PR #1](https://github.com/kawaltech/kawal.id/pull/1). Until that PR merges, read
+[ADR 0008 on its branch](https://github.com/kawaltech/kawal.id/blob/report-review-slice/docs/adr/0008-private-report-drafts-and-review.md).
+Its acceptance is not evidence of a merge, remote migration, or deployment.
+
+## Work and ownership
+
+| Issue                                                | Scope                                                                      |
+| ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| [#2](https://github.com/kawaltech/kawal.id/issues/2) | Review and integrate the private draft/review slice.                       |
+| [#3](https://github.com/kawaltech/kawal.id/issues/3) | D1 recovery evidence, retention, and erasure rules before real reports.    |
+| [#4](https://github.com/kawaltech/kawal.id/issues/4) | Separately approved synthetic-only staging rollout.                        |
+| [#5](https://github.com/kawaltech/kawal.id/issues/5) | Plan reliable satellite ingestion, exports, and public map/table delivery. |
+| [#6](https://github.com/kawaltech/kawal.id/issues/6) | Keep the document index and scope statements current.                      |
+
+Record current status and ownership in the issue, not in this table.
+
+1. Record one accountable contributor, their agent thread if used, and the
+   branch or PR before work starts. One contributor owns each file change;
+   agree ownership before parallel work touches the same files.
+2. State scope, dependencies, acceptance checks, and approval limits in the
+   issue. Update it when work starts, blocks, enters review, or finishes.
+3. Link decisions to ADRs. Put terms in `CONTEXT.md` and procedures in runbooks.
+   Do not copy the backlog into another task system or a new Markdown plan.
+4. Record the exact reviewed revision, check results, unresolved findings, and
+   next owner at handoff. A thread message or commit ID does not transfer
+   unpushed files between orbs.
+5. Report code and deployment status separately. Accepted, implemented locally,
+   merged, deployed, and live-verified are different states. A green local test
+   is not proof of remote D1 or staging behavior.
+6. Get explicit approval before a push, merge, remote migration, deployment, or
+   other shared-system write. An issue assignment is not that approval. Keep
+   secrets, real report text, personal data, and private media out of issues,
+   test data, and review evidence.
+
+The open-source decision is deferred. This guide does not change repository
+visibility, authorize real report intake, or lift any release gate.
+
+## Historical documents
+
+[ADR 0001](adr/0001-self-contained-kawal-asap.md) and
+[ADR 0005](adr/0005-cloudflare-editorial.md) are superseded by ADR 0004.
+The [old phase 2 plan](plans/phase-2.md) and the sections below describe the
+earlier reporting project. Do not use their tasks, stack, data model, or Google
+Sheets integration as current requirements.
+
+---
+
+# Historical plan: public reporting website
 
 ## Overview
 

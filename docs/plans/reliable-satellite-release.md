@@ -581,9 +581,13 @@ no credentials. Remote release checks need the separate approvals below.
   - Build the count cube and row files (C5). Write row files for the current
     and the previous export.
   - Extend the build guard: validate the export; check every expected row file
-    and its `exportId`; check page props budgets; reject report keys in any
-    public JSON; enumerate any `getPrerenderPaths()` routes; confirm that a
-    synthetic export keeps `noindex` and the synthetic-data warning.
+    and its `exportId`; check page props budgets; reject report keys in satellite
+    exports, row files, and page JSON for `/` and `/rancangan/b`. Until WP7 removes
+    the review routes, only their synthetic report fixtures are allowed. Real
+    app reports are prohibited in all public output throughout. After removal,
+    reject report keys in all public JSON. Enumerate any `getPrerenderPaths()`
+    routes; confirm that a synthetic export keeps `noindex` and the
+    synthetic-data warning.
 - **Acceptance tests:**
   - For a seeded export, the cube sums equal a direct count of rows for all
     24 filter combinations (3 windows × 8 confidence sets, including empty),
@@ -598,6 +602,10 @@ no credentials. Remote release checks need the separate approvals below.
     failure blocks release rather than silently dropping rows or cells.
   - The guard fails when a row file is missing, has a different `exportId`, or
     when the page props contain all rows.
+  - Synthetic reports on retained review routes pass, but report keys in a
+    satellite export, row file, or `/` or `/rancangan/b` page JSON fail. After
+    WP7 removes the review routes, report keys in any public JSON fail. A real
+    app report in any public output fails at every stage.
   - A production-mode build with a synthetic export fails.
 
 ### WP5. Option B states, shared filters, map aggregation, and table pagination
@@ -655,8 +663,10 @@ no credentials. Remote release checks need the separate approvals below.
     order check; build; guard; persist candidate and pending attempt; deploy;
     verify all hosts; confirm record. Record timings and failure state.
   - Deploy rule: deploy when checked code changed, a source `sha256` changed,
-    or the last activation is older than the heartbeat (D11). Otherwise exit
-    without a deployment. A code change must not depend on a source change.
+    or the confirmed export's `checkedAt` is older than the heartbeat (D11).
+    Otherwise exit without a deployment. Code-only deployments keep that time
+    and cannot postpone the heartbeat. A code change must not depend on a
+    source change.
   - A failed fetch, validation, build, or check does not deploy and does not
     move the pointer. The run fails visibly. The page then becomes stale by C6.
   - A repository variable pauses publication. A paused run exits before the
@@ -692,6 +702,9 @@ no credentials. Remote release checks need the separate approvals below.
   - Use source times `(10:00, 12:00)` then `(11:00, 11:30)`: reject the second
     even though its minimum increases. Equal times with changed bytes hold.
   - A code-only deployment keeps the exact export and its freshness times.
+    With unchanged sources and frequent code-only deployments, the original
+    heartbeat deadline still applies. A heartbeat validates the sources again;
+    it does not renew their file times.
   - Failed fetch, validation, or build leaves the confirmed state and live
     version unchanged. A failed pending write prevents any deploy request.
   - Interrupt after pending write, during deploy, after activation, after one

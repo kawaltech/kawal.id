@@ -9,6 +9,11 @@ and pull requests for code review. The old plan below is history, not a backlog.
 | Document                                              | Use                                                                         |
 | ----------------------------------------------------- | --------------------------------------------------------------------------- |
 | [README](../README.md)                                | Setup, commands, and repository structure.                                  |
+| [Contributing](../CONTRIBUTING.md)                    | Issue ownership, pull requests, checks, and handoff.                        |
+| [Local development](development.md)                   | Run without a cloud account; auth and test limits.                          |
+| [Security policy](../SECURITY.md)                     | Private vulnerability reporting and supported code.                         |
+| [Open-source readiness](open-source-readiness.md)     | Publication gates and source-audit limits.                                  |
+| [Agent handoff prompt](contributor-handoff.md)        | Initial prompt for a contributor using Opus or another agent.               |
 | [Domain terms](../CONTEXT.md)                         | Shared language for observations, reports, and publication.                 |
 | [ADR 0002](adr/0002-static-publication.md)            | Static public reads, export activation, cache limits, and withdrawal gates. |
 | [ADR 0003](adr/0003-map-and-table-public-design.md)   | Accepted option B map-and-table design.                                     |
@@ -17,6 +22,9 @@ and pull requests for code review. The old plan below is history, not a backlog.
 | [ADR 0007](adr/0007-reliable-data-before-playback.md) | Reliable satellite data before playback; 3D is deferred.                    |
 | [Operations](operations.md)                           | Local services, operating limits, and release controls.                     |
 | [App staging](app-staging.md)                         | Deployment procedure, approval gates, and recorded staging checks.          |
+
+The [satellite-release proposal](plans/reliable-satellite-release.md) breaks
+issue #5 into work packages. It is proposed, not accepted implementation scope.
 
 Accepted ADR 0008 and the private report implementation are in
 [PR #1](https://github.com/kawaltech/kawal.id/pull/1). Until that PR merges, read
@@ -53,8 +61,10 @@ Record current status and ownership in the issue, not in this table.
    secrets, real report text, personal data, and private media out of issues,
    test data, and review evidence.
 
-The open-source decision is deferred. This guide does not change repository
-visibility, authorize real report intake, or lift any release gate.
+The owner wants to publish this repository as open source. The
+[readiness gates](open-source-readiness.md) must pass first. This guide does not
+change repository visibility, grant a license, authorize real report intake,
+or lift any release gate.
 
 ## Historical documents
 

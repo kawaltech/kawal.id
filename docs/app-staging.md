@@ -14,10 +14,17 @@ The deployment operator reported these measured results:
   was active at 100%. The staging HTTP check passed for both versions.
 - D1 read replication stayed disabled. D1 has eight tables. D1 and R2 use APAC.
 - Google authorization uses the app callback and PKCE S256. Email sign-in is
-  unavailable. The first admin invitation and live Google sign-in are pending.
+  unavailable.
+- On 17 October 2026, the owner's bootstrap admin invitation was claimed at
+  07:46 WIB. Live Google sign-in and protected app access were confirmed by
+  07:47 WIB. Sign-out was confirmed at 07:49 WIB: zero sessions remained,
+  while the user and active admin grant stayed. These checks used real Google,
+  not the test substitute. See the
+  [completed auth thread](https://ampcode.com/threads/T-01a1461a-b1cc-7750-a2b3-5d9e1693676b).
 
-This is a deployment record, not a claim that later commits are deployed to
-the app. In particular, this app version precedes the favicon commit.
+The version IDs above record the first deployment only. Read `/__void/ready`
+for the active version. Public CI does not deploy the app and does not prove
+that a later app commit is live.
 
 The public site `kawal.id` stays static and independent. This procedure does not
 change the public Worker, its workflow, or the `www` redirect.

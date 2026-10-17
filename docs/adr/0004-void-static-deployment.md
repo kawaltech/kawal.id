@@ -86,13 +86,14 @@ rollback procedure exists. ISR does not meet report withdrawal requirements.
 
 ## Current delivery boundary
 
-This foundation has local Google-only sign-in, database sessions, and reviewer
-invitations and grants. App staging is deployed at `app.kawal.id` from
+This foundation has Google-only sign-in, database sessions, and reviewer
+invitations and grants. App staging was first deployed at `app.kawal.id` from
 [`9996920`](https://github.com/kawaltech/kawal.id/commit/9996920478e4090ebadd3e77e55ef03127ba1e70).
 Two migrations applied, and anonymous staging HTTP checks passed after the
 Google secret writes. D1 read replication stays off under
-[ADR 0006](0006-d1-read-replication-off.md). The first admin invitation and live
-Google sign-in are pending. The Google substitute stays in tests, not
+[ADR 0006](0006-d1-read-replication-off.md). The owner's first admin invitation,
+live Google sign-in, protected access, and sign-out checks passed on staging.
+The Google substitute stays in tests, not
 application code. See the [staging record](../app-staging.md). Reports,
 ingestion, publication, withdrawal, and media processing are not implemented.
 Caddy serves only public static output for local checks. Docker and Kamal are

@@ -93,8 +93,9 @@ App staging uses `app.kawal.id`. See the
 [staging preparation guide](docs/app-staging.md) before any remote work.
 Normal orbs need no Google client. Runtime tests use temporary D1/R2 and a
 test-only Google substitute; there is no application test sign-in route.
-Live Google, secrets, provisioning, deployment, and real invitations still need
-approval and live checks.
+The owner's live Google sign-in, admin invitation claim, protected access, and
+sign-out checks passed on staging. New secret writes, remote resources,
+deployments, and invitations still need separate approval.
 
 This is a synthetic preview, not report publication. The foundation does not
 provide edge stale-on-error guarantees or a safe report rollback workflow.

@@ -50,8 +50,9 @@ login shell (`bash -lc`) in orbs.
 
 This is a native foundation and synthetic design review, not a reporting product.
 App sign-in, sessions, and reviewer access have local implementations.
-App staging is deployed at `app.kawal.id`; the first admin invitation and live
-Google sign-in are not complete. See `docs/app-staging.md`. Reports,
+App staging is deployed at `app.kawal.id`. The owner's admin invitation, live
+Google sign-in, protected access, and sign-out checks passed. See
+`docs/app-staging.md`. Reports,
 ingestion, publication, withdrawal, and media workflows are not implemented.
 Do not claim their production checks passed.
 

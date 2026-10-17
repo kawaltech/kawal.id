@@ -259,7 +259,7 @@ function boundParams(statement: SqlStatement) {
   return statement.params.slice(0, highest);
 }
 
-async function runBatch(db: ReviewerDb, statements: SqlStatement[]): Promise<number[]> {
+export async function runBatch(db: ReviewerDb, statements: SqlStatement[]): Promise<number[]> {
   const results = (await db.batch(
     statements.map((s) => db.prepare(s.sql).bind(...boundParams(s))),
   )) as RunResult[];

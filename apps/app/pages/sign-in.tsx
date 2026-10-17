@@ -27,19 +27,21 @@ export default function SignIn({ signedIn, error }: InferProps<typeof loader>) {
   }
 
   return (
-    <main>
-      <h1>Kawal Asap · App</h1>
-      <p>Sign in with Google. A sign-in does not give app access. A reviewer must approve it.</p>
-      {message ? <p role="alert">{message}</p> : null}
-      {signedIn ? (
-        <p>
-          You are signed in. <a href="/">Continue</a> or <a href="/sign-out">sign out</a>.
-        </p>
-      ) : (
-        <button type="button" onClick={signIn} disabled={pending}>
-          Sign in with Google
-        </button>
-      )}
+    <main id="isi" tabIndex={-1} lang="en">
+      <section className="auth-card">
+        <h1>Kawal Asap · App</h1>
+        <p>Sign in with Google. A sign-in does not give app access. A reviewer must approve it.</p>
+        {message ? <p role="alert">{message}</p> : null}
+        {signedIn ? (
+          <p>
+            You are signed in. <a href="/">Continue</a> or <a href="/sign-out">sign out</a>.
+          </p>
+        ) : (
+          <button type="button" onClick={signIn} disabled={pending}>
+            Sign in with Google
+          </button>
+        )}
+      </section>
     </main>
   );
 }

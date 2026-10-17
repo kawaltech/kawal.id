@@ -94,8 +94,10 @@ Google secret writes. D1 read replication stays off under
 [ADR 0006](0006-d1-read-replication-off.md). The owner's first admin invitation,
 live Google sign-in, protected access, and sign-out checks passed on staging.
 The Google substitute stays in tests, not
-application code. See the [staging record](../app-staging.md). Reports,
-ingestion, publication, withdrawal, and media processing are not implemented.
+application code. See the [staging record](../app-staging.md). Private report drafts and review have a
+local implementation under [ADR 0008](0008-private-report-drafts-and-review.md).
+Public reports, ingestion, publication, withdrawal, and media processing are not
+implemented.
 Caddy serves only public static output for local checks. Docker and Kamal are
 no longer the deployment plan. See the [operations guide](../operations.md) for
 session limits, D1 replication restrictions, and staging gates.

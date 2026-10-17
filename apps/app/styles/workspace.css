@@ -1,0 +1,674 @@
+/* Private team workspace. It uses the tokens and components of the shared
+   Kawal Asap design (app/design/kawal.css) and adds only what forms, report
+   states, and review history need. */
+
+.ka-app {
+  --page: 62rem;
+}
+
+.ka-app .wordmark {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.ka-app .ka-top nav a[aria-current="page"] {
+  text-decoration-thickness: 3px;
+}
+
+.viewer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+
+.role-tag {
+  border: var(--border);
+  border-radius: 2rem;
+  background: var(--sky);
+  color: var(--on-pastel);
+  padding: 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The private notice is a fixed part of every workspace page. */
+.private-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.8rem;
+  width: min(var(--page), calc(100% - 2rem));
+  margin: 0 auto 1.5rem;
+  border: 2px dashed var(--ink-2);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.86rem;
+}
+
+.private-bar p {
+  margin: 0;
+}
+
+.private-bar strong {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Buttons */
+
+.ka button.primary,
+.ka a.button.primary {
+  background: var(--sun);
+  color: var(--on-pastel);
+}
+
+.ka button.danger {
+  background: var(--error-bg);
+  color: var(--error-ink);
+}
+
+.ka button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
+.ka a.button.quiet,
+.ka button.quiet {
+  box-shadow: none;
+}
+
+/* Report state: shape and text, not only color. */
+
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: var(--border);
+  border-radius: 2rem;
+  background: var(--card);
+  padding: 0.05rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.state-mark {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: none;
+  border: 2px solid var(--ink);
+}
+
+.state-badge.draft {
+  border-style: dashed;
+}
+
+.state-badge.draft .state-mark {
+  border-style: dashed;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.state-badge.in_review {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.state-badge.in_review .state-mark {
+  border-color: var(--warning-mark);
+  background: var(--sun);
+  transform: rotate(45deg);
+}
+
+.state-badge.approved {
+  border-color: var(--report);
+  color: var(--report);
+}
+
+.state-badge.approved .state-mark {
+  border-color: var(--report);
+  border-radius: 50%;
+  background: var(--report-fill);
+}
+
+.state-badge.rejected {
+  background: var(--error-bg);
+  color: var(--error-ink);
+}
+
+.state-badge.rejected .state-mark {
+  border-color: var(--error-ink);
+  background: transparent;
+  background-image:
+    linear-gradient(45deg, transparent 40%, var(--error-ink) 40% 60%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, var(--error-ink) 40% 60%, transparent 60%);
+}
+
+.state-badge.discarded {
+  background: var(--ash);
+  color: var(--ink-2);
+}
+
+.state-badge.discarded .state-mark {
+  border-color: var(--ink-2);
+  background: transparent;
+}
+
+/* Page heading */
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-head h1 {
+  margin-bottom: 0.5rem;
+}
+
+.page-head .lead {
+  margin-bottom: 0;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+}
+
+/* Lists of reports */
+
+.ka-app .tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ka-app .tile {
+  min-width: 0;
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--card);
+  padding: 1rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.ka-app .tile .big-figure {
+  display: block;
+  margin: 0.1rem 0 0.2rem;
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.ka-app .tile.attention {
+  background: var(--sun);
+  color: var(--on-pastel);
+}
+
+.ka-app .tile.attention .eyebrow,
+.ka-app .tile.attention .muted {
+  color: var(--on-pastel);
+}
+
+.report-table td {
+  white-space: normal;
+  vertical-align: top;
+}
+
+.report-table td.when {
+  white-space: nowrap;
+}
+
+.report-table td a {
+  font-weight: 650;
+}
+
+.empty {
+  margin: 0;
+  border: 2px dashed var(--ink-3);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  color: var(--ink-2);
+}
+
+/* Forms */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 1.5rem;
+}
+
+.form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.field > label,
+.field > legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.field .hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.84rem;
+}
+
+.ka input[type="text"],
+.ka input[type="datetime-local"],
+.ka select,
+.ka textarea {
+  width: 100%;
+  min-width: 0;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+}
+
+.ka textarea {
+  min-height: 9rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.ka input:focus-visible,
+.ka select:focus-visible,
+.ka textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+  background: var(--card);
+}
+
+.ka input[aria-invalid="true"],
+.ka select[aria-invalid="true"],
+.ka textarea[aria-invalid="true"] {
+  border-color: var(--error-ink);
+  box-shadow: 3px 3px 0 var(--error-ink);
+}
+
+.field-error {
+  margin: 0;
+  color: var(--error-ink);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.counter {
+  justify-self: end;
+  margin: 0;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+/* Radio pills, the same shape as the segmented buttons of option B */
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.choice {
+  position: relative;
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+}
+
+.choice span {
+  display: inline-block;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  background: var(--card);
+  padding: 0.3rem 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.choice input:checked + span {
+  background: var(--sun);
+  color: var(--on-pastel);
+}
+
+.choice input:checked + span::before {
+  content: "✓ ";
+}
+
+.choice input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Decision cards: color, mark, and text */
+
+.decisions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.decision {
+  position: relative;
+  display: block;
+}
+
+.decision input {
+  position: absolute;
+  opacity: 0;
+}
+
+.decision span {
+  display: grid;
+  gap: 0.2rem;
+  height: 100%;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+}
+
+.decision strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.decision small {
+  color: var(--ink-2);
+}
+
+.decision input:checked + span {
+  box-shadow: var(--shadow);
+  color: var(--on-pastel);
+}
+
+.decision input:checked + span small {
+  color: var(--on-pastel);
+}
+
+.decision input:checked + span strong::before {
+  content: "✓ ";
+}
+
+.decision.approve input:checked + span {
+  background: var(--mint);
+}
+
+.decision.request_changes input:checked + span {
+  background: var(--sun);
+}
+
+.decision.reject input:checked + span {
+  background: var(--rose);
+}
+
+.decision input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.4rem;
+  border-top: 2px dashed var(--ink-3);
+  padding-top: 1.1rem;
+}
+
+.form-actions .spacer {
+  flex: 1;
+}
+
+.ka [role="alert"],
+.callout {
+  margin: 0 0 1rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  padding: 0.7rem 0.95rem;
+}
+
+.ka [role="alert"] {
+  background: var(--error-bg);
+  color: var(--error-ink);
+}
+
+.ka [role="alert"] p {
+  margin: 0;
+}
+
+.callout.changes {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.callout.info {
+  background: var(--sky);
+  color: var(--on-pastel);
+}
+
+.callout p {
+  margin: 0;
+}
+
+.callout p + p,
+.callout blockquote {
+  margin-top: 0.4rem;
+}
+
+.callout blockquote {
+  margin-inline: 0;
+  border-left: 4px solid currentColor;
+  padding-left: 0.7rem;
+  white-space: pre-wrap;
+}
+
+.privacy-note {
+  margin: 0 0 1.2rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--rose);
+  color: var(--on-pastel);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.privacy-note p {
+  margin: 0;
+}
+
+/* Report content */
+
+.account {
+  margin: 0 0 1rem;
+  border-left: 4px solid var(--report);
+  padding-left: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.ka-app .trail div {
+  grid-template-columns: 11rem minmax(0, 1fr);
+}
+
+/* History */
+
+.timeline {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  position: relative;
+  border-left: 2px solid var(--ink);
+  margin-left: 0.45rem;
+  padding: 0 0 1rem 1.3rem;
+}
+
+.timeline li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  top: 0.3rem;
+  left: -0.5rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--card);
+}
+
+.timeline li.approve::before {
+  background: var(--report-fill);
+}
+
+.timeline li.request_changes::before {
+  border-radius: 0;
+  background: var(--sun);
+  transform: rotate(45deg);
+}
+
+.timeline li.reject::before {
+  border-radius: 0;
+  background: var(--rose);
+}
+
+.timeline li.submit::before {
+  background: var(--sky);
+}
+
+.timeline p {
+  margin: 0;
+}
+
+.timeline .when {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+}
+
+.timeline blockquote {
+  margin: 0.35rem 0 0;
+  border-left: 3px solid var(--ink-3);
+  padding-left: 0.7rem;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Auth pages use the same frame. */
+
+.ka-app .auth-card {
+  max-width: 34rem;
+}
+
+@media (max-width: 60rem) {
+  .ka-app .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 40rem) {
+  .form-grid,
+  .decisions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ka-app .trail div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .ka-app .tile,
+  .choice span,
+  .decision span {
+    box-shadow: none;
+  }
+
+  .state-mark,
+  .timeline li::before {
+    forced-color-adjust: auto;
+  }
+
+  .choice input:checked + span,
+  .decision input:checked + span {
+    outline: 2px solid Highlight;
+  }
+}
+
+.form-actions .full {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.ka-app details > form > p {
+  margin-top: 0;
+}
+
+/* A radio group with an error marks its options, not the group box. */
+.ka fieldset[aria-invalid="true"] .choice span,
+.ka fieldset[aria-invalid="true"] .decision span {
+  border-color: var(--error-ink);
+}

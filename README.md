@@ -3,7 +3,8 @@
 A native Void foundation for reviewed fire and smoke information. The public
 preview preserves the selected map-and-table design, option B. All data is
 synthetic. The app has Google-only sign-in and invitation-based reviewer
-access for local checks. It is not deployed. Reports, live ingestion,
+access for local checks. It is not deployed. Private report drafts and
+review have a local implementation. Public reports, live ingestion,
 publication, withdrawal, and media workflows are not implemented.
 
 Read [ADR 0004](docs/adr/0004-void-static-deployment.md) for the full Void decision,

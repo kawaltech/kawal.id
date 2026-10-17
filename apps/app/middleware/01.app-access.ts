@@ -7,7 +7,9 @@ const OPEN_PATHS = new Set(["/healthz", "/sign-in", "/sign-out", "/access-pendin
 
 // Protected page routes. A direct GET of one of these redirects to a page.
 // Every other protected request gets a JSON 401 or 403.
-const PROTECTED_PAGES = new Set(["/"]);
+function isProtectedPage(path: string) {
+  return path === "/" || path === "/reports" || path.startsWith("/reports/");
+}
 
 function isOpen(method: string, path: string) {
   if (path === "/api/auth" || path.startsWith("/api/auth/")) return true;
@@ -26,7 +28,7 @@ function isPageDocumentRequest(method: string, path: string, headers: Headers) {
   // Void client navigation sends X-VoidPages to read page data.
   return (
     (method === "GET" || method === "HEAD") &&
-    PROTECTED_PAGES.has(path) &&
+    isProtectedPage(path) &&
     headers.get("X-VoidPages") === null
   );
 }
@@ -46,8 +48,9 @@ export default defineMiddleware(async (c, next) => {
   const identity = await getAppIdentity(c);
   if (!identity) return page ? seeOther("/sign-in") : new AppAccessError(401).getResponse();
 
+  let grant;
   try {
-    await requireReviewer(identity);
+    grant = await requireReviewer(identity);
   } catch (error) {
     // AppAccessError and the reviewer guard's error both carry a status.
     const status = (error as { status?: unknown }).status;
@@ -55,5 +58,10 @@ export default defineMiddleware(async (c, next) => {
     if (page && status === 403) return seeOther("/access-pending");
     throw error;
   }
-  return next();
+  // The page frame shows who is signed in. Open pages have no viewer.
+  c.set("shared", { viewer: { name: identity.name, role: grant.role } });
+  await next();
+  // Void sends rendered pages with "no-store" only. Protected responses carry
+  // member records, so they also keep the private policy.
+  c.header("Cache-Control", "private, no-store");
 });

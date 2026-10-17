@@ -14,8 +14,12 @@ trap 'rm -rf "$scratch"' EXIT
 
 echo "[setup] Prepare Vite+ $vp_version and the pinned runtime"
 if [[ ! -x "$VP_HOME/bin/vp" ]] || ! "$VP_HOME/bin/vp" --version | head -1 | grep -Fqx "vp v$vp_version"; then
-  curl --fail --silent --show-error --location https://vite.plus -o "$scratch/vp-install.sh"
-  VP_VERSION="$vp_version" VP_NODE_MANAGER=yes VP_PM_MANAGER=yes CI=true bash "$scratch/vp-install.sh"
+  # Pin both scripts: the bootstrap can source the legacy installer beside it.
+  installer_source="https://raw.githubusercontent.com/voidzero-dev/vite-plus/401ada6cffadd1cafe09e01811cb73f8cdca2bee/packages/cli"
+  for script in install.sh install-legacy.sh; do
+    curl --fail --silent --show-error --location "$installer_source/$script" -o "$scratch/$script"
+  done
+  VP_VERSION="$vp_version" VP_NODE_MANAGER=yes VP_PM_MANAGER=yes CI=true bash "$scratch/install.sh"
 fi
 vp env install
 

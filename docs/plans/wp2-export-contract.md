@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-10-18
 issue: https://github.com/kawaltech/kawal.id/issues/5
 scope: WP2 only
@@ -14,6 +14,10 @@ It proposes the first implementation slice that can start without credentials,
 network access, or changes to the public output. It does not accept the wider
 release scope, select a province dataset (D4), or approve a publication
 policy (D8).
+
+The owner accepted decisions (a), (b), and (c) on 18 October 2026. That
+acceptance covers the WP2 contract only; the wider release scope in issue #5
+remains proposed.
 
 ## 1. Definition of done
 
@@ -51,7 +55,7 @@ Hard rule: `app/export` must not import `app/design/*`, and no file under
 app/export/types.ts        C1, C2, C3, counts, confidence, source status
 app/export/canonical.ts    Canonical JSON, time and number normalization
 app/export/hash.ts         SHA-256 via node:crypto, contentHash, exportId
-app/export/validate.ts     validateDetection, validateExport, classifyRow
+app/export/validate.ts     checkExport, validateExport, issue paths
 app/export/index.ts        Public module surface
 
 tests/support/export-generator.ts        Seeded generator and DETECTIONS mapping
@@ -65,10 +69,10 @@ which is synchronous and already used under `tests/support/`. WP4 consumes the
 validator during Node prerendering, so the constraint holds. Moving to Web
 Crypto is a contract version change, not part of WP2.
 
-## 4. Contract decisions that need sign-off first
+## 4. Contract decisions
 
-The parent plan leaves three points open. WP2 cannot be implemented
-deterministically until they are settled.
+The parent plan left three points open. The owner accepted all three on
+18 October 2026, so WP2 can be implemented deterministically.
 
 ### (a) Province counts are missing from the C3 schema
 
@@ -76,16 +80,15 @@ C3 says "Each province count must equal the sum of its rows", but the listed
 `counts` fields are only `accepted`, `duplicate`, `outsideIndonesia`,
 `outsideWindow`, and `invalid`.
 
-**Recommendation:** add `counts.byProvince: Record<string, number>`. Count only
-accepted rows. Do not include `luar-provinsi`. The validator requires the sum
-of values to equal `counts.accepted`. WP4 later reuses this map for the C5
-cube.
+**Accepted:** `counts.byProvince: Record<string, number>`. It counts accepted
+rows and includes `luar-provinsi` as a bucket, so the sum of values equals
+`counts.accepted`. WP4 later reuses this map for the C5 cube.
 
 ### (b) The shape of `invalid` is unspecified
 
 "invalid (by reason)" can mean a free-form map or a closed set.
 
-**Recommendation:** use a closed set:
+**Accepted:** use a closed set:
 `badNumber`, `badTime`, `badConfidence`, `badDaynight`, `badSatellite`,
 `badVersion`, `outOfRegion`. Every count is a non-negative integer. A new
 reason requires a new `schemaVersion`, because it changes the hashed document.
@@ -95,7 +98,7 @@ reason requires a new `schemaVersion`, because it changes the hashed document.
 C2 requires a code from the boundary data, but D4 is undecided. Using the
 current display names would create immediate debt.
 
-**Recommendation:** treat `province` as an opaque string matching
+**Accepted:** treat `province` as an opaque string matching
 `^[a-z0-9-]+$` or exactly `luar-provinsi`. The synthetic fixture uses
 provisional slugs: `kalimantan-tengah`, `sumatra-selatan`, `riau`,
 `kalimantan-barat`, `jambi`, `papua`. It sets `boundary.name` to
@@ -140,9 +143,9 @@ The validator rejects an export when:
 Row classification order, shared with WP3:
 `invalid`, `outsideWindow`, `outsideIndonesia`, `duplicate`, `accepted`.
 
-The validator cannot compare counts against raw source rows, because the
-export does not carry them. It verifies internal consistency only. The total
-row count is the sum of the buckets by construction.
+The validator compares the bucket total with the sum of `sources[].rows` (C1
+data-row counts), so it detects dropped or double-counted rows. It cannot
+verify the raw CSV itself; WP3 owns parsing and row validation.
 
 ### 5.3 Canonicalization and hashing
 
@@ -221,6 +224,9 @@ Slice 3: generator and fixture. `tests/support/export-generator.ts`,
 
 Each slice must pass `pnpm check` on its own so it can be reviewed per commit.
 
+Status on 18 October 2026: slices 1 and 2 are implemented. `pnpm check`
+passes with 143 tests. Slice 3 has not started.
+
 ## 9. Risks
 
 | Risk                                      | Mitigation                                         |
@@ -241,12 +247,15 @@ Each slice must pass `pnpm check` on its own so it can be reviewed per commit.
 - [ ] `app/export` does not import `app/design`.
 - [ ] Decisions (a), (b), and (c) are recorded in this plan or in an ADR.
 
-## 11. Open questions for the owner
+## 11. Decision record
 
-1. Accept `counts.byProvince` as part of C3 version 1?
-2. Accept the closed `invalid` reason set, with new reasons requiring a
-   schema version bump?
-3. Accept provisional province slugs until D4 selects the official dataset?
+All three were accepted on 18 October 2026:
 
-If all three are accepted, WP2 has no dependency on D4 or D8 and can start
-immediately after scope acceptance.
+1. `counts.byProvince` is part of C3 version 1, and includes
+   `luar-provinsi`.
+2. The `invalid` reason set is closed; a new reason requires a schema version
+   bump.
+3. Province values use provisional slugs until D4 selects the official
+   dataset.
+
+WP2 therefore has no dependency on D4 or D8.

@@ -19,6 +19,9 @@ export default defineConfig({
                     "**/design/detections.*",
                     "**/design/ui",
                     "**/design/ui.*",
+                    "**/design/scenario",
+                    "**/design/scenario.*",
+                    "**/design/incident*",
                   ],
                   message:
                     "The private app must not import synthetic design data or fixture-coupled UI. Reuse app/design/kawal.css and fixture-free components.",

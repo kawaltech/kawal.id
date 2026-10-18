@@ -22,6 +22,7 @@ and pull requests for code review. The old plan below is history, not a backlog.
 | [ADR 0006](adr/0006-d1-read-replication-off.md)          | D1 read replication stays disabled.                                         |
 | [ADR 0007](adr/0007-reliable-data-before-playback.md)    | Reliable satellite data before playback; 3D is deferred.                    |
 | [ADR 0008](adr/0008-private-report-drafts-and-review.md) | Private drafts, frozen revisions, and two-person review.                    |
+| [ADR 0009](adr/0009-3d-incident-prototype.md)            | Synthetic 3D incident prototype at `/rancangan/d`; not product scope.       |
 | [Operations](operations.md)                              | Local services, operating limits, and release controls.                     |
 | [App staging](app-staging.md)                            | Deployment procedure, approval gates, and recorded staging checks.          |
 

@@ -30,7 +30,7 @@ for (const page of pages) {
   );
   assert.equal(data.errors, null, `${name} must have successful navigation data`);
   assert.ok(data.props && typeof data.props === "object", `${name} must have page props`);
-  if (name === "index" || name === "rancangan/b") {
+  if (name === "index" || name === "rancangan/b" || name === "rancangan/d") {
     assert.doesNotMatch(html, /laporan-contoh-/, `${name} must not contain field reports`);
     assert.ok(!("reports" in data.props), `${name} must not export field reports`);
   }

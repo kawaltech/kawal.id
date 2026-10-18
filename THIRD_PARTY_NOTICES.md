@@ -12,6 +12,14 @@ use the adapted CSS. Each build copies its notice into `dist/client`.
 Keep it with distributed output: CSS compilation removes comments. Keep this
 source index and the full notice with source copies too.
 
+## three.js
+
+The `/rancangan/d` 3D design-review prototype bundles
+[three.js](https://github.com/mrdoob/three.js) 0.186.1 under the MIT License. The
+public build loads it only on that page. Its license is reproduced in the
+[public notice file](apps/public/public/third-party-notices.txt). Keep the
+notice with distributed output.
+
 ## Installed dependencies
 
 Dependencies keep their own licenses. This file is not a complete notice file

@@ -63,6 +63,8 @@ Preserve option B and its Cukup-inspired appearance. Shared design code is in
 `app/design`. `/` and `/rancangan/b` must export no reports. Keep synthetic-data
 warnings and `noindex`. Do not start a redesign. New visual design work needs a
 separate user request and the agreed Claude Code Opus 5.5 route.
+`/rancangan/d` is a synthetic 3D incident prototype (ADR 0009). It is not
+product scope and does not lift the ADR 0007 deferrals.
 
 ## Operations
 

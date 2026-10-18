@@ -83,6 +83,36 @@ export default function DesignIndex() {
           </ul>
         </section>
 
+        <section aria-labelledby="prototype-heading">
+          <h2 id="prototype-heading">Separate prototype</h2>
+          <ul className="options">
+            <li>
+              <span className="option-letter" aria-hidden="true">
+                D
+              </span>
+              <div>
+                <h3>
+                  <Link href="/rancangan/d">Prototype D: 3D incident analysis</Link>{" "}
+                  <span className="draft-badge">Synthetic prototype</span>
+                </h3>
+                <p>
+                  A 3D terrain map of one fictional fire, with layers, a timeline, key events,
+                  weather, and model charts. Satellite detections stay separate from the modelled
+                  spread.
+                </p>
+                <p className="muted">
+                  The user requested this prototype on 18 October 2026. It does not replace option B.
+                  ADR 0009 records the exception to the 3D deferral in ADR 0007.
+                </p>
+                <p className="small muted">
+                  The terrain is generated in the browser. The page loads no remote map tiles, images,
+                  or fonts. It contains no field reports.
+                </p>
+              </div>
+            </li>
+          </ul>
+        </section>
+
         <section aria-labelledby="rules-heading">
           <h2 id="rules-heading">Rules that all options keep</h2>
           <div className="split">

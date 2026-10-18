@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: proposed
 date: 2026-10-18
 issue: https://github.com/kawaltech/kawal.id/issues/5
 scope: WP2 only
@@ -15,9 +15,9 @@ network access, or changes to the public output. It does not accept the wider
 release scope, select a province dataset (D4), or approve a publication
 policy (D8).
 
-The owner accepted decisions (a), (b), and (c) on 18 October 2026. That
-acceptance covers the WP2 contract only; the wider release scope in issue #5
-remains proposed.
+The implementation selects decisions (a), (b), and (c), recorded on
+18 October 2026. They still need owner confirmation, and the wider release
+scope in issue #5 remains proposed.
 
 ## 1. Definition of done
 
@@ -71,8 +71,9 @@ Crypto is a contract version change, not part of WP2.
 
 ## 4. Contract decisions
 
-The parent plan left three points open. The owner accepted all three on
-18 October 2026, so WP2 can be implemented deterministically.
+The parent plan left three points open. This implementation selects all three
+on 18 October 2026 so the slice is deterministic. They remain proposals until
+the owner confirms them.
 
 ### (a) Province counts are missing from the C3 schema
 
@@ -80,7 +81,7 @@ C3 says "Each province count must equal the sum of its rows", but the listed
 `counts` fields are only `accepted`, `duplicate`, `outsideIndonesia`,
 `outsideWindow`, and `invalid`.
 
-**Accepted:** `counts.byProvince: Record<string, number>`. It counts accepted
+**Selected:** `counts.byProvince: Record<string, number>`. It counts accepted
 rows and includes `luar-provinsi` as a bucket, so the sum of values equals
 `counts.accepted`. WP4 later reuses this map for the C5 cube.
 
@@ -88,7 +89,7 @@ rows and includes `luar-provinsi` as a bucket, so the sum of values equals
 
 "invalid (by reason)" can mean a free-form map or a closed set.
 
-**Accepted:** use a closed set:
+**Selected:** use a closed set:
 `badNumber`, `badTime`, `badConfidence`, `badDaynight`, `badSatellite`,
 `badVersion`, `outOfRegion`. Every count is a non-negative integer. A new
 reason requires a new `schemaVersion`, because it changes the hashed document.
@@ -98,7 +99,7 @@ reason requires a new `schemaVersion`, because it changes the hashed document.
 C2 requires a code from the boundary data, but D4 is undecided. Using the
 current display names would create immediate debt.
 
-**Accepted:** treat `province` as an opaque string matching
+**Selected:** treat `province` as an opaque string matching
 `^[a-z0-9-]+$` or exactly `luar-provinsi`. The synthetic fixture uses
 provisional slugs: `kalimantan-tengah`, `sumatra-selatan`, `riau`,
 `kalimantan-barat`, `jambi`, `papua`. It sets `boundary.name` to
@@ -225,8 +226,8 @@ See [the slice 3 plan](wp2-slice-3-generator.md) for the generator design.
 
 Each slice must pass `pnpm check` on its own so it can be reviewed per commit.
 
-Status on 18 October 2026: all three slices are implemented, `pnpm check`
-passes with 157 tests, and WP2 is complete.
+Status on 18 October 2026: all three slices are implemented and `pnpm check`
+passes with 157 tests. WP2 awaits review and owner confirmation.
 
 ## 9. Risks
 
@@ -250,7 +251,8 @@ passes with 157 tests, and WP2 is complete.
 
 ## 11. Decision record
 
-All three were accepted on 18 October 2026:
+This implementation selects all three on 18 October 2026. They still need
+owner confirmation:
 
 1. `counts.byProvince` is part of C3 version 1, and includes
    `luar-provinsi`.
@@ -259,4 +261,5 @@ All three were accepted on 18 October 2026:
 3. Province values use provisional slugs until D4 selects the official
    dataset.
 
-WP2 therefore has no dependency on D4 or D8.
+The slice therefore has no implementation dependency on D4 or D8, even though
+both decisions remain open.

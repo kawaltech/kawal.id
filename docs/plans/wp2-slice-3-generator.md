@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: proposed
 date: 2026-10-18
 issue: https://github.com/kawaltech/kawal.id/issues/5
 scope: WP2 slice 3 only
@@ -15,7 +15,8 @@ validator. Slice 3 adds the deterministic generator and the checked-in
 synthetic export. It does not add a FIRMS adapter, change the public output, or
 start WP3.
 
-Status: implemented on 18 October 2026. `pnpm check` passes with 157 tests.
+Status: implemented on 18 October 2026; `pnpm check` passes with 157 tests.
+The slice awaits review and owner confirmation.
 
 ## 1. Goal
 

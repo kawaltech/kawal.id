@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-10-18
 issue: https://github.com/kawaltech/kawal.id/issues/5
 scope: WP2 slice 3 only
@@ -14,6 +14,8 @@ Slices 1 and 2 already provide the contract types, canonical hashing, and the
 validator. Slice 3 adds the deterministic generator and the checked-in
 synthetic export. It does not add a FIRMS adapter, change the public output, or
 start WP3.
+
+Status: implemented on 18 October 2026. `pnpm check` passes with 157 tests.
 
 ## 1. Goal
 
@@ -201,11 +203,11 @@ budget, optimize before weakening the budget.
 
 ## 11. Definition of done
 
-- [ ] `reproductionExport`, `seededExport`, and `serializeExport` exist.
-- [ ] `tests/fixtures/export-v1-synthetic.json` is checked in and validates.
-- [ ] The 60 rows match `DETECTIONS` one to one.
-- [ ] 100,000 rows generate in under 10 seconds.
-- [ ] Tests 1 to 12 pass.
-- [ ] `pnpm check` passes.
-- [ ] No file under `app/export`, `apps/**`, `app/design/**`, or `scripts/**`
+- [x] `reproductionExport`, `seededExport`, and `serializeExport` exist.
+- [x] `tests/fixtures/export-v1-synthetic.json` is checked in and validates.
+- [x] The 60 rows match `DETECTIONS` one to one.
+- [x] 100,000 rows generate in under 10 seconds.
+- [x] Tests 1 to 12 pass.
+- [x] `pnpm check` passes.
+- [x] No file under `app/export`, `apps/**`, `app/design/**`, or `scripts/**`
       changes.

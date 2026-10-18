@@ -225,8 +225,8 @@ See [the slice 3 plan](wp2-slice-3-generator.md) for the generator design.
 
 Each slice must pass `pnpm check` on its own so it can be reviewed per commit.
 
-Status on 18 October 2026: slices 1 and 2 are implemented. `pnpm check`
-passes with 143 tests. Slice 3 has not started.
+Status on 18 October 2026: all three slices are implemented, `pnpm check`
+passes with 157 tests, and WP2 is complete.
 
 ## 9. Risks
 
@@ -240,13 +240,13 @@ passes with 143 tests. Slice 3 has not started.
 
 ## 10. Definition of done
 
-- [ ] `pnpm check` passes.
-- [ ] All 18 tests exist and pass.
-- [ ] `tests/fixtures/export-v1-synthetic.json` is checked in with
+- [x] `pnpm check` passes.
+- [x] All 18 tests exist and pass.
+- [x] `tests/fixtures/export-v1-synthetic.json` is checked in with
       `synthetic: true`.
-- [ ] No file under `apps/**`, `app/design/**`, or `scripts/**` changes.
-- [ ] `app/export` does not import `app/design`.
-- [ ] Decisions (a), (b), and (c) are recorded in this plan or in an ADR.
+- [x] No file under `apps/**`, `app/design/**`, or `scripts/**` changes.
+- [x] `app/export` does not import `app/design`.
+- [x] Decisions (a), (b), and (c) are recorded in this plan or in an ADR.
 
 ## 11. Decision record
 

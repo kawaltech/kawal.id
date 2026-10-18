@@ -1,12 +1,14 @@
-// Contract tests for WP2 slice 1: canonical serialization and hashing. See
-// docs/plans/wp2-export-contract.md. No generator or validator exists yet.
+// Contract tests for WP2 slices 1 and 2: canonical serialization, hashing, and
+// export validation. See docs/plans/wp2-export-contract.md.
 import { describe, expect, test } from "vite-plus/test";
 
 import { canonicalJson, isUtcMinute, isUtcSecond } from "../app/export/canonical.ts";
 import { contentHash, detectionId, exportId } from "../app/export/hash.ts";
+import { ExportValidationError, checkExport, validateExport } from "../app/export/validate.ts";
 import {
   SOURCE_IDS,
   type Detection,
+  type ExportV1,
   type HashableExport,
   type SourceSnapshot,
 } from "../app/export/types.ts";
@@ -42,7 +44,7 @@ function source(overrides: Partial<SourceSnapshot> = {}): SourceSnapshot {
   return {
     sourceId: SOURCE_IDS["NOAA-20"],
     url: "synthetic://firms-viirs-noaa20-c2-nrt",
-    retrievedAt: "2026-10-16T00:25:00Z",
+    retrievedAt: WINDOW_END,
     lastModified: "2026-10-16T00:20:00Z",
     etag: null,
     sha256: "a".repeat(64),
@@ -68,6 +70,7 @@ function baseExport(): HashableExport {
       source({
         sourceId: SOURCE_IDS["NOAA-21"],
         url: "synthetic://firms-viirs-noaa21-c2-nrt",
+        rows: 0,
       }),
     ],
     boundary: {
@@ -95,6 +98,43 @@ function baseExport(): HashableExport {
     },
     detections: [detection()],
   };
+}
+
+function signed(document: HashableExport): ExportV1 {
+  const hash = contentHash(document);
+  return { ...document, exportId: exportId(hash), contentHash: hash };
+}
+
+function signedBase(): ExportV1 {
+  return signed(baseExport());
+}
+
+/** Recompute accepted counts, province counts, and rows for a test document. */
+function withDetections(detections: Detection[]): HashableExport {
+  const document = baseExport();
+  const byProvince: Record<string, number> = {};
+  for (const item of detections) {
+    byProvince[item.province] = (byProvince[item.province] ?? 0) + 1;
+  }
+  return {
+    ...document,
+    detections,
+    latestObservationAt: detections.reduce<string | null>(
+      (current, item) =>
+        current === null || item.acquiredAt > current ? item.acquiredAt : current,
+      null,
+    ),
+    counts: { ...document.counts, accepted: detections.length, byProvince },
+    sources: document.sources.map((entry) => ({
+      ...entry,
+      rows: entry.sourceId === SOURCE_IDS["NOAA-20"] ? detections.length : 0,
+    })),
+  };
+}
+
+function issuePaths(input: unknown): string[] {
+  const result = checkExport(input);
+  return result.ok ? [] : result.issues.map((issue) => issue.path);
 }
 
 describe("canonical JSON", () => {
@@ -217,5 +257,150 @@ describe("export hashing", () => {
     reversed.detections.reverse();
     reversed.sources.reverse();
     expect(contentHash(reversed)).toBe(contentHash(forward));
+  });
+});
+
+describe("export validation", () => {
+  test("accepts a valid export", () => {
+    expect(checkExport(signedBase()).ok).toBe(true);
+  });
+
+  test("returns the document from validateExport", () => {
+    const document = signedBase();
+    expect(validateExport(document)).toBe(document);
+  });
+
+  test("throws ExportValidationError with issues", () => {
+    expect(() => validateExport({})).toThrow(ExportValidationError);
+  });
+
+  test("rejects an unknown top-level key", () => {
+    expect(issuePaths({ ...signedBase(), extra: true })).toContain("$.extra");
+  });
+
+  test("rejects report keys at the top level and nested", () => {
+    expect(issuePaths({ ...signedBase(), reports: [] })).toContain("$.reports");
+
+    const nested = signedBase() as unknown as Record<string, unknown>;
+    (nested.boundary as Record<string, unknown>).reports = [];
+    expect(issuePaths(nested)).toContain("$.boundary.reports");
+  });
+
+  test("rejects missing provenance", () => {
+    const document = signedBase() as unknown as Record<string, unknown>;
+    delete document.sources;
+    expect(issuePaths(document)).toContain("$.sources");
+  });
+
+  test("rejects counts that do not match the detections", () => {
+    const document = structuredClone(signedBase());
+    document.counts.accepted = 2;
+    expect(issuePaths(document)).toContain("$.counts.accepted");
+  });
+
+  test("rejects a row outside the window", () => {
+    const document = signed(withDetections([detection({ acquiredAt: "2026-10-13T00:30:00Z" })]));
+    expect(issuePaths(document)).toContain("$.detections[0].acquiredAt");
+  });
+
+  test("rejects a duplicate detection id", () => {
+    const document = signed(withDetections([detection(), detection()]));
+    expect(issuePaths(document)).toContain("$.detections[1].id");
+  });
+
+  test("rejects non-UTC timestamps", () => {
+    const document = structuredClone(signedBase());
+    document.createdAt = "2026-10-16T00:30:00+00:00";
+    expect(issuePaths(document)).toContain("$.createdAt");
+
+    const minute = signed(withDetections([detection({ acquiredAt: "2026-10-15T18:36:30Z" })]));
+    expect(issuePaths(minute)).toContain("$.detections[0].acquiredAt");
+  });
+
+  test("rejects an unknown confidence", () => {
+    const document = signed(
+      withDetections([detection({ confidence: "medium" as unknown as Detection["confidence"] })]),
+    );
+    expect(issuePaths(document)).toContain("$.detections[0].confidence");
+  });
+
+  test("accepts zero detections when every source is ok", () => {
+    expect(checkExport(signed(withDetections([]))).ok).toBe(true);
+  });
+
+  test("rejects zero detections when a source failed", () => {
+    const empty = withDetections([]);
+    const failed: HashableExport = {
+      ...empty,
+      sources: empty.sources.map((entry, index) =>
+        index === 1 ? { ...entry, status: "failed" as const, reason: "timeout" } : entry,
+      ),
+    };
+    expect(issuePaths(signed(failed))).toContain("$.detections");
+  });
+
+  test("includes the window end and excludes the window start", () => {
+    expect(checkExport(signed(withDetections([detection({ acquiredAt: WINDOW_END })]))).ok).toBe(
+      true,
+    );
+    expect(
+      checkExport(signed(withDetections([detection({ acquiredAt: "2026-10-13T00:30:00Z" })]))).ok,
+    ).toBe(false);
+    expect(
+      checkExport(signed(withDetections([detection({ acquiredAt: "2026-10-13T00:31:00Z" })]))).ok,
+    ).toBe(true);
+  });
+
+  test("rejects a satellite that disagrees with its source", () => {
+    const document = signed(withDetections([detection({ satellite: "NOAA-21" })]));
+    expect(issuePaths(document)).toContain("$.detections[0].sourceId");
+  });
+
+  test("rejects a tampered content hash or identity", () => {
+    const document = structuredClone(signedBase());
+    document.contentHash = "c".repeat(64);
+    const paths = issuePaths(document);
+    expect(paths).toContain("$.contentHash");
+    expect(paths).toContain("$.exportId");
+  });
+
+  test("rejects a synthetic export in production mode", () => {
+    const result = checkExport(signedBase(), { allowSynthetic: false });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.issues.map((issue) => issue.path)).toContain("$.synthetic");
+  });
+
+  test("rejects a province count that does not match the rows", () => {
+    const document = structuredClone(signedBase());
+    document.counts.byProvince = { riau: 1 };
+    expect(issuePaths(document).some((path) => path.startsWith("$.counts.byProvince"))).toBe(true);
+  });
+
+  test("rejects source rows that do not match the counts", () => {
+    const document = structuredClone(signedBase());
+    document.sources[0].rows = 2;
+    expect(issuePaths(document)).toContain("$.counts");
+  });
+
+  test("rejects an unknown invalid reason", () => {
+    const document = structuredClone(signedBase()) as unknown as Record<string, unknown>;
+    const counts = document.counts as Record<string, unknown>;
+    const invalid = counts.invalid as Record<string, unknown>;
+    invalid.other = 1;
+    expect(issuePaths(document)).toContain("$.counts.invalid.other");
+  });
+
+  test("rejects duplicate sources and unknown nested fields", () => {
+    const document = withDetections([detection()]);
+    const duplicated: HashableExport = {
+      ...document,
+      sources: [document.sources[0], document.sources[0]],
+    };
+    expect(issuePaths(signed(duplicated))).toContain("$.sources[1].sourceId");
+
+    const nested = signedBase() as unknown as Record<string, unknown>;
+    const detections = nested.detections as Record<string, unknown>[];
+    detections[0].extra = true;
+    expect(issuePaths(nested)).toContain("$.detections[0].extra");
   });
 });

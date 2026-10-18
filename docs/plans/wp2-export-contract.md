@@ -221,6 +221,7 @@ and 18.
 
 Slice 3: generator and fixture. `tests/support/export-generator.ts`,
 `tests/fixtures/export-v1-synthetic.json`, test 14, and the 60-row match test.
+See [the slice 3 plan](wp2-slice-3-generator.md) for the generator design.
 
 Each slice must pass `pnpm check` on its own so it can be reviewed per commit.
 

@@ -71,6 +71,44 @@ In another terminal, run `node scripts/check-public.mjs <static-origin-url>`.
 Stop the app and public dev servers first. Caddy serves only
 `apps/public/dist/client`; it has no app proxy or database access.
 
+## Optional local seed data
+
+Two commands download real public data for local inspection. Normal setup,
+tests, and builds do not run them and do not read their output. Use Node.js 24.
+Neither command needs an account or a key.
+
+```sh
+pnpm seed:firms
+pnpm seed:dem
+```
+
+- `seed:firms` downloads the keyless NASA FIRMS 7-day VIIRS NRT files for
+  NOAA-20 and NOAA-21 (South-East Asia region). It keeps the detections in
+  Indonesia from the last 168 hours. It writes
+  `.data/seed/firms/viirs-indonesia-7d.json` and the raw CSV files. The fields
+  follow C2 in the [satellite-release proposal](plans/reliable-satellite-release.md).
+  Detections have no province, because no province boundary is approved.
+- `seed:dem` downloads the Copernicus DEM GLO-90 tiles that touch Indonesia
+  from the AWS Open Data bucket (about 360 tiles, 0.9 GB) into
+  `.data/seed/dem/cache/`. It then writes one 30″ (about 0.9 km) Int16 grid
+  masked to Indonesia, a JSON description, and a PNG preview. A later run
+  reuses each cached tile that has a matching SHA-256.
+
+Obey these rules:
+
+- `.data/` is ignored by Git. Do not commit or publish seed files. Do not copy
+  them into `apps/public`, a fixture, a test, or a snapshot. Public pages keep
+  synthetic data.
+- The Indonesia filter uses the simplified Natural Earth outline in
+  `app/design/map-geometry.ts` with a 10 km coastal buffer. A point near a
+  coast or a land border can be in the wrong country. Small islands that are
+  not in the outline are excluded.
+- A satellite detection is not a confirmed fire. Check the FIRMS
+  acknowledgement text before any public use.
+- GLO-90 is a surface model: in forest, a height can show the top of the
+  canopy. [ADR 0010](adr/0010-terrain-elevation-source.md) is a proposal. It
+  does not permit publication of tiles or derived files.
+
 ## Amp orbs
 
 Use `.agents/setup`, then `amp orb services ensure`. Share its returned portal

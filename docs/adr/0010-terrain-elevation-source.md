@@ -96,6 +96,16 @@ slope tiles or a terrain mesh:
   [ADR 0002](0002-static-publication.md) gives the one-year policy to code assets
   only.
 
+## Local seed
+
+On 19 October 2026, the user requested a local DEM seed for Indonesia and
+selected GLO-90 (about 90 m). `pnpm seed:dem` downloads the tiles into the
+ignored `.data/seed/` directory and makes a 30″ grid masked to Indonesia. It
+records the tile checksums. It is for local inspection only. It does not
+accept this proposal. It does not permit publication, a build input, or a test
+fixture. Tests use synthetic tiles. The GLO-90 licence text was not read for
+this seed. Read it and confirm its notice before any distribution.
+
 ## Open questions
 
 - Which reader question and which areas come first?

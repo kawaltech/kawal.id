@@ -10,6 +10,8 @@ Use ASD-STE100 Simplified Technical English for English prose.
 - `pnpm build`: build both targets and validate complete public prerenders.
 - `node scripts/check-public.mjs <url>`: check the Caddy static origin.
 - `amp orb services ensure`: supervised public dev, app dev, and Caddy.
+- `pnpm seed:firms`, `pnpm seed:dem`: optional real FIRMS and GLO-90 seeds in
+  ignored `.data/seed/`. Local inspection only; no page, build, or test reads them.
 
 The workspace build scripts use native `vp build`; dev scripts use `vp dev`.
 Use the pinned Node.js, pnpm, and Vite+ versions. Run toolchain commands in a

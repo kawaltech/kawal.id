@@ -373,15 +373,52 @@ export function buildDetail(
   return result;
 }
 
-/** Keep the last few detail patches in memory. */
+/** The seed files that `buildDetail` reads for one patch, present or not. */
+export function detailInputs(seedDir: string, west: number, north: number): string[] {
+  const paths: string[] = [];
+  const files = demFiles(seedDir);
+  if (files) {
+    paths.push(files.json);
+    const seed = JSON.parse(readFileSync(files.json, "utf8")) as DemSeed;
+    for (let dy = 0; dy < DETAIL_DEGREES; dy++) {
+      for (let dx = 0; dx < DETAIL_DEGREES; dx++) {
+        const name = tileName(GLO90, north - dy - 1, west + dx);
+        paths.push(join(seedDir, "dem/cache", seed.source.id, `${name}.tif`));
+      }
+    }
+  }
+  const step = WORLDCOVER.tileDegrees;
+  for (
+    let south = Math.floor((north - DETAIL_DEGREES) / step) * step;
+    south < north;
+    south += step
+  ) {
+    for (
+      let tileWest = Math.floor(west / step) * step;
+      tileWest < west + DETAIL_DEGREES;
+      tileWest += step
+    ) {
+      paths.push(landcoverCacheFile(seedDir, WORLDCOVER, worldcoverName(south, tileWest)));
+    }
+  }
+  return paths;
+}
+
+/**
+ * Keep the last few detail patches in memory. A patch is rebuilt when one of
+ * its seed inputs is added, changed, or removed.
+ */
 export function detailCache(seedDir: string, build = buildDetail, limit = 12) {
-  const patches = new Map<string, Uint8Array>();
+  const patches = new Map<string, { inputs: string; patch: Uint8Array }>();
   return (west: number, north: number) => {
     const key = `${west},${north}`;
-    let patch = patches.get(key);
-    if (patch) patches.delete(key);
-    else patch = build(seedDir, west, north);
-    patches.set(key, patch);
+    const inputs = detailInputs(seedDir, west, north)
+      .map((path) => (existsSync(path) ? `${path}:${statSync(path).mtimeMs}` : path))
+      .join("|");
+    const entry = patches.get(key);
+    patches.delete(key);
+    const patch = entry && entry.inputs === inputs ? entry.patch : build(seedDir, west, north);
+    patches.set(key, { inputs, patch });
     while (patches.size > limit) patches.delete(patches.keys().next().value as string);
     return patch;
   };

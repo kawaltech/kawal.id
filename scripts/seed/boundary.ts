@@ -224,6 +224,9 @@ export function rasterize(list: readonly Ring[], grid: Grid): Uint8Array {
         grid.width - 1,
         Math.ceil((crossings[k + 1] - grid.west) / grid.cell - 0.5) - 1,
       );
+      // A span wholly outside the grid is empty. A negative end makes `fill`
+      // count from the end of the array, so skip it.
+      if (first > last) continue;
       mask.fill(1, row * grid.width + first, row * grid.width + last + 1);
     }
   }
@@ -255,6 +258,62 @@ export function dilate(mask: Uint8Array, width: number, height: number, rx: numb
   return result;
 }
 
+/**
+ * Mark the cells that the ring edges cross. An edge point outside the grid but
+ * within `rx` columns and `ry` rows marks the nearest grid cell, so a later
+ * dilation by the same amount still reaches every cell within that range.
+ */
+export function traceEdges(list: readonly Ring[], grid: Grid, rx = 0, ry = 0): Uint8Array {
+  const mask = new Uint8Array(grid.width * grid.height);
+  const east = grid.west + grid.width * grid.cell;
+  const south = grid.north - grid.height * grid.cell;
+  const marginX = rx * grid.cell;
+  const marginY = ry * grid.cell;
+  const mark = (longitude: number, latitude: number) => {
+    const x = Math.floor((longitude - grid.west) / grid.cell);
+    const y = Math.floor((grid.north - latitude) / grid.cell);
+    if (x < -rx || x >= grid.width + rx || y < -ry || y >= grid.height + ry) return;
+    const col = Math.max(0, Math.min(grid.width - 1, x));
+    const row = Math.max(0, Math.min(grid.height - 1, y));
+    mask[row * grid.width + col] = 1;
+  };
+  for (const ring of list) {
+    if (
+      ring.east < grid.west - marginX ||
+      ring.west > east + marginX ||
+      ring.north < south - marginY ||
+      ring.south > grid.north + marginY
+    ) {
+      continue;
+    }
+    const { points } = ring;
+    const n = points.length;
+    for (let i = 0, j = n - 2; i < n; j = i, i += 2) {
+      const ax = points[j];
+      const ay = points[j + 1];
+      const bx = points[i];
+      const by = points[i + 1];
+      if (
+        Math.max(ax, bx) < grid.west - marginX ||
+        Math.min(ax, bx) > east + marginX ||
+        Math.max(ay, by) < south - marginY ||
+        Math.min(ay, by) > grid.north + marginY
+      ) {
+        continue;
+      }
+      // Half-cell steps visit every cell that the edge crosses, or a neighbour
+      // of it, which the dilation margin of one cell covers.
+      const steps = Math.max(
+        1,
+        Math.ceil(Math.max(Math.abs(bx - ax), Math.abs(by - ay)) / (grid.cell / 2)),
+      );
+      for (let s = 0; s <= steps; s++)
+        mark(ax + ((bx - ax) * s) / steps, ay + ((by - ay) * s) / steps);
+    }
+  }
+  return mask;
+}
+
 /** Cells whose centres pass `inIndonesia`. */
 export function indonesiaMask(outlines: Outlines, grid: Grid, bufferKm: number): Uint8Array {
   const indonesia = rasterize(outlines.indonesia, grid);
@@ -263,7 +322,11 @@ export function indonesiaMask(outlines: Outlines, grid: Grid, bufferKm: number):
   const widest = Math.cos((Math.max(Math.abs(south), Math.abs(grid.north)) * Math.PI) / 180);
   const rx = Math.ceil(bufferKm / (grid.cell * KM_PER_DEGREE_LON * widest)) + 1;
   const ry = Math.ceil(bufferKm / (grid.cell * KM_PER_DEGREE_LAT)) + 1;
-  const near = dilate(indonesia, grid.width, grid.height, rx, ry);
+  // Buffer candidates come from the land cells and from the outline edges. A
+  // small island or a narrow part of a ring can contain no cell centre.
+  const seeds = traceEdges(outlines.indonesia, grid, rx, ry);
+  for (let i = 0; i < seeds.length; i++) seeds[i] |= indonesia[i];
+  const near = dilate(seeds, grid.width, grid.height, rx, ry);
   const mask = new Uint8Array(indonesia.length);
   for (let row = 0; row < grid.height; row++) {
     const latitude = grid.north - (row + 0.5) * grid.cell;

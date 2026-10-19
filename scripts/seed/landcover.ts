@@ -300,8 +300,9 @@ export async function runLandcoverSeed(options: {
       for (let c = 0; c < cellsPerTile; c++) {
         const col = Math.round((tile.west - grid.west) * perDegree) + c;
         if (col < 0 || col >= grid.width || !mask[row * grid.width + col]) continue;
-        // Ocean areas have no tile: show them as water.
-        classes[row * grid.width + col] = cells ? cells[r * cellsPerTile + c] || 80 : 80;
+        // Ocean areas have no tile: show them as water. A cell without a valid
+        // class in an indexed tile keeps 0 (no data).
+        classes[row * grid.width + col] = cells ? cells[r * cellsPerTile + c] : 80;
       }
     }
   };
@@ -383,7 +384,7 @@ export async function runLandcoverSeed(options: {
       rowOrder: "north-to-south",
       nodata: 0,
       value:
-        "Majority WorldCover class of the overview pixels whose centres are in the cell. Cells outside Indonesia have 0. Ocean areas without a tile have class 80 (water).",
+        "Majority WorldCover class of the overview pixels whose centres are in the cell. Cells outside Indonesia, and cells without a valid class in an indexed tile, have 0. Ocean areas without a tile have class 80 (water).",
     },
     boundary: { ...outlines.source, bufferKm },
     counts: {

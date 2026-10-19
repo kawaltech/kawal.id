@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, test } from "vite-plus/test";
@@ -12,11 +12,17 @@ import {
   majorityClasses,
   parseWorldcoverGrid,
   readWorldcoverTile,
+  runLandcoverSeed,
   worldcoverName,
   worldcoverUrl,
   WORLDCOVER,
 } from "../scripts/seed/landcover.ts";
-import { buildDetail, buildPreview, previewResponse } from "../scripts/seed/preview.ts";
+import {
+  buildDetail,
+  buildPreview,
+  detailCache,
+  previewResponse,
+} from "../scripts/seed/preview.ts";
 import { encodeGeoTiff } from "./support/geotiff.ts";
 
 const OUTLINES: Outlines = {
@@ -258,4 +264,80 @@ test("make a detail patch from cached DEM and land cover tiles", () => {
       status: 400,
     });
   }
+});
+
+test("keep no data, not water, for empty cells in an indexed tile", async () => {
+  const root = mkdtempSync(join(tmpdir(), "kawal-seed-landcover-"));
+  roots.push(root);
+  const source: LandcoverSource = {
+    ...WORLDCOVER,
+    base: "https://wc.example.test",
+    overviewWidth: 6,
+  };
+  const file = encodeGeoTiff({
+    width: 6,
+    height: 6,
+    tileWidth: 4,
+    tileHeight: 4,
+    values: new Uint8Array(36),
+    west: 99,
+    north: 3,
+    scale: 0.5,
+    pixelIsPoint: false,
+  });
+  const fetch = async (url: string, init?: RequestInit) => {
+    if (url.endsWith(source.gridIndex)) {
+      return new Response(JSON.stringify({ features: [{ properties: { ll_tile: "N00E099" } }] }));
+    }
+    const range = new Headers(init?.headers).get("range") ?? "";
+    const [, from, to] = /bytes=(\d+)-(\d+)/.exec(range) ?? [];
+    return new Response(file.slice(Number(from), Math.min(file.length, Number(to) + 1)), {
+      status: 206,
+      headers: { "content-range": `bytes ${from}-${to}/${file.length}` },
+    });
+  };
+  const outlines: Outlines = {
+    indonesia: rings([[100, 0, 102, 0, 102, 2, 100, 2]]),
+    neighbours: [],
+    source: { name: "Synthetic square", file: "test", sha256: "0".repeat(64) },
+  };
+  const seed = await runLandcoverSeed({
+    outDir: root,
+    source,
+    fetch,
+    outlines,
+    cellArcSec: 1800,
+    bufferKm: 0,
+    concurrency: 1,
+  });
+  expect([...readFileSync(join(root, "landcover", seed.grid.file))]).toEqual(
+    Array.from({ length: 16 }, () => 0),
+  );
+  expect(seed.counts.classes).not.toHaveProperty("80");
+});
+
+test("rebuild a cached detail patch after its land cover seed changes", () => {
+  const root = mkdtempSync(join(tmpdir(), "kawal-seed-detail-cache-"));
+  roots.push(root);
+  const outlines: Outlines = {
+    indonesia: rings([[100, 0, 102, 0, 102, 2, 100, 2]]),
+    neighbours: [],
+    source: { name: "Synthetic square", file: "test", sha256: "0".repeat(64) },
+  };
+  let builds = 0;
+  const cached = detailCache(root, (dir, west, north) => {
+    builds++;
+    return buildDetail(dir, west, north, outlines, 0);
+  });
+  const centre = 600 * DETAIL_SIZE + 600;
+  const classAt = () => decodeDetail(cached(100, 2).slice().buffer).landcover[centre];
+  expect(classAt()).toBe(0);
+  expect(classAt()).toBe(0);
+  expect(builds).toBe(1);
+
+  const cover = landcoverCacheFile(root, WORLDCOVER, "N00E099");
+  mkdirSync(join(cover, ".."), { recursive: true });
+  writeFileSync(cover, new Uint8Array(WORLDCOVER.overviewWidth ** 2).fill(40));
+  expect(classAt()).toBe(40);
+  expect(builds).toBe(2);
 });

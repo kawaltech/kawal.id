@@ -18,7 +18,6 @@ import {
   type Detection,
   type ExportCounts,
   type ExportV1,
-  type HashableExport,
   type SourceId,
   type SourceSnapshot,
 } from "./types.ts";
@@ -126,6 +125,8 @@ const FORBIDDEN_PREFIXES = ["report", "review", "user", "session", "account", "v
 const EXPORT_ID = /^sat-[0-9a-f]{64}$/;
 const HEX_64 = /^[0-9a-f]{64}$/;
 const PROVINCE_SLUG = /^[a-z0-9-]+$/;
+const SOURCE_COLLECTION = /-c([1-9]\d*)-nrt$/;
+const SOURCE_VERSION = /^([1-9]\d*)\.(\d+)NRT$/;
 
 function collectExportIssues(input: unknown, options: ValidateOptions): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -146,10 +147,13 @@ function collectExportIssues(input: unknown, options: ValidateOptions): Validati
     push(issues, "$.synthetic", "production builds reject synthetic exports");
   }
 
-  for (const key of ["createdAt", "windowEnd", "checkedAt", "sourceUpdatedAt"] as const) {
+  for (const key of ["createdAt", "windowEnd", "checkedAt"] as const) {
     if (!isUtcString(input[key], isUtcSecond)) {
       push(issues, `$.${key}`, "must be an ISO UTC timestamp at second precision");
     }
+  }
+  if (input.sourceUpdatedAt !== null && !isUtcString(input.sourceUpdatedAt, isUtcSecond)) {
+    push(issues, "$.sourceUpdatedAt", "must be null or an ISO UTC timestamp at second precision");
   }
   if (input.latestObservationAt !== null && !isUtcString(input.latestObservationAt, isUtcMinute)) {
     push(
@@ -227,8 +231,12 @@ function validateSources(
       if (!entry.url.startsWith("synthetic://")) {
         push(issues, `${at}.url`, "synthetic exports require a synthetic:// URL");
       }
-    } else if (!entry.url.startsWith("https://")) {
-      push(issues, `${at}.url`, "production sources require an https:// URL");
+    } else if (!isSafeProductionUrl(entry.url)) {
+      push(
+        issues,
+        `${at}.url`,
+        "production sources require an https:// URL with a host and no credentials, query, or fragment",
+      );
     }
 
     if (!isUtcString(entry.retrievedAt, isUtcSecond)) {
@@ -316,8 +324,18 @@ function validateDetections(
     if (typeof entry.province !== "string" || !PROVINCE_SLUG.test(entry.province)) {
       push(issues, `${at}.province`, "must be a lowercase code, such as jambi, or luar-provinsi");
     }
-    if (typeof entry.version !== "string" || !entry.version.endsWith("NRT")) {
-      push(issues, `${at}.version`, "must be a non-empty source version ending in NRT");
+    const versionCollection =
+      typeof entry.version === "string" ? SOURCE_VERSION.exec(entry.version)?.[1] : undefined;
+    if (versionCollection === undefined) {
+      push(issues, `${at}.version`, "must use <collection>.<revision>NRT, such as 2.0NRT");
+    } else {
+      const expectedCollection =
+        typeof entry.sourceId === "string"
+          ? SOURCE_COLLECTION.exec(entry.sourceId)?.[1]
+          : undefined;
+      if (expectedCollection !== undefined && versionCollection !== expectedCollection) {
+        push(issues, `${at}.version`, `collection must agree with ${String(entry.sourceId)}`);
+      }
     }
     for (const field of ["frp", "scan", "track"] as const) {
       if (entry[field] !== null && !isFiniteNumber(entry[field])) {
@@ -482,6 +500,13 @@ function crossCheckExport(
     if (document.sourceUpdatedAt !== earliestModified) {
       push(issues, "$.sourceUpdatedAt", "must be the earliest source lastModified");
     }
+  } else {
+    if (document.sourceUpdatedAt !== null) {
+      push(issues, "$.sourceUpdatedAt", "must be null when a source has no usable lastModified");
+    }
+    if (document.approval.holds.length === 0) {
+      push(issues, "$.approval.holds", "a missing source file time requires an open hold");
+    }
   }
 
   if (counts.accepted !== detections.length) {
@@ -514,12 +539,30 @@ function crossCheckExport(
     push(issues, "$.counts", `must classify all ${sourceRows} source rows, got ${bucketTotal}`);
   }
 
+  const acceptedBySource = new Map<string, number>();
+  for (const detection of detections) {
+    acceptedBySource.set(detection.sourceId, (acceptedBySource.get(detection.sourceId) ?? 0) + 1);
+  }
+  sources.forEach((source, index) => {
+    const accepted = acceptedBySource.get(source.sourceId) ?? 0;
+    if (accepted > source.rows) {
+      push(
+        issues,
+        `$.sources[${index}].rows`,
+        "must be at least the accepted count for this source",
+      );
+    }
+  });
+
   if (detections.length === 0 && sources.some((source) => source.status !== "ok")) {
     push(issues, "$.detections", "a zero export requires every source to be ok");
   }
+  if (detections.length === 0 && document.approval.holds.length > 0) {
+    push(issues, "$.approval.holds", "a zero export requires no open hold");
+  }
 
-  const { exportId: claimedId, contentHash: claimedHash, ...hashable } = document;
-  const computed = contentHash(hashable as HashableExport);
+  const { exportId: claimedId, contentHash: claimedHash } = document;
+  const computed = contentHash(document);
   if (claimedHash !== computed) {
     push(issues, "$.contentHash", "does not match the canonical document");
   }
@@ -576,6 +619,28 @@ function compareText(left: string, right: string): number {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Method A (direct file) provenance: HTTPS with a host and no user
+ * information, query, or fragment. Method B (MAP_KEY path) needs its own rule
+ * under D2.
+ */
+function isSafeProductionUrl(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  return (
+    url.protocol === "https:" &&
+    url.hostname.length > 0 &&
+    url.username === "" &&
+    url.password === "" &&
+    url.search === "" &&
+    url.hash === ""
+  );
 }
 
 function isNonEmptyString(value: unknown): value is string {

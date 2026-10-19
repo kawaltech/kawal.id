@@ -97,7 +97,7 @@ export function seededExport(options: SyntheticOptions = {}): ExportV1 {
     throw new Error("Seeded export rows must be a non-negative integer");
 
   const random = mulberry32(seed);
-  const end = Date.parse(windowEnd);
+  const end = Math.floor(Date.parse(windowEnd) / MINUTE_MS) * MINUTE_MS;
   const latestMinute = WINDOW_MS / MINUTE_MS;
   const detections: Detection[] = [];
 
@@ -155,6 +155,10 @@ interface BuildInput {
 }
 
 function buildExport(input: BuildInput): ExportV1 {
+  // Copy shared constants per export: a caller mutating one result must not
+  // change earlier or later exports.
+  const boundary = { ...BOUNDARY };
+  const approval = { ...APPROVAL, holds: [...APPROVAL.holds] };
   const detections = [...input.detections].sort((left, right) => compareText(left.id, right.id));
   const byProvince: Record<string, number> = {};
   for (const detection of detections) {
@@ -211,8 +215,8 @@ function buildExport(input: BuildInput): ExportV1 {
       null,
     ),
     sources,
-    boundary: BOUNDARY,
-    approval: APPROVAL,
+    boundary,
+    approval,
     counts,
     detections,
   };

@@ -36,9 +36,13 @@ export function detectionId(key: DetectionKey): string {
 /**
  * Hash the full document except `exportId` and `contentHash`. Detections sort
  * by ID and sources by source ID first, so input order never changes the hash.
+ * Identity fields are stripped here, so callers may pass a complete `ExportV1`.
  */
-export function contentHash(document: HashableExport): string {
-  return sha256Hex(canonicalJson(canonicalExport(document)));
+export function contentHash(
+  document: HashableExport & { exportId?: string; contentHash?: string },
+): string {
+  const { exportId: _exportId, contentHash: _contentHash, ...body } = document;
+  return sha256Hex(canonicalJson(canonicalExport(body)));
 }
 
 export function exportId(hash: string): string {

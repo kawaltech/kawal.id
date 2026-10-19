@@ -114,6 +114,27 @@ describe("seeded export", () => {
     }
   });
 
+  test("generates minute observations for a second-precision anchor", () => {
+    const document = seededExport({ rows: 1, windowEnd: "2026-10-16T00:20:30Z" });
+    expect(() => validateExport(document)).not.toThrow();
+  });
+
+  test("isolates boundary and approval values between exports", () => {
+    const first = reproductionExport();
+    const firstHash = first.contentHash;
+    const second = reproductionExport();
+
+    second.boundary.version = "changed-for-review";
+    second.approval.policy = "changed-for-review";
+    second.approval.holds.push("review-only-hold");
+
+    expect(first.boundary.version).toBe("provisional");
+    expect(first.approval.policy).toBe("rules-v1");
+    expect(first.approval.holds).toEqual([]);
+    expect(() => validateExport(first)).not.toThrow();
+    expect(reproductionExport().contentHash).toBe(firstHash);
+  });
+
   test("honours a province selection", () => {
     const document = seededExport({ rows: 25, provinces: ["papua"] });
     for (const detection of document.detections) {

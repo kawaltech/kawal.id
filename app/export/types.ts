@@ -109,7 +109,11 @@ export interface ExportV1 {
   windowEnd: string;
   windowHours: typeof WINDOW_HOURS;
   checkedAt: string;
-  sourceUpdatedAt: string;
+  /**
+   * Earliest usable `lastModified` over the required sources. `null` means at
+   * least one source has no usable file time, which requires an open hold.
+   */
+  sourceUpdatedAt: string | null;
   latestObservationAt: string | null;
   sources: SourceSnapshot[];
   boundary: BoundaryProvenance;

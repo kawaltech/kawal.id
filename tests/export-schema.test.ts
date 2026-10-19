@@ -109,6 +109,20 @@ function signedBase(): ExportV1 {
   return signed(baseExport());
 }
 
+/** Convert the fixture to method-A production provenance for URL tests. */
+function productionBase(): HashableExport {
+  const document = baseExport();
+  return {
+    ...document,
+    synthetic: false,
+    sources: document.sources.map((entry) => ({
+      ...entry,
+      url: `https://example.org/${entry.sourceId}.csv`,
+      etag: "fake-review-etag",
+    })),
+  };
+}
+
 /** Recompute accepted counts, province counts, and rows for a test document. */
 function withDetections(detections: Detection[]): HashableExport {
   const document = baseExport();
@@ -258,6 +272,11 @@ describe("export hashing", () => {
     reversed.sources.reverse();
     expect(contentHash(reversed)).toBe(contentHash(forward));
   });
+
+  test("excludes identity fields when hashing a complete typed export", () => {
+    const document = signedBase();
+    expect(contentHash(document)).toBe(document.contentHash);
+  });
 });
 
 describe("export validation", () => {
@@ -337,6 +356,73 @@ describe("export validation", () => {
       ),
     };
     expect(issuePaths(signed(failed))).toContain("$.detections");
+  });
+
+  test("rejects zero detections with an open approval hold", () => {
+    const empty = withDetections([]);
+    const held: HashableExport = {
+      ...empty,
+      approval: { ...empty.approval, holds: ["conflicting-duplicate"] },
+    };
+    expect(issuePaths(signed(held))).toContain("$.approval.holds");
+  });
+
+  test.each([
+    "https://alice:FAKE_REVIEW_SECRET@example.org/feed.csv",
+    "https://",
+    "https://example.org/feed.csv?api_key=FAKE_REVIEW_KEY",
+    "https://example.org/feed.csv#fragment",
+  ])("rejects an unsafe public source URL: %s", (url) => {
+    const document = productionBase();
+    expect(checkExport(signed(document), { allowSynthetic: false }).ok).toBe(true);
+
+    const sources = document.sources.map((entry, index) =>
+      index === 0 ? { ...entry, url } : entry,
+    );
+    expect(checkExport(signed({ ...document, sources }), { allowSynthetic: false }).ok).toBe(false);
+  });
+
+  test("rejects a source with fewer rows than its accepted detections", () => {
+    const document = baseExport();
+    document.sources[0].rows = 0;
+    document.sources[1].rows = 1;
+    expect(issuePaths(signed(document))).toContain("$.sources[0].rows");
+  });
+
+  test.each(["3.0NRT", "NRT", "2.0nrt", "02.0NRT", ""])(
+    "rejects version %s for a pinned collection-2 source",
+    (version) => {
+      const document = signed(withDetections([detection({ version })]));
+      expect(issuePaths(document)).toContain("$.detections[0].version");
+    },
+  );
+
+  test("accepts a collection-2 version other than the sample revision", () => {
+    expect(checkExport(signed(withDetections([detection({ version: "2.1NRT" })]))).ok).toBe(true);
+  });
+
+  test("rejects a derived source time when one source has no file time", () => {
+    const document = baseExport();
+    document.sources[0].lastModified = null;
+    document.sources[1].lastModified = "2026-10-01T00:00:00Z";
+    document.sourceUpdatedAt = document.checkedAt;
+    expect(issuePaths(signed(document))).toContain("$.sourceUpdatedAt");
+  });
+
+  test("accepts an unavailable source time with an open hold", () => {
+    const document = baseExport();
+    document.sources[0].lastModified = null;
+    document.sources[1].lastModified = "2026-10-01T00:00:00Z";
+    document.sourceUpdatedAt = null;
+    document.approval.holds = ["missing-source-time"];
+    expect(checkExport(signed(document)).ok).toBe(true);
+  });
+
+  test("rejects an unavailable source time when every file time is known", () => {
+    const document = baseExport();
+    document.sourceUpdatedAt = null;
+    document.approval.holds = ["missing-source-time"];
+    expect(issuePaths(signed(document))).toContain("$.sourceUpdatedAt");
   });
 
   test("includes the window end and excludes the window start", () => {

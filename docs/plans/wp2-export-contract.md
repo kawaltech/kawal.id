@@ -107,25 +107,45 @@ provisional slugs: `kalimantan-tengah`, `sumatra-selatan`, `riau`,
 the code list changes without a `schemaVersion` bump, because the field type
 does not change.
 
+### (d) Missing source file times
+
+Selected in the 19 October 2026 review response: `sourceUpdatedAt` is `null`
+when at least one required source has no usable `lastModified`. A null value
+requires a non-empty `approval.holds` and prevents activation. This keeps the
+missing time explicit instead of deriving it from another source. D8 still
+owns the freshness tolerance and release conditions.
+
+### (e) Detection version format
+
+The version format is `<collection>.<revision>NRT`, such as `2.0NRT`. The
+collection must equal the collection pinned in `sourceId` (`c2` today).
+Other revisions are allowed, so the sample `2.0NRT` is not pinned exactly. A
+collection change needs explicit review, matching C1.
+
 ## 5. Validation rules
 
 ### 5.1 Document level (C3)
 
 The validator rejects an export when:
 
-| Condition                                                              | Note                                     |
-| ---------------------------------------------------------------------- | ---------------------------------------- |
-| An unknown top-level key exists                                        | strict whitelist                         |
-| A report, user, session, or review key exists                          | including nested objects                 |
-| `sources` is empty or lacks a required satellite                       | both satellites required                 |
-| `counts.accepted !== detections.length`                                | consistency                              |
-| `sum(counts) !== total source rows`                                    | derived from buckets                     |
-| `sum(counts.byProvince) !== counts.accepted`                           | decision (a)                             |
-| `windowEnd`, `createdAt`, `checkedAt`, or `sourceUpdatedAt` is not UTC | `Z`, second precision                    |
-| `detections` is empty while any source is not `ok`                     | a zero export needs all sources `ok`     |
-| `exportId !== "sat-" + contentHash`                                    | identity                                 |
-| `windowHours !== 72` for version 1                                     | fixed                                    |
-| `synthetic: true` in production mode                                   | `allowSynthetic` option prepared for WP4 |
+| Condition                                                                 | Note                                     |
+| ------------------------------------------------------------------------- | ---------------------------------------- |
+| An unknown top-level key exists                                           | strict whitelist                         |
+| A report, user, session, or review key exists                             | including nested objects                 |
+| `sources` is empty or lacks a required satellite                          | both satellites required                 |
+| `counts.accepted !== detections.length`                                   | consistency                              |
+| `sum(counts) !== total source rows`                                       | derived from buckets                     |
+| `sum(counts.byProvince) !== counts.accepted`                              | decision (a)                             |
+| `windowEnd`, `createdAt`, or `checkedAt` is not UTC                       | `Z`, second precision                    |
+| `sourceUpdatedAt` is not UTC or `null`                                    | decision (d)                             |
+| A production source URL has credentials, no host, a query, or fragment    | C1, method A only                        |
+| A source accepts more rows than it supplied                               | per-source `rows` check                  |
+| `detections` is empty while any source is not `ok`                        | a zero export needs all sources `ok`     |
+| `detections` is empty while any approval hold is open                     | a zero export needs no open hold         |
+| A source has no `lastModified` without a null `sourceUpdatedAt` or a hold | decision (d)                             |
+| `exportId !== "sat-" + contentHash`                                       | identity                                 |
+| `windowHours !== 72` for version 1                                        | fixed                                    |
+| `synthetic: true` in production mode                                      | `allowSynthetic` option prepared for WP4 |
 
 ### 5.2 Detection level (C2)
 
@@ -138,7 +158,7 @@ The validator rejects an export when:
 | `confidence`            | `rendah`, `nominal`, or `tinggi`                                                      |
 | `daynight`              | `D` or `N`                                                                            |
 | `province`              | valid slug, or `luar-provinsi`                                                        |
-| `version`               | non-empty and ending in `NRT`                                                         |
+| `version`               | `<collection>.<revision>NRT`; collection agrees with `sourceId` (decision (e))        |
 | Duplicate `id`          | rejected; conflicting fields are a WP3 concern                                        |
 
 Row classification order, shared with WP3:
@@ -154,6 +174,8 @@ verify the raw CSV itself; WP3 owns parsing and row validation.
   `1.0`, `1.00`, and `-0` serialize as `1` and `0`.
 - `detections` sort by `id` ascending. `sources` sort by `sourceId` ascending.
 - The hash covers the full document except `exportId` and `contentHash`.
+  `contentHash` strips those identity fields internally, so a complete typed
+  `ExportV1` and its hashable body produce the same hash.
 - `exportId` is set to `"sat-" + contentHash`; `contentHash` is written after.
 - Every timestamp is part of the hash. A heartbeat produces a new ID by design.
 
@@ -183,7 +205,10 @@ It has two modes:
    capacity and edge-case tests. It does not read the design fixture.
 
 Determinism rules: no `Date.now()`, no `Math.random()`, no input-order
-dependence. The seed is always explicit.
+dependence. The seed is always explicit. A window anchor is floored to a whole
+UTC minute before generating, so detections always satisfy C2 precision. Each
+export receives its own `boundary` and `approval` objects, including a copied
+`holds` array.
 
 Synthetic provenance uses `url: "synthetic://<sourceId>"` and `etag: null`.
 The validator permits the synthetic scheme and a null ETag only when

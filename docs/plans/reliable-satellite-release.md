@@ -237,7 +237,9 @@ One snapshot has one complete 7-day file for each required satellite.
 - `sourceId`: `firms-viirs-noaa20-c2-nrt` or
   `firms-viirs-noaa21-c2-nrt`. Pin provider, instrument, satellite, collection,
   and processing level. Region and request URL are provenance, not identity.
-- `url`: request URL without secrets. Redact the MAP_KEY path if D2 changes.
+- `url`: request URL without secrets. For direct-file (method A) access, an
+  HTTPS URL with a host and no user information, query, or fragment. Redact the
+  MAP_KEY path if D2 changes.
 - `retrievedAt`: UTC time when the complete response finished.
 - `lastModified`, `etag`: HTTP response metadata; not coverage watermarks.
   Missing, invalid, or implausibly future file times hold activation under D8.
@@ -258,7 +260,7 @@ One snapshot has one complete 7-day file for each required satellite.
 | `confidence`            | `rendah`, `nominal`, or `tinggi`, from `low`/`l`, `nominal`/`n`, `high`/`h`             |
 | `daynight`              | `D` or `N`                                                                              |
 | `province`              | Code from the boundary data (D4), or `luar-provinsi` for a point in the coastal buffer  |
-| `version`               | Source `version`, such as `2.0NRT`                                                      |
+| `version`               | Source `version`, `<collection>.<revision>NRT`; collection agrees with `sourceId`       |
 
 Canonicalize dates to UTC, pad `HHMM`, map `1`/`N20` and `2`/`N21` to the
 selected source, and normalize equivalent decimal coordinates (`1.0` = `1.00`,
@@ -288,7 +290,7 @@ createdAt          UTC time the export was made
 windowEnd          UTC anchor, second precision; earliest source retrievedAt
 windowHours        72
 checkedAt          UTC time of the run that made this export
-sourceUpdatedAt    earliest Last-Modified over the required sources
+sourceUpdatedAt    earliest Last-Modified over the required sources, or null when a source has no usable time; null requires an open hold
 latestObservationAt newest acquiredAt in the export, or null
 sources[]          C1 provenance for each required source, without credentials
 boundary           name, version, licence, and SHA-256 of the province data

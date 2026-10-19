@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#16140f;color:#f1ebdd;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#f1ebdd;text-decoration:underline;text-underline-offset:3px}
+a:hover{color:#ffd84d}
+input[type=range]{accent-color:#ffd84d}
+</style>
+</helmet>
+<div style="max-width:1280px;margin:0 auto;padding:16px 24px 48px;display:flex;flex-direction:column;gap:20px;background-image:radial-gradient(#2a241c 1px,transparent 1px);background-size:14px 14px">
+
+  <div style="border:1.5px dashed #e9e1cf;border-radius:6px;padding:9px 14px;font-size:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <span style="font-family:'Geist Mono',monospace;font-weight:600;letter-spacing:.08em">DESIGN REVIEW · 3D PROTOTYPE</span>
+    <span>Synthetic data and a fictional place. Not a fire information service. See ADR 0009.</span>
+  </div>
+
+  <header style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:22px;font-weight:700;letter-spacing:-.02em">Kawal Asap</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:10px;border:1.5px solid #e9e1cf;border-radius:99px;padding:1px 7px">KAWAL.ID</span>
+    </div>
+    <nav style="display:flex;gap:16px;font-size:14px;font-weight:500">
+      <a href="#peta">Peta</a><a href="#grafik">Grafik</a><a href="#tabel">Tabel</a><a href="#metode">Cara membaca</a>
+    </nav>
+  </header>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.12em;color:#a99f8c">ANALISIS KEJADIAN · PROTOTIPE 3D</span>
+      <h1 style="margin:0;font-size:36px;font-weight:700;letter-spacing:-.03em;line-height:1.05">Kejadian sintetis Lereng Contoh</h1>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;font-family:'Geist Mono',monospace;font-size:12px;flex-wrap:wrap">
+      <span style="border:1.5px dashed #e9e1cf;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:600;letter-spacing:.08em">DATA SINTETIS</span>
+      <span>KA-SIM-2026-001</span><span>8 Sep 14.00 – 11 Sep 12.00 WIB</span>
+    </div>
+  </div>
+
+  <!-- Ringkasan kejadian -->
+  <section data-screen-label="Ringkasan" style="background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;padding:18px 20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+      <h2 style="margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em">Ringkasan kejadian</h2>
+      <span style="font-size:12px;color:#a99f8c">Wilayah fiktif, bukan lokasi nyata · Contoh untuk tinjauan desain</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0;border-top:1px solid #4a4134">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+        <div style="padding:14px 16px 4px 0;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid #4a4134">
+          <span style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;color:#a99f8c;text-transform:uppercase">{{ k.label }}</span>
+          <span style="font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1">{{ k.value }}<span style="font-size:13px;font-weight:500;color:#cfc6b4"> {{ k.unit }}</span></span>
+          <span style="font-size:12px;color:#a99f8c;padding-bottom:10px">{{ k.note }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px 28px;font-size:12px">
+      <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+        <span style="display:flex;gap:8px"><span style="color:#a99f8c">{{ f.label }}</span><span style="font-weight:600">{{ f.value }}</span></span>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Peta + Cuaca -->
+  <div id="peta" style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
+    <section data-screen-label="Peta" style="flex:1 1 640px;min-width:0;background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;overflow:hidden;display:flex;flex-direction:column">
+      <div style="position:relative;flex:1;min-height:440px;background:#dde3e1">
+        <img src="assets/terrain.png" alt="Medan 3D sintetis Lereng Contoh" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 60%;opacity:{{ terrainOpacity }}">
+        <div style="position:absolute;top:12px;left:12px;width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid #16140f;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;color:#16140f">U</div>
+        <div style="position:absolute;top:12px;left:60px;display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:#ffd84d;color:#16140f;border:1.5px solid #16140f;border-radius:99px;padding:2px 9px;font-family:'Geist Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em">DATA SINTETIS · LOKASI FIKTIF</span>
+          <span style="background:#16140f;color:#f1ebdd;border-radius:99px;padding:2px 9px;font-family:'Geist Mono',monospace;font-size:10px;font-weight:600">{{ timeLabel }} WIB</span>
+        </div>
+        <div style="position:absolute;top:12px;right:12px;display:flex;gap:6px">
+          <button onClick="{{ toggleLayers }}" style="font:600 12px Geist,sans-serif;padding:7px 11px;border-radius:6px;border:1.5px solid #16140f;cursor:pointer;background:{{ layersBtnBg }};color:#16140f;display:flex;gap:6px;align-items:center">Lapisan <span style="font-family:'Geist Mono',monospace;font-size:10px">{{ layersCount }}</span></button>
+          <button onClick="{{ toggleLegend }}" style="font:600 12px Geist,sans-serif;padding:7px 11px;border-radius:6px;border:1.5px solid #16140f;cursor:pointer;background:{{ legendBtnBg }};color:#16140f">Legenda</button>
+        </div>
+
+        <sc-if value="{{ layersOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:52px;right:12px;bottom:12px;width:300px;max-width:calc(100% - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #16140f;padding:10px 12px;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px">
+              <span style="font-size:14px;font-weight:700">Lapisan</span>
+              <button onClick="{{ toggleLayers }}" style="background:none;border:0;color:#a99f8c;font:500 12px Geist,sans-serif;cursor:pointer">Tutup</button>
+            </div>
+            <sc-for list="{{ layers }}" as="l" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:16px minmax(0,1fr) 56px 30px;gap:6px;align-items:center;padding:7px 0;border-top:1px solid #3a3229;opacity:{{ l.dim }}">
+                <input type="checkbox" checked="{{ l.on }}" onChange="{{ l.toggle }}" style="accent-color:#ffd84d;margin:0">
+                <div style="display:flex;flex-direction:column;min-width:0">
+                  <span style="font-size:12px;font-weight:600">{{ l.name }}</span>
+                  <span style="font-size:10px;color:#a99f8c;line-height:1.3">{{ l.note }}</span>
+                </div>
+                <input type="range" min="0" max="100" value="{{ l.op }}" onChange="{{ l.setOp }}" style="width:56px;min-width:0;margin:0">
+                <span style="font-family:'Geist Mono',monospace;font-size:10px;text-align:right">{{ l.op }}%</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="position:absolute;bottom:12px;left:12px;display:flex;flex-direction:column;gap:4px;font-family:'Geist Mono',monospace;font-size:10px;color:#16140f">
+          <span style="background:#fff;border:1.5px solid #16140f;border-radius:4px;padding:2px 7px">▬▬▬ 2 km · di tengah tampilan</span>
+        </div>
+        <div style="position:absolute;bottom:12px;right:{{ ctrlRight }};display:flex;gap:6px">
+          <sc-for list="{{ views }}" as="v" hint-placeholder-count="2">
+            <button onClick="{{ v.pick }}" style="font:600 12px Geist,sans-serif;padding:6px 10px;border-radius:6px;border:1.5px solid #16140f;background:{{ v.bg }};color:#16140f;cursor:pointer">{{ v.label }}</button>
+          </sc-for>
+          <span style="font:600 12px Geist,sans-serif;padding:6px 10px;border-radius:6px;border:1.5px solid #16140f;background:#fff;color:#16140f">Relief 2,5×</span>
+        </div>
+      </div>
+      <sc-if value="{{ legendOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:10px 14px;border-top:1.5px solid #e9e1cf;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:11px">
+          <sc-for list="{{ legend }}" as="g" hint-placeholder-count="6">
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:{{ g.c }};border:1px solid #e9e1cf"></span>{{ g.label }}</span>
+          </sc-for>
+          <span style="flex-basis:100%;color:#a99f8c">Seret untuk memutar, gulir untuk memperbesar, klik kanan atau dua jari untuk menggeser. Medan dibuat di peramban; tidak ada tile peta dari server lain.</span>
+        </div>
+      </sc-if>
+    </section>
+
+    <section data-screen-label="Cuaca" style="flex:1 1 320px;max-width:100%;background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <h2 style="margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em">Cuaca dan perilaku api</h2>
+        <span style="font-size:12px;color:#a99f8c">Model di kepala api · {{ timeLabel }} WIB</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="grid-column:1 / -1;border:1.5px solid #ffd84d;border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:flex-end;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;color:#a99f8c">INDEKS BAHAYA</span>
+            <span style="font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1">{{ wx.index }}</span>
+            <span style="font-size:11px;color:#a99f8c">skala contoh 0–40</span>
+          </div>
+          <div style="flex:1;max-width:150px;height:8px;border-radius:99px;background:#3a3229;overflow:hidden;margin-bottom:6px">
+            <div style="height:100%;width:{{ wx.indexPct }};background:#ffd84d"></div>
+          </div>
+        </div>
+        <sc-for list="{{ wxTiles }}" as="w" hint-placeholder-count="6">
+          <div style="border:1.5px solid #5a4f40;border-radius:6px;padding:9px 11px;display:flex;flex-direction:column;gap:3px">
+            <span style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;color:#a99f8c">{{ w.label }}</span>
+            <span style="font-size:20px;font-weight:700;letter-spacing:-.02em">{{ w.value }}</span>
+            <span style="font-size:11px;color:#a99f8c">{{ w.note }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <!-- Linimasa -->
+  <section data-screen-label="Linimasa" style="background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;padding:16px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+      <h2 style="margin:0;font-size:17px;font-weight:700">Linimasa</h2>
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#cfc6b4">8 Sep 14.00 – 11 Sep 12.00 WIB</span>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:6px">
+        <button onClick="{{ prevEvent }}" style="width:34px;height:34px;border-radius:6px;border:1.5px solid #e9e1cf;background:none;color:#f1ebdd;cursor:pointer;font-size:12px">⏮</button>
+        <button onClick="{{ togglePlay }}" style="width:34px;height:34px;border-radius:6px;border:1.5px solid #e9e1cf;background:{{ playBg }};color:{{ playFg }};cursor:pointer;font-size:12px">{{ playIcon }}</button>
+        <button onClick="{{ nextEvent }}" style="width:34px;height:34px;border-radius:6px;border:1.5px solid #e9e1cf;background:none;color:#f1ebdd;cursor:pointer;font-size:12px">⏭</button>
+      </div>
+      <div onClick="{{ seekTrack }}" style="position:relative;flex:1 1 500px;min-width:0;height:64px;cursor:pointer">
+        <sc-for list="{{ eventMarks }}" as="e" hint-placeholder-count="9">
+          <span title="{{ e.title }}" style="position:absolute;top:4px;left:{{ e.left }};transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:{{ e.c }};outline:{{ e.ring }}"></span>
+        </sc-for>
+        <div style="position:absolute;top:26px;left:0;right:0;height:3px;border-radius:2px;background:#4a4134"></div>
+        <div style="position:absolute;top:26px;left:0;height:3px;border-radius:2px;width:{{ tPct }};background:#e0457b"></div>
+        <sc-for list="{{ passMarks }}" as="p" hint-placeholder-count="12">
+          <span style="position:absolute;top:36px;left:{{ p.left }};width:3px;height:9px;background:{{ p.c }};border:{{ p.b }}"></span>
+        </sc-for>
+        <span style="position:absolute;top:18px;left:{{ tPct }};transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:#ffd84d;border:2px solid #16140f;box-shadow:0 0 0 1.5px #ffd84d"></span>
+        <sc-for list="{{ ticks }}" as="k" hint-placeholder-count="8">
+          <span style="position:absolute;top:50px;left:{{ k.left }};transform:translateX(-50%);font-family:'Geist Mono',monospace;font-size:9px;color:#a99f8c;white-space:nowrap">{{ k.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;border-top:1px solid #4a4134;padding-top:12px">
+      <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:13px">
+        <span style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;color:#a99f8c">PERISTIWA TERAKHIR</span>
+        <span style="width:8px;height:8px;border-radius:50%;background:{{ lastEvent.c }};align-self:center"></span>
+        <span style="font-weight:600">{{ lastEvent.title }}</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#cfc6b4">{{ lastEvent.time }}</span>
+        <span style="color:#a99f8c">{{ lastEvent.desc }}</span>
+      </div>
+      <button onClick="{{ toggleEvents }}" style="background:none;border:1.5px solid #e9e1cf;border-radius:6px;color:#f1ebdd;font:600 11px 'Geist Mono',monospace;letter-spacing:.06em;padding:6px 10px;cursor:pointer">{{ eventsBtn }}</button>
+    </div>
+    <sc-if value="{{ eventsOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">
+        <sc-for list="{{ events }}" as="e" hint-placeholder-count="9">
+          <button onClick="{{ e.seek }}" style="text-align:left;background:{{ e.bg }};color:{{ e.fg }};border:1.5px solid #5a4f40;border-radius:6px;padding:9px 11px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font-family:Geist,sans-serif">
+            <span style="display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600"><span style="display:flex;gap:6px;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:{{ e.c }}"></span>{{ e.title }}</span><span style="font-family:'Geist Mono',monospace;font-size:10px">{{ e.time }}</span></span>
+            <span style="font-size:11px;opacity:.75">{{ e.desc }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <span style="font-size:11px;color:#a99f8c">▮ Lintasan satelit. ▯ Tertutup awan: tanpa deteksi bukan berarti api padam. Satelit tidak mengamati terus-menerus.</span>
+  </section>
+
+  <!-- Grafik model -->
+  <section id="grafik" data-screen-label="Grafik model" style="background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;padding:16px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+      <h2 style="margin:0;font-size:17px;font-weight:700">Grafik model</h2>
+      <span style="font-size:12px;color:#a99f8c">Klik grafik waktu untuk memindahkan linimasa.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+      <sc-for list="{{ charts }}" as="c" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+            <span style="font-size:13px;font-weight:600">{{ c.title }} <span style="font-weight:400;color:#a99f8c">{{ c.unit }}</span></span>
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#ffd84d">{{ c.now }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:6px">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;font-family:'Geist Mono',monospace;font-size:9px;color:#a99f8c;height:180px">
+              <span>{{ c.yMax }}</span><span>{{ c.yMid }}</span><span>0</span>
+            </div>
+            <div onClick="{{ c.click }}" style="position:relative;height:180px;cursor:{{ c.cursor }};border-left:1px solid #5a4f40;border-bottom:1px solid #5a4f40">
+              <svg viewBox="0 0 400 180" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+                <line x1="0" y1="90" x2="400" y2="90" stroke="#3a3229" stroke-dasharray="3 4"></line>
+                <path d="{{ c.fill }}" fill="#3b3227"></path>
+                <path d="{{ c.line }}" fill="none" stroke="#f1ebdd" stroke-width="1.6" vector-effect="non-scaling-stroke"></path>
+              </svg>
+              <span style="position:absolute;top:0;bottom:0;left:{{ c.cx }};border-left:1.5px dashed #cfc6b4"></span>
+              <span style="position:absolute;left:{{ c.cx }};top:{{ c.cy }};width:11px;height:11px;transform:translate(-50%,-50%);border-radius:50%;background:#ffd84d;border:2px solid #16140f"></span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-left:46px;font-family:'Geist Mono',monospace;font-size:9px;color:#a99f8c">
+            <sc-for list="{{ c.xs }}" as="x" hint-placeholder-count="3"><span>{{ x }}</span></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Tabel -->
+  <section id="tabel" data-screen-label="Tabel" style="background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.12em;color:#a99f8c">TABEL</span>
+        <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em">Data yang sama tanpa peta</h2>
+      </div>
+      <button onClick="{{ toggleTables }}" style="background:none;border:1.5px solid #e9e1cf;border-radius:6px;color:#f1ebdd;font:600 11px 'Geist Mono',monospace;letter-spacing:.06em;padding:6px 10px;cursor:pointer">{{ tablesBtn }}</button>
+    </div>
+    <sc-if value="{{ tablesOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;font-size:12px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-weight:600;font-size:13px">Lintasan satelit</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.08em;color:#a99f8c;padding:6px 8px;border-bottom:1.5px solid #e9e1cf"><span>WAKTU (WIB)</span><span>SATELIT</span><span style="text-align:right">DETEKSI</span></div>
+          <sc-for list="{{ passes }}" as="p" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:6px 8px;border-bottom:1px solid #3a3229"><span>{{ p.time }}</span><span>{{ p.sat }}</span><span style="text-align:right">{{ p.det }}</span></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-weight:600;font-size:13px">Luas dan laju model per 6 jam</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.08em;color:#a99f8c;padding:6px 8px;border-bottom:1.5px solid #e9e1cf"><span>WAKTU (WIB)</span><span style="text-align:right">LUAS (HA)</span><span style="text-align:right">LAJU (M/JAM)</span></div>
+          <sc-for list="{{ modelRows }}" as="r" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:6px 8px;border-bottom:1px solid #3a3229"><span>{{ r.time }}</span><span style="text-align:right">{{ r.area }}</span><span style="text-align:right">{{ r.rate }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </section>
+
+  <!-- Metode -->
+  <section id="metode" data-screen-label="Metode" style="background:#201b15;border:1.5px solid #e9e1cf;border-radius:8px;box-shadow:3px 3px 0 #e9e1cf;padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.12em;color:#a99f8c">METODE</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em">Cara membaca prototipe ini</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;font-size:13px;line-height:1.55">
+      <div>
+        <h3 style="margin:0 0 6px;font-size:14px">Yang tidak bisa ditunjukkan</h3>
+        <ul style="margin:0;padding-left:18px;text-wrap:pretty">
+          <li>Semua data di halaman ini sintetis. Tempat, nama, dan peristiwa adalah rekaan.</li>
+          <li>Sebaran api, perimeter, dan laju adalah gambar model sederhana. Ini bukan pengamatan dan bukan batas resmi.</li>
+          <li>Deteksi satelit menandai panas di permukaan. Deteksi belum tentu kebakaran, dan satu kebakaran dapat tampil sebagai beberapa deteksi.</li>
+          <li>Area titik awal adalah perkiraan. Prototipe ini tidak menentukan penyebab atau pelaku.</li>
+          <li>Halaman ini bukan alat operasi pemadaman, peringatan, atau evakuasi.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px;font-size:14px">Yang ditampilkan</h3>
+        <ul style="margin:0;padding-left:18px">
+          <li>Waktu pengamatan satelit dalam WIB, termasuk lintasan yang tertutup awan.</li>
+          <li>Label yang memisahkan pengamatan, model, dan catatan pemadaman.</li>
+          <li>Tabel yang memuat data peta, untuk pembaca tanpa peta 3D.</li>
+          <li>Medan yang dibuat di peramban, tanpa tile peta, citra, atau font dari server lain.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer style="font-family:'Geist Mono',monospace;font-size:11px;color:#a99f8c;line-height:1.7">
+    Kawal Asap · kawal.id. Prototipe 3D dengan data sintetis dan lokasi fiktif. Bukan layanan peringatan kebakaran.<br>Medan dan peta digambar di peramban. Mesin 3D: three.js (MIT).
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;layersOpenDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Panel opsional&quot;},&quot;legendOpenDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Panel opsional&quot;}}">
+const T_MAX = 70;
+const AREA_T = [0,4,10,16,22,28,34,40,46,52,58,64,70];
+const AREA = [0,97,371,678,958,1427,1929,2343,2701,3051,3322,3502,3612];
+const RATE_T = [0,1.5,3,4,10,16,22,28,34,40,46,52,58,64,70];
+const RATE = [120,880,420,368,116,116,300,300,116,116,162,83,17,8,0];
+const PROFILE = [[0,120],[1,150],[2,190],[3,210],[4,260],[5,250],[6,300],[7,330],[7.5,420],[8.4,560],[9.2,470],[10,300]];
+const EVENTS = [
+  {t:0.43,title:'Titik awal (perkiraan)',desc:'Perkiraan dari arah sebaran. Bukan penentuan penyebab.',c:'#e0457b'},
+  {t:2.83,title:'Pertumbuhan cepat (model)',desc:'Hembusan angin barat daya menaikkan laju model.',c:'#d6304a'},
+  {t:10.63,title:'Deteksi satelit pertama',desc:'NOAA-21. Satelit tidak mengamati terus-menerus.',c:'#f07a2a'},
+  {t:13.2,title:'Api loncat (perkiraan)',desc:'Bara terbawa angin ke depan kepala api.',c:'#f08aa8'},
+  {t:18.67,title:'Water bombing pertama',desc:'Contoh catatan pemadaman dari udara.',c:'#5aa8e6'},
+  {t:44.17,title:'Melintasi punggung bukit',desc:'Kepala api model melewati punggung bukit timur.',c:'#c9b48a'},
+  {t:47.2,title:'Lintasan tertutup awan',desc:'NOAA-20 tidak melihat permukaan. Tanpa deteksi bukan berarti padam.',c:'#8a8070'},
+  {t:49,title:'Sekat bakar utara selesai',desc:'Contoh catatan pemadaman darat.',c:'#c98a4a'},
+  {t:69.33,title:'Terkendali (contoh status)',desc:'Deteksi sesudahnya dapat berasal dari gambut yang membara.',c:'#6cc070'}
+];
+const PASSES = [['9 Sep 00.38','NOAA-21','13'],['9 Sep 01.03','NOAA-20','17'],['9 Sep 01.52','Suomi NPP','15'],['9 Sep 12.47','NOAA-21','21'],['9 Sep 13.12','NOAA-20','21'],['9 Sep 14.01','Suomi NPP','18'],['10 Sep 00.38','NOAA-21','31'],['10 Sep 01.03','NOAA-20','31'],['10 Sep 01.52','Suomi NPP','33'],['10 Sep 12.47','NOAA-21','35'],['10 Sep 13.12','NOAA-20','— tertutup awan'],['10 Sep 14.01','Suomi NPP','39'],['11 Sep 00.38','NOAA-21','21'],['11 Sep 01.03','NOAA-20','22'],['11 Sep 01.52','Suomi NPP','26']];
+const LAYERS = [
+  ['Medan 3D','Relief dan bayangan bukit',true,100],['Tutupan lahan','Gambar sintetis, bukan citra',true,100],
+  ['Bekas terbakar (dNBR)','Tingkat keparahan, contoh',true,90],['Sebaran api (model)','Model, bukan pengamatan',true,75],
+  ['Deteksi satelit (VIIRS)','Belum tentu kebakaran',true,100],['Area titik awal','Perkiraan, bukan penyebab',true,80],
+  ['Angin (vektor)','Arah dan kecepatan model',false,70],['Pemadaman','Water bombing dan sekat bakar',true,100],
+  ['Bangunan','Titik bangunan fiktif',false,100],['Jalan dan jalur','Jalan desa dan jalur kebun',true,100],['Batas wilayah','Batas desa fiktif',false,100]
+];
+const fmtN = n => Math.round(n).toLocaleString('id-ID');
+function interp(xs, ys, x){ if(x<=xs[0])return ys[0]; for(let i=1;i<xs.length;i++){ if(x<=xs[i]){const f=(x-xs[i-1])/(xs[i]-xs[i-1]);return ys[i-1]+f*(ys[i]-ys[i-1]);} } return ys[ys.length-1]; }
+function tLabel(t){ const abs=14*60+Math.round(t*60); const d=8+Math.floor(abs/1440); const m=abs%1440; return `${d} Sep ${String(Math.floor(m/60)).padStart(2,'0')}.${String(m%60).padStart(2,'0')}`; }
+function paths(pts, xMax, yMax){ const P=pts.map(([x,y])=>[x/xMax*400,180-y/yMax*180]); const line='M'+P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L'); return {line, fill: line+` L${P[P.length-1][0].toFixed(1)},180 L${P[0][0].toFixed(1)},180 Z`}; }
+function smooth(xs, ys, xMax, n=140){ const o=[]; for(let i=0;i<=n;i++){const x=i/n*xMax;o.push([x,interp(xs,ys,x)]);} return o; }
+
+class Component extends DCLogic {
+  state = { t: 24.13, playing:false, layersOpen: this.props.layersOpenDefault ?? false, legendOpen: this.props.legendOpenDefault ?? false, eventsOpen:false, tablesOpen:false, view:'3D',
+    layers: LAYERS.map(([name,note,on,op])=>({name,note,on,op})) };
+  componentWillUnmount(){ clearInterval(this.timer); }
+  setT = t => this.setState({ t: Math.max(0, Math.min(T_MAX, t)) });
+  togglePlay = () => {
+    if (this.state.playing){ clearInterval(this.timer); this.setState({playing:false}); return; }
+    if (this.state.t >= T_MAX) this.setT(0);
+    this.setState({playing:true});
+    this.timer = setInterval(()=>{ const t=this.state.t+0.1; if(t>=T_MAX){clearInterval(this.timer);this.setState({t:T_MAX,playing:false});} else this.setState({t}); },100);
+  };
+  seekFrom = (e, xMax=T_MAX) => { const r=e.currentTarget.getBoundingClientRect(); this.setT((e.clientX-r.left)/r.width*xMax); };
+  renderVals(){
+    const s=this.state, t=s.t;
+    const pct = v => (v/T_MAX*100).toFixed(2)+'%';
+    const area=interp(AREA_T,AREA,t), rate=interp(RATE_T,RATE,t);
+    const hour=(14+t)%24, diurnal=Math.cos((hour-14)/24*2*Math.PI);
+    const index=Math.round(Math.min(40,Math.max(2,15+11*diurnal+rate/60)));
+    const wx={ wind:Math.round(14+7*diurnal), temp:Math.round(27+6*diurnal), rh:Math.round(60-20*diurnal), fuel:Math.round(9-3*diurnal) };
+    const wxTiles=[
+      {label:'ANGIN',value:wx.wind+' km/jam',note:'dari BBD (237°)'},{label:'SUHU',value:wx.temp+' °C',note:'udara'},
+      {label:'KELEMBAPAN',value:wx.rh+'%',note:'relatif'},{label:'KADAR AIR BAHAN BAKAR',value:wx.fuel+'%',note:'bahan bakar halus'},
+      {label:'LAJU SEBARAN',value:fmtN(rate)+' m/jam',note:'kepala api'},{label:'PANJANG NYALA',value:(0.3+rate/220).toFixed(1).replace('.',',')+' m',note:'perkiraan'}];
+    const last=[...EVENTS].reverse().find(e=>e.t<=t);
+    const ap=paths(smooth(AREA_T,AREA,T_MAX),T_MAX,5000), rp=paths(smooth(RATE_T,RATE,T_MAX),T_MAX,1000);
+    const prX=PROFILE.map(p=>p[0]), prY=PROFILE.map(p=>p[1]); const pp=paths(smooth(prX,prY,10),10,1000);
+    const dist=area/3612*10;
+    const charts=[
+      {title:'Luas terbakar',unit:'(ha, model)',now:fmtN(area)+' ha',yMax:'5.000',yMid:'2.500',...ap,cx:pct(t),cy:(100-area/5000*100).toFixed(2)+'%',xs:['8 Sep','9 Sep','10 Sep','11 Sep'],click:e=>this.seekFrom(e),cursor:'pointer'},
+      {title:'Laju sebaran kepala api',unit:'(m/jam, model)',now:fmtN(rate)+' m/jam',yMax:'1.000',yMid:'500',...rp,cx:pct(t),cy:(100-rate/1000*100).toFixed(2)+'%',xs:['8 Sep','9 Sep','10 Sep','11 Sep'],click:e=>this.seekFrom(e),cursor:'pointer'},
+      {title:'Profil ketinggian lintasan',unit:'(m)',now:fmtN(interp(prX,prY,dist))+' m · '+dist.toFixed(1).replace('.',',')+' km',yMax:'1.000',yMid:'500',...pp,cx:(dist*10).toFixed(2)+'%',cy:(100-interp(prX,prY,dist)/10).toFixed(2)+'%',xs:['0 km','2','4','6','8','10 km'],click:()=>{},cursor:'default'}
+    ];
+    const passT=p=>{const [d,hm]=p[0].split(' Sep ');const [h,m]=hm.split('.').map(Number);return (Number(d)-8)*24+h+m/60-14;};
+    const ticks=[]; for(let x=4;x<=T_MAX;x+=12){ticks.push({left:pct(x),label:tLabel(x).replace(' Sep','').replace(/^(\d+) /,'$1 · ')});}
+    const onCount=s.layers.filter(l=>l.on).length;
+    const terrain=s.layers[0];
+    return {
+      kpis:[
+        {label:'Luas akhir (model)',value:'3.612',unit:'ha',note:'Model, bukan batas resmi'},
+        {label:'Mulai (perkiraan)',value:'8 Sep 14.26',unit:'WIB',note:'Area titik awal perkiraan'},
+        {label:'Terkendali',value:'11 Sep 11.20',unit:'WIB',note:'Durasi ±69 jam'},
+        {label:'Deteksi satelit',value:'343',unit:'dari 15 lintasan',note:'1 lintasan tertutup awan'},
+        {label:'Penyebab',value:'Tidak ditentukan',unit:'',note:'Di luar cakupan Kawal Asap'}],
+      facts:[{label:'Nama',value:'Kejadian sintetis Lereng Contoh'},{label:'ID',value:'KA-SIM-2026-001'},{label:'Lokasi',value:'Wilayah fiktif, bukan lokasi nyata'},{label:'Status',value:'Contoh untuk tinjauan desain'}],
+      timeLabel:tLabel(t), tPct:pct(t),
+      wx:{index,indexPct:(index/40*100).toFixed(0)+'%'}, wxTiles,
+      terrainOpacity: terrain.on ? Math.max(0.15,terrain.op/100) : 0.15,
+      layersOpen:s.layersOpen, legendOpen:s.legendOpen,
+      toggleLayers:()=>this.setState({layersOpen:!s.layersOpen}), toggleLegend:()=>this.setState({legendOpen:!s.legendOpen}),
+      layersBtnBg:s.layersOpen?'#ffd84d':'#fff', legendBtnBg:s.legendOpen?'#ffd84d':'#fff', layersCount:onCount+'/'+s.layers.length,
+      ctrlRight: s.layersOpen ? '324px' : '12px',
+      layers:s.layers.map((l,i)=>({...l,dim:l.on?1:0.5,
+        toggle:()=>this.setState(st=>({layers:st.layers.map((x,j)=>j===i?{...x,on:!x.on}:x)})),
+        setOp:e=>{const v=Number(e.target.value);this.setState(st=>({layers:st.layers.map((x,j)=>j===i?{...x,op:v}:x)}));}})),
+      views:['2D','3D'].map(v=>({label:v,bg:s.view===v?'#ffd84d':'#fff',pick:()=>this.setState({view:v})})),
+      legend:[{c:'#f07a2a',label:'Deteksi satelit, belum tentu kebakaran'},{c:'#f6c9a8',label:'Deteksi keyakinan rendah'},{c:'#d6304a',label:'Front aktif (model)'},{c:'#fff',label:'Perimeter (model)'},{c:'#cfc6b4',label:'Lintasan kepala api (model)'},{c:'#8a5a3a',label:'Keparahan terbakar: rendah → tinggi'},{c:'#a98be6',label:'Area titik awal (perkiraan)'},{c:'#5aa8e6',label:'Water bombing'},{c:'#e9e1cf',label:'Sekat bakar'}],
+      playIcon:s.playing?'❚❚':'▶', playBg:s.playing?'#ffd84d':'transparent', playFg:s.playing?'#16140f':'#f1ebdd',
+      togglePlay:this.togglePlay,
+      prevEvent:()=>{const e=[...EVENTS].reverse().find(e=>e.t<t-0.05);this.setT(e?e.t:0);},
+      nextEvent:()=>{const e=EVENTS.find(e=>e.t>t+0.05);this.setT(e?e.t:T_MAX);},
+      seekTrack:e=>this.seekFrom(e),
+      eventMarks:EVENTS.map(e=>({left:pct(e.t),c:e.c,title:e.title+' · '+tLabel(e.t),ring:last===e?'2px solid #ffd84d':'none'})),
+      passMarks:PASSES.map(p=>{const cloud=p[2].includes('awan');return {left:pct(passT(p)),c:cloud?'transparent':'#f07a2a',b:cloud?'1px dashed #f07a2a':'0'};}),
+      ticks,
+      lastEvent: last?{title:last.title,time:tLabel(last.t),desc:last.desc,c:last.c}:{title:'Belum ada',time:'',desc:'',c:'#5a4f40'},
+      eventsOpen:s.eventsOpen, toggleEvents:()=>this.setState({eventsOpen:!s.eventsOpen}),
+      eventsBtn:(s.eventsOpen?'▾':'▸')+' SEMUA PERISTIWA (9)',
+      events:EVENTS.map(e=>{const active=last===e;return {title:e.title,desc:e.desc,c:e.c,time:tLabel(e.t),bg:active?'#ffd84d':'transparent',fg:active?'#16140f':'#f1ebdd',seek:()=>this.setT(e.t)};}),
+      charts,
+      tablesOpen:s.tablesOpen, toggleTables:()=>this.setState({tablesOpen:!s.tablesOpen}), tablesBtn:(s.tablesOpen?'▾ SEMBUNYIKAN':'▸ TAMPILKAN')+' TABEL',
+      passes:PASSES.map(p=>({time:p[0],sat:p[1],det:p[2]})),
+      modelRows:AREA_T.slice(1).map((x,i)=>({time:tLabel(x),area:fmtN(AREA[i+1]),rate:fmtN(interp(RATE_T,RATE,x))}))
+    };
+  }
+}
+</script>
+</body>
+</html>

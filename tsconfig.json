@@ -1,5 +1,12 @@
 {
-  "include": ["app/**/*", "apps/**/*.ts", "apps/**/*.tsx", "tests/**/*", "vite.config.ts"],
+  "include": [
+    "app/**/*",
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "scripts/**/*.ts",
+    "tests/**/*",
+    "vite.config.ts"
+  ],
   "exclude": ["**/node_modules", "**/dist", "**/.void"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],

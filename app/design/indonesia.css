@@ -1,0 +1,111 @@
+/* Indonesia local seed preview (ADR 0009). It reuses incident.css and adds only
+   the parts that the incident page does not have. */
+
+.d-seed-notice h2 {
+  margin: 0;
+}
+
+.d-seed-notice p,
+.d-seed-notice ol {
+  margin: 0;
+  max-width: 62ch;
+}
+
+.d-seed-notice.is-missing {
+  border-style: dashed;
+}
+
+.d-seed-inline {
+  margin: 0;
+  border: 1.5px dashed var(--d-line);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.875rem;
+}
+
+.ka-d section.d-seed-filters {
+  gap: 4px;
+}
+
+.d-seed-filters .controls {
+  margin-block: 0;
+}
+
+.d-seed-map .map3d {
+  min-height: clamp(420px, 56vh, 640px);
+}
+
+.d-seed-map .d-layers {
+  bottom: auto;
+}
+
+.d-seed-map .d-layers li {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.d-seed-map .map3d-readout {
+  max-width: min(100%, 46rem);
+  white-space: normal;
+}
+
+.d-seed-ramp {
+  display: inline-block;
+  width: 54px;
+  height: 10px;
+  border: 1px solid var(--d-line);
+  vertical-align: middle;
+  background: linear-gradient(
+    90deg,
+    #5c7e52 0%,
+    #7a945e 6%,
+    #a6aa6e 14%,
+    #c4b07c 28%,
+    #aa8662 50%,
+    #8a6a54 70%,
+    #b2a296 85%,
+    #f6f4ee 100%
+  );
+}
+
+.d-seed-source {
+  display: block;
+  margin-top: 2px;
+  color: var(--d-muted);
+  font-size: 0.75rem;
+}
+
+.d-tables tfoot th,
+.d-tables tfoot td {
+  border-top: 1.5px solid var(--d-line);
+  font-weight: 700;
+}
+
+.d-legend ul.d-seed-classes {
+  gap: 4px 14px;
+}
+
+.map3d-label.is-town {
+  translate: -50% -100%;
+  color: #fffdf7;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.9),
+    0 0 6px rgb(0 0 0 / 0.6);
+}
+
+.map3d-label.is-town::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: 2px auto 0;
+  border: 1px solid #16140f;
+  border-radius: 50%;
+  background: #fffdf7;
+}
+
+.map3d-label.is-capital {
+  font-size: 0.75rem;
+  font-weight: 700;
+}

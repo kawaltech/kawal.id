@@ -36,7 +36,9 @@ independent of app requests and database access under
 
 ## Deferred work and open choices
 
-- Interactive 3D is not the default phase after playback. Defer it, modeled fire
+- Interactive 3D is not the default phase after playback.
+  [ADR 0009](0009-3d-incident-prototype.md) adds one synthetic 3D review
+  prototype. It does not change this priority order. Defer it, modeled fire
   spread, fire perimeters, cause attribution, drones, and firefighting-resource
   tracking until a separate decision establishes their value and data support.
 - Assess residents' need for haze, air-quality information, and reviewed guidance

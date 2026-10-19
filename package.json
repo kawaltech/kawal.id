@@ -9,6 +9,10 @@
     "dev:app": "pnpm --filter @kawal/app dev",
     "public:serve": "caddy run --config config/Caddyfile --adapter caddyfile",
     "deploy:preview": "pnpm --filter @kawal/public deploy",
+    "seed:firms": "node scripts/seed-firms.ts",
+    "seed:dem": "node scripts/seed-dem.ts",
+    "seed:features": "node scripts/seed-features.ts",
+    "seed:landcover": "node scripts/seed-landcover.ts",
     "typecheck": "vp check --no-fmt --no-lint",
     "test": "vp test run",
     "lint": "vp lint --deny-warnings",
@@ -19,12 +23,14 @@
     "@void/react": "1.1.11",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "three": "0.186.1",
     "void": "1.1.11"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
     "miniflare": "5.20261012.1-beta",
     "typescript": "7.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.3.0",
@@ -33,5 +39,16 @@
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.0",
+  "workspaces": [
+    ".",
+    "apps/*"
+  ],
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.3.0",
+    "@esbuild-kit/core-utils@3.3.2>esbuild": "0.28.2"
+  },
+  "patchedDependencies": {
+    "@void/deploy-cloudflare@1.1.11": "patches/@void__deploy-cloudflare@1.1.11.patch"
+  }
 }

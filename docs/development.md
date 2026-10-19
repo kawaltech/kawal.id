@@ -80,6 +80,8 @@ Neither command needs an account or a key.
 ```sh
 pnpm seed:firms
 pnpm seed:dem
+pnpm seed:landcover
+pnpm seed:features
 ```
 
 - `seed:firms` downloads the keyless NASA FIRMS 7-day VIIRS NRT files for
@@ -93,6 +95,19 @@ pnpm seed:dem
   `.data/seed/dem/cache/`. It then writes one 30″ (about 0.9 km) Int16 grid
   masked to Indonesia, a JSON description, and a PNG preview. A later run
   reuses each cached tile that has a matching SHA-256.
+- `seed:landcover` reads ESA WorldCover 2021 (v200) for Indonesia. For each
+  3-degree tile, it reads only one internal overview of about 150 m with HTTP
+  range requests (about 15 MB in total), not the 10 m file. It keeps the
+  overviews in `.data/seed/landcover/cache/` and writes a 30″ grid of the
+  majority class, masked to Indonesia.
+- `seed:features` downloads Natural Earth 1:10m rivers, lakes, and populated
+  places (version 5.1.2, public domain) and keeps the features in Indonesia.
+
+With `pnpm dev`, `/rancangan/d/indonesia` shows the seeds on a 3D map. A
+development-server plugin provides the data. The static build does not contain
+it and shows that the data is unavailable. When the view is narrower than about
+450 km, the plugin makes a 2° × 2° detail patch at 6″ (about 185 m) from the
+cached GLO-90 tiles and WorldCover overviews.
 
 Obey these rules:
 
@@ -106,7 +121,9 @@ Obey these rules:
 - A satellite detection is not a confirmed fire. Check the FIRMS
   acknowledgement text before any public use.
 - GLO-90 is a surface model: in forest, a height can show the top of the
-  canopy. [ADR 0010](adr/0010-terrain-elevation-source.md) is a proposal. It
+  canopy. WorldCover is a 2021 classification: plantations are usually in the
+  tree class. Natural Earth 1:10m lines are generalized for a national map.
+  Check the WorldCover licence (reported as CC BY 4.0) before any public use. [ADR 0010](adr/0010-terrain-elevation-source.md) is a proposal. It
   does not permit publication of tiles or derived files.
 
 ## Amp orbs

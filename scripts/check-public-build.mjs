@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, globSync, readFileSync } from "node:fs";
+import { existsSync, globSync, readFileSync, statSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -42,6 +42,22 @@ for (const directory of ["routes", "middleware", "crons", "queues"]) {
     `Keep ${directory} out of the static-only public project`,
   );
 }
+// Local seed data (.data/seed) is for the development server only. Its preview
+// plugin does not run in builds, so any copy in the output is an error.
+for (const path of globSync("**/*", { cwd: output })) {
+  const file = join(output, path);
+  if (!statSync(file).isFile()) continue;
+  assert.ok(
+    !/(^|\/)__seed(\/|$)/.test(path) && !path.endsWith(".i16"),
+    `Keep local seed files out of the build: ${path}`,
+  );
+  if (!/\.(html|json|js|css|txt|map)$/.test(path)) continue;
+  const text = readFileSync(file, "utf8");
+  for (const marker of ["kawal-local-seed/", "Local seed only."]) {
+    assert.ok(!text.includes(marker), `${path} must not contain local seed data`);
+  }
+}
+
 console.log(
-  `Public build checks passed: ${pages.length} complete HTML/JSON pairs; no app backend routes or B reports`,
+  `Public build checks passed: ${pages.length} complete HTML/JSON pairs; no app backend routes, B reports, or local seed data`,
 );

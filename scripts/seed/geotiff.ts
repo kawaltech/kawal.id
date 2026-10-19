@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { inflateSync } from "node:zlib";
 
-export interface Raster {
+export interface Raster<T extends Float32Array | Uint8Array = Float32Array> {
   width: number;
   height: number;
   /** Longitude and latitude of the first sample. See `pixelIsPoint`. */
@@ -18,12 +18,12 @@ export interface Raster {
   pixelIsPoint: boolean;
   epsg: number | null;
   nodata: number | null;
-  values: Float32Array;
+  values: T;
 }
 
 const TYPE_SIZE: Record<number, number> = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 11: 4, 12: 8, 16: 8 };
 
-type Tags = Map<number, number[] | string>;
+export type Tags = Map<number, number[] | string>;
 
 function readTags(view: DataView, offset: number): { tags: Tags; next: number } {
   const count = view.getUint16(offset, true);
@@ -82,27 +82,59 @@ export function undoFloatPredictor(row: Uint8Array, samples: number): Uint8Array
   return result;
 }
 
-/** Read one image of a GeoTIFF file. Image 0 is full resolution; later images are overviews. */
-export function readGeoTiff(file: Uint8Array, image = 0): Raster {
+/** Parse the TIFF header and every IFD. A partial file must contain all IFDs. */
+export function readImages(file: Uint8Array): Tags[] {
   const view = new DataView(file.buffer, file.byteOffset, file.byteLength);
   assert.ok(view.byteLength >= 8, "TIFF is too short");
   assert.ok(view.getUint16(0, false) === 0x4949, "Only little-endian TIFF is supported");
   assert.ok(view.getUint16(2, true) === 42, "Only classic TIFF is supported");
-  let offset = view.getUint32(4, true);
-  let ifd = readTags(view, offset);
-  const geo = ifd.tags;
+  const images: Tags[] = [];
+  for (let offset = view.getUint32(4, true); offset !== 0;) {
+    assert.ok(offset + 2 <= view.byteLength && images.length < 64, "TIFF IFD is outside the data");
+    const ifd = readTags(view, offset);
+    images.push(ifd.tags);
+    offset = ifd.next;
+  }
+  assert.ok(images.length > 0, "TIFF has no image");
+  return images;
+}
+
+/** Byte range [start, end) that holds every tile of one image. */
+export function tileRange(tags: Tags): { start: number; end: number } {
+  const offsets = numbers(tags, 324, "TileOffsets");
+  const counts = numbers(tags, 325, "TileByteCounts");
+  let start = Infinity;
+  let end = 0;
+  offsets.forEach((offset, i) => {
+    start = Math.min(start, offset);
+    end = Math.max(end, offset + counts[i]);
+  });
+  return { start, end };
+}
+
+/** Image width of each IFD, to choose an overview. */
+export const imageWidth = (tags: Tags) => one(tags, 256, "ImageWidth");
+
+/**
+ * Decode one image. `read(offset, count)` returns the file bytes at that
+ * offset. Geographic tags come from image 0; overviews scale them.
+ */
+export function decodeImage(
+  images: Tags[],
+  image: number,
+  read: (offset: number, count: number) => Uint8Array,
+): Raster<Float32Array> | Raster<Uint8Array> {
+  const geo = images[0];
+  const tags = images[image];
+  assert.ok(tags, `TIFF has no image ${image}`);
   const fullWidth = one(geo, 256, "ImageWidth");
   const fullHeight = one(geo, 257, "ImageLength");
-  for (let i = 0; i < image; i++) {
-    offset = ifd.next;
-    assert.ok(offset !== 0, `TIFF has no image ${image}`);
-    ifd = readTags(view, offset);
-  }
-  const { tags } = ifd;
   const width = one(tags, 256, "ImageWidth");
   const height = one(tags, 257, "ImageLength");
-  assert.ok(one(tags, 258, "BitsPerSample") === 32, "Only 32-bit samples are supported");
-  assert.ok(one(tags, 339, "SampleFormat", 1) === 3, "Only floating-point samples are supported");
+  const bits = one(tags, 258, "BitsPerSample");
+  const format = one(tags, 339, "SampleFormat", 1);
+  const float = bits === 32 && format === 3;
+  assert.ok(float || (bits === 8 && format === 1), "Only Float32 or UInt8 samples are supported");
   assert.ok(one(tags, 277, "SamplesPerPixel", 1) === 1, "Only one band is supported");
   assert.ok(
     one(tags, 284, "PlanarConfiguration", 1) === 1,
@@ -111,7 +143,10 @@ export function readGeoTiff(file: Uint8Array, image = 0): Raster {
   const compression = one(tags, 259, "Compression", 1);
   assert.ok([1, 8, 32946].includes(compression), `Unsupported TIFF compression ${compression}`);
   const predictor = one(tags, 317, "Predictor", 1);
-  assert.ok(predictor === 1 || predictor === 3, `Unsupported TIFF predictor ${predictor}`);
+  assert.ok(
+    predictor === 1 || (float && predictor === 3),
+    `Unsupported TIFF predictor ${predictor}`,
+  );
   assert.ok(tags.has(322) && tags.has(323), "Only tiled TIFF is supported");
   const tileWidth = one(tags, 322, "TileWidth");
   const tileHeight = one(tags, 323, "TileLength");
@@ -139,16 +174,14 @@ export function readGeoTiff(file: Uint8Array, image = 0): Raster {
   const nodataText = geo.get(42113);
   const nodata = typeof nodataText === "string" && nodataText.trim() ? Number(nodataText) : null;
 
-  const values = new Float32Array(width * height);
-  const tileBytes = tileWidth * tileHeight * 4;
+  const size = float ? 4 : 1;
+  const bytes = new Uint8Array(width * height * size);
+  const tileBytes = tileWidth * tileHeight * size;
   for (let ty = 0; ty < down; ty++) {
     for (let tx = 0; tx < across; tx++) {
       const index = ty * across + tx;
-      assert.ok(
-        offsets[index] + counts[index] <= file.byteLength,
-        `TIFF tile ${index} is outside the file`,
-      );
-      const chunk = file.subarray(offsets[index], offsets[index] + counts[index]);
+      const chunk = read(offsets[index], counts[index]);
+      assert.ok(chunk.length === counts[index], `TIFF tile ${index} is outside the data`);
       const raw = compression === 1 ? Uint8Array.from(chunk) : new Uint8Array(inflateSync(chunk));
       assert.ok(
         raw.length === tileBytes,
@@ -157,16 +190,16 @@ export function readGeoTiff(file: Uint8Array, image = 0): Raster {
       const rows = Math.min(tileHeight, height - ty * tileHeight);
       const cols = Math.min(tileWidth, width - tx * tileWidth);
       for (let r = 0; r < rows; r++) {
-        let row: Uint8Array = raw.subarray(r * tileWidth * 4, (r + 1) * tileWidth * 4);
+        let row: Uint8Array = raw.subarray(r * tileWidth * size, (r + 1) * tileWidth * size);
         if (predictor === 3) row = undoFloatPredictor(row, tileWidth);
-        const samples = new Float32Array(
-          row.buffer.slice(row.byteOffset, row.byteOffset + cols * 4),
+        bytes.set(
+          row.subarray(0, cols * size),
+          ((ty * tileHeight + r) * width + tx * tileWidth) * size,
         );
-        values.set(samples, (ty * tileHeight + r) * width + tx * tileWidth);
       }
     }
   }
-  return {
+  const common = {
     width,
     height,
     west: tie[3],
@@ -176,6 +209,17 @@ export function readGeoTiff(file: Uint8Array, image = 0): Raster {
     pixelIsPoint,
     epsg,
     nodata,
-    values,
   };
+  return float
+    ? { ...common, values: new Float32Array(bytes.buffer) }
+    : { ...common, values: bytes };
+}
+
+/** Read one Float32 image of a complete GeoTIFF file. Image 0 is full resolution. */
+export function readGeoTiff(file: Uint8Array, image = 0): Raster<Float32Array> {
+  const raster = decodeImage(readImages(file), image, (offset, count) =>
+    file.subarray(offset, offset + count),
+  );
+  assert.ok(raster.values instanceof Float32Array, "Expected Float32 samples");
+  return raster as Raster<Float32Array>;
 }

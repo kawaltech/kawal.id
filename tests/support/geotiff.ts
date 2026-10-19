@@ -25,7 +25,8 @@ export function encodeGeoTiff(options: {
   height: number;
   tileWidth: number;
   tileHeight: number;
-  values: Float32Array;
+  /** Float32 samples, or UInt8 classes (written without a predictor). */
+  values: Float32Array | Uint8Array;
   west: number;
   north: number;
   scale: number;
@@ -34,13 +35,17 @@ export function encodeGeoTiff(options: {
   pixelIsPoint?: boolean;
 }): Uint8Array {
   const { width, height, tileWidth, tileHeight, values, west, north, scale } = options;
-  const { compression = 8, predictor = 3, pixelIsPoint = true } = options;
+  const float = values instanceof Float32Array;
+  const { compression = 8, pixelIsPoint = true } = options;
+  const predictor = float ? (options.predictor ?? 3) : 1;
   const across = Math.ceil(width / tileWidth);
   const down = Math.ceil(height / tileHeight);
   const tiles: Uint8Array[] = [];
   for (let ty = 0; ty < down; ty++) {
     for (let tx = 0; tx < across; tx++) {
-      const tile = new Float32Array(tileWidth * tileHeight);
+      const tile = float
+        ? new Float32Array(tileWidth * tileHeight)
+        : new Uint8Array(tileWidth * tileHeight);
       for (let r = 0; r < tileHeight; r++) {
         for (let c = 0; c < tileWidth; c++) {
           const row = ty * tileHeight + r;
@@ -61,7 +66,7 @@ export function encodeGeoTiff(options: {
   const entries: Entry[] = [
     { tag: 256, type: 3, values: [width] },
     { tag: 257, type: 3, values: [height] },
-    { tag: 258, type: 3, values: [32] },
+    { tag: 258, type: 3, values: [float ? 32 : 8] },
     { tag: 259, type: 3, values: [compression] },
     { tag: 262, type: 3, values: [1] },
     { tag: 277, type: 3, values: [1] },
@@ -71,7 +76,7 @@ export function encodeGeoTiff(options: {
     { tag: 323, type: 3, values: [tileHeight] },
     { tag: 324, type: 4, values: tiles.map(() => 0) },
     { tag: 325, type: 4, values: tiles.map((tile) => tile.length) },
-    { tag: 339, type: 3, values: [3] },
+    { tag: 339, type: 3, values: [float ? 3 : 1] },
     { tag: 33550, type: 12, values: [scale, scale, 0] },
     { tag: 33922, type: 12, values: [0, 0, 0, west, north, 0] },
     {

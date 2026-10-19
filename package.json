@@ -11,6 +11,8 @@
     "deploy:preview": "pnpm --filter @kawal/public deploy",
     "seed:firms": "node scripts/seed-firms.ts",
     "seed:dem": "node scripts/seed-dem.ts",
+    "seed:features": "node scripts/seed-features.ts",
+    "seed:landcover": "node scripts/seed-landcover.ts",
     "typecheck": "vp check --no-fmt --no-lint",
     "test": "vp test run",
     "lint": "vp lint --deny-warnings",

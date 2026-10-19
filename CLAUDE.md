@@ -10,8 +10,9 @@ Use ASD-STE100 Simplified Technical English for English prose.
 - `pnpm build`: build both targets and validate complete public prerenders.
 - `node scripts/check-public.mjs <url>`: check the Caddy static origin.
 - `amp orb services ensure`: supervised public dev, app dev, and Caddy.
-- `pnpm seed:firms`, `pnpm seed:dem`: optional real FIRMS and GLO-90 seeds in
-  ignored `.data/seed/`. Local inspection only; no page, build, or test reads them.
+- `pnpm seed:firms`, `pnpm seed:dem`, `pnpm seed:landcover`, `pnpm seed:features`:
+  optional real FIRMS, GLO-90, ESA WorldCover, and Natural Earth seeds in ignored
+  `.data/seed/`. Only the development server reads them; builds and tests do not.
 
 The workspace build scripts use native `vp build`; dev scripts use `vp dev`.
 Use the pinned Node.js, pnpm, and Vite+ versions. Run toolchain commands in a
@@ -66,7 +67,8 @@ Preserve option B and its Cukup-inspired appearance. Shared design code is in
 warnings and `noindex`. Do not start a redesign. New visual design work needs a
 separate user request and the agreed Claude Code Opus 5.5 route.
 `/rancangan/d` is a synthetic 3D incident prototype (ADR 0009). It is not
-product scope and does not lift the ADR 0007 deferrals.
+product scope and does not lift the ADR 0007 deferrals. `/rancangan/d/indonesia`
+shows the local seeds only through the development server; the build has none.
 
 ## Operations
 

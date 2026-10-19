@@ -44,6 +44,37 @@ It does not change the ADR 0007 priority order for product work.
   The template loads Geist from Google Fonts. The page uses system fonts
   instead, because ADR 0003 prohibits remote fonts.
 
+## Local seed preview (19 October 2026)
+
+On 19 October 2026, the user requested an Indonesia map from `/rancangan/d`
+that uses the local FIRMS and DEM seeds. This amendment adds
+`/rancangan/d/indonesia`. The synthetic incident page does not change.
+
+- The page shows NASA FIRMS VIIRS NRT detections from NOAA-20 and NOAA-21 for
+  the last 7 days, Copernicus DEM GLO-90 heights in 30″ cells, ESA WorldCover
+  2021 land cover, and Natural Earth 1:10m rivers, lakes, and places, over
+  Indonesia. The `pnpm seed:*` commands make the data. On 19 October 2026 the
+  user also approved the land cover, the Natural Earth layers, and finer
+  terrain on zoom.
+- When the view is narrow, the development server makes a 2° × 2° detail
+  patch at 6″ from the cached tiles. The relief exaggeration falls as the view
+  narrows, to 1.5× in a local view.
+- Only the local development server provides the data. A Vite plugin with
+  `apply: "serve"` reads `.data/seed` and sends compact files under
+  `/__seed/indonesia/`. The plugin does not run in builds. The static build and
+  the public site show a notice that the data is unavailable.
+  `check-public-build.mjs` rejects seed files and seed markers in the output.
+- The page draws all layers in the browser from local files. It loads no
+  remote tiles, images, or fonts.
+- Orange stays reserved for satellite detections. The page states that a
+  detection is not a confirmed fire. It shows the source and download times,
+  and a table of the same filtered data.
+- Island groups come from the simplified Natural Earth outline, not from
+  approved province boundaries. The tables list them in alphabetical order.
+- This is not product scope. It does not accept ADR 0010, the satellite-release
+  plan, or a publication path. It does not lift the ADR 0007 deferrals. Do not
+  deploy seed data.
+
 ## Consequences
 
 - The prototype adds about 140 kB (gzip) of 3D code to `/rancangan/d` only.

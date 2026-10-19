@@ -73,6 +73,21 @@ test.each(["index", "rancangan/b"])("keep reports out of %s navigation data", (n
   expect(spawnSync(process.execPath, [check, root]).status).not.toBe(0);
 });
 
+test.each([
+  ["__seed/indonesia/meta.json", "{}"],
+  ["assets/indonesia-glo90-30s.i16", ""],
+  [
+    "_void/pages/index.json",
+    JSON.stringify({ props: { notice: "Local seed only." }, errors: null }),
+  ],
+  ["assets/seed.js", 'const kind = "kawal-local-seed/firms";'],
+])("keep local seed data out of the build: %s", (path, content) => {
+  const root = publicProject();
+  mkdirSync(join(root, "dist/client", path, ".."), { recursive: true });
+  writeFileSync(join(root, "dist/client", path), content);
+  expect(spawnSync(process.execPath, [check, root]).status).not.toBe(0);
+});
+
 test("reject backend conventions in the static public target", () => {
   const root = publicProject();
   mkdirSync(join(root, "routes"));

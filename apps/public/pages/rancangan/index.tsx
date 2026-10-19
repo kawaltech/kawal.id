@@ -101,12 +101,18 @@ export default function DesignIndex() {
                   spread.
                 </p>
                 <p className="muted">
-                  The user requested this prototype on 18 October 2026. It does not replace option B.
-                  ADR 0009 records the exception to the 3D deferral in ADR 0007.
+                  The user requested this prototype on 18 October 2026. It does not replace option
+                  B. ADR 0009 records the exception to the 3D deferral in ADR 0007.
                 </p>
                 <p className="small muted">
-                  The terrain is generated in the browser. The page loads no remote map tiles, images,
-                  or fonts. It contains no field reports.
+                  The terrain is generated in the browser. The page loads no remote map tiles,
+                  images, or fonts. It contains no field reports.
+                </p>
+                <p className="small muted">
+                  <Link href="/rancangan/d/indonesia">Indonesia map with local seed data</Link>:
+                  real FIRMS detections and Copernicus GLO-90 heights. Only the local development
+                  server provides the data, from <code>.data/seed</code>. The static build shows
+                  that the data is unavailable. The user requested this map on 19 October 2026.
                 </p>
               </div>
             </li>
@@ -132,7 +138,10 @@ export default function DesignIndex() {
                   We change the paper to a greyer tone. Orange is only for satellite detections.
                   Yellow marks a selected control.
                 </li>
-                <li>The pages use system fonts. Map shapes and images are local files. There are no remote fonts, map tiles, or images.</li>
+                <li>
+                  The pages use system fonts. Map shapes and images are local files. There are no
+                  remote fonts, map tiles, or images.
+                </li>
               </ul>
             </div>
             <div>

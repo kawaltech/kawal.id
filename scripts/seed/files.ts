@@ -50,7 +50,10 @@ export async function download(
         throw error;
       }
       const body = Buffer.from(await response.arrayBuffer());
-      const length = response.headers.get("content-length");
+      // With a content encoding, Content-Length counts the encoded bytes.
+      const encoding = response.headers.get("content-encoding");
+      const length =
+        encoding && encoding !== "identity" ? null : response.headers.get("content-length");
       if (length !== null && Number(length) !== body.length) {
         throw new Error(`${url} ended after ${body.length} of ${length} bytes`);
       }

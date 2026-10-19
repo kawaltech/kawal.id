@@ -1,0 +1,88 @@
+.tanya-review {
+  max-width: 62rem;
+  margin: auto;
+  padding: 2rem 1rem 7rem;
+}
+
+.tanya-review button {
+  min-height: 44px;
+  padding: 0.6rem 0.9rem;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tanya-review .tanya-launcher {
+  position: fixed;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  box-shadow: var(--shadow);
+  font-weight: 700;
+}
+
+.tanya-panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(29rem, 100%);
+  height: 100dvh;
+  max-height: 100dvh;
+  max-width: 100%;
+  margin: 0;
+  padding: 1.25rem;
+  overflow: auto;
+  border: var(--border);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.tanya-panel::backdrop {
+  background: #0005;
+}
+
+.tanya-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tanya-heading h2 {
+  margin: 0;
+}
+
+.tanya-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.tanya-tabs button {
+  flex: 1;
+}
+
+.tanya-tabs button[aria-selected="true"] {
+  background: var(--sun);
+  color: var(--on-pastel);
+}
+
+.tanya-content:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+@media (max-width: 899px) {
+  .tanya-panel {
+    inset: auto 0 0;
+    width: 100%;
+    height: 88dvh;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+}

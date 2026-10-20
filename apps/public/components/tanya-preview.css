@@ -19,7 +19,7 @@
   position: fixed;
   bottom: max(1rem, env(safe-area-inset-bottom));
   left: 50%;
-  transform: translateX(-50%);
+  translate: -50% 0;
   width: max-content;
   max-width: calc(100% - 2rem);
   box-shadow: var(--shadow);
